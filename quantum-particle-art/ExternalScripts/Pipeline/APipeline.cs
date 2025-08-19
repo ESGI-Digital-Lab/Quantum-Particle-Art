@@ -3,7 +3,6 @@ using System.Linq;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
-using Visuals.Shaders.ComputeShader.Scripts;
 
 //Shortcut when we don't need explicitley the type of the steps in the pipeline logic
 public abstract class APipeline<TInit, T> : APipeline<TInit, T, IStep<T>> where TInit : class

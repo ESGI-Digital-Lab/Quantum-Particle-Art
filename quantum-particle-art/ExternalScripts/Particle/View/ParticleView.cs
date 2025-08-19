@@ -8,16 +8,8 @@ using Object = System.Object;
 public class ParticleView : MonoBehaviour, IView<Particle, ParticleWorld>
 {
     [SerializeField, Header("Settings")] private bool _showOnlyChilds = false;
-
-    [Header("References")] [SerializeField]
-    private Renderer _renderer;
-
-    [FormerlySerializedAs("_root")] [SerializeField]
-    private Transform _pos;
-
-    [SerializeField] private Transform _scale;
-    [SerializeField] private LineRenderer _line;
-    [SerializeReference] private Particle particle;
+    
+    private Particle particle;
     private static Dictionary<Orientation, Particle> mapBack;
     private Tuple<ParticleView, ParticleView> _childs;
     ParticleWorld _world;
@@ -30,8 +22,7 @@ public class ParticleView : MonoBehaviour, IView<Particle, ParticleWorld>
         mapBack.TryAdd(info.Orientation, particle);
         if (world != null)
         {
-            _renderer.material.color = color;
-            _scale.localScale = Vector3.one * (world.Ruleset.DiskSize / (world.Bounds.x + world.Bounds.y) / 2);
+            
         }
     }
 
@@ -43,13 +34,13 @@ public class ParticleView : MonoBehaviour, IView<Particle, ParticleWorld>
             this.ToggleView(!_showOnlyChilds);
             if (_childs == null)
             {
-                var c1 = Instantiate(this, transform.parent);
-                c1.InitView(info.Superposition.Item1, null, _renderer.material.color);
-                c1.gameObject.name = $"Super1 of {gameObject.name} 1";
-                var c2 = Instantiate(this, transform.parent);
-                c2.InitView(info.Superposition.Item2, null, _renderer.material.color);
-                c2.gameObject.name = $"Super2 of {gameObject.name} 1";
-                _childs = new(c1, c2);
+                //var c1 = Instantiate(this, transform.parent);
+                //c1.InitView(info.Superposition.Item1, null, _renderer.material.color);
+                //c1.gameObject.name = $"Super1 of {gameObject.name} 1";
+                //var c2 = Instantiate(this, transform.parent);
+                //c2.InitView(info.Superposition.Item2, null, _renderer.material.color);
+                //c2.gameObject.name = $"Super2 of {gameObject.name} 1";
+                //_childs = new(c1, c2);
             }
 
             _childs.Item1.UpdateView(info.Superposition.Item1);
@@ -86,18 +77,18 @@ public class ParticleView : MonoBehaviour, IView<Particle, ParticleWorld>
             _childs = null;
         }
 
-        GameObject.Destroy(this.gameObject);
+        //GameObject.Destroy(this.gameObject);
     }
 
     private void ToggleView(bool state)
     {
-        _renderer.gameObject.SetActive(state);
+        //_renderer.gameObject.SetActive(state);
     }
 
     public void UpdateView(Orientation Orientation)
     {
         ToggleView(true);
-        _pos.position = ViewHelpers.WorldPosition(particle, _pos);
+        //_pos.position = ViewHelpers.WorldPosition(particle, _pos);
         ApplyOrientation(Orientation);
         //if (Orientation.NormalizedSpeed <= 0.0f)
         //    _renderer.material.color = Color.gray;
@@ -106,8 +97,8 @@ public class ParticleView : MonoBehaviour, IView<Particle, ParticleWorld>
             LineTo(Orientation.Entanglement, ViewHelpers.ENT);
         else if (Orientation.IsTeleported)
             LineTo(Orientation.Teleportation, ViewHelpers.TEL);
-        else
-            _line.SetPositions(Array.Empty<Vector3>());
+        //else
+        //    _line.SetPositions(Array.Empty<Vector3>());
     }
 
     private void LineTo(Orientation to, Color color)
@@ -119,23 +110,12 @@ public class ParticleView : MonoBehaviour, IView<Particle, ParticleWorld>
     {
         if (mapBack.TryGetValue(to, out var target))
         {
-            _line.SetPositions(new[]
-            {
-                ViewHelpers.WorldPosition(from, _pos),
-                ViewHelpers.WorldPosition(target, _pos)
-            });
-            //_line.colorGradient = new Gradient()
-            //{
-            //    alphaKeys = new GradientAlphaKey[] { new(1, 0f) },
-            //    colorKeys = new GradientColorKey[] { new(color, 0f) }
-            //};
-            _line.material.color = color;
+           
         }
     }
 
     private void ApplyOrientation(Orientation or)
     {
         var deg = or.Degrees;
-        _pos.localEulerAngles = new Vector3(0f, deg, 0f);
     }
 }

@@ -3,21 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using Object = Godot.GodotObject;
 
 public static class ViewHelpers
 {
-    public static Vector3 WorldPosition(Particle particle, Transform root)
-    {
-        return WorldPosition(particle.NormalizedPosition, root);
-    }
-
-    public static Vector3 WorldPosition(Vector2 position, Transform root)
-    {
-        return root.parent.localToWorldMatrix * new Vector3(position.x, 0, position.y);
-    }
-
-
+    
     public static readonly Color SUP = Color.red;
     public static readonly Color MEA = new Color(0.5f, 0, 0);
     public static readonly Color ENT = Color.green;
