@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Object = Godot.GodotObject;
+using Object = UnityEngine.MonoBehaviour;
 
 public static class ViewHelpers
 {
