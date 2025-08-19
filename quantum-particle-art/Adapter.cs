@@ -3,19 +3,25 @@ using System;
 
 namespace UnityEngine
 {
-    public abstract partial class MonoBehaviour : GodotObject
-    {
+    public partial class MonobehaviourAdapter : GodotObject{
+        private MonoBehaviour _monoBehaviour;
+        public MonobehaviourAdapter(MonoBehaviour monoBehaviour)
+        {
+            _monoBehaviour = monoBehaviour;
+        }
         public void _Ready()
         {
-            Awake();
-            Start();
+            _monoBehaviour.Awake();
+            _monoBehaviour.Start();
         }
         public void _Process(float delta)
         {
             Time.deltaTime = delta;
-            Update();
+            _monoBehaviour.Update();
         }
-
+    }
+    public abstract partial class MonoBehaviour 
+    {
         public virtual void Start(){}
         public virtual void Awake(){}
         public virtual void Update(){}
