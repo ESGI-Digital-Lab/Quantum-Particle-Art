@@ -1,0 +1,20 @@
+<Project Sdk="Godot.NET.Sdk/4.4.1">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>QuantumParticleArt</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="ExternalScripts\NaughtyAttributes\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\DrawerAttributes.meta" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\DrawerAttributes_SpecialCase.meta" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\INaughtyAttribute.cs.meta" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\MetaAttributes.meta" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\NaughtyAttributes.Core.asmdef" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\NaughtyAttributes.Core.asmdef.meta" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\Utility.meta" />
+    <Content Include="ExternalScripts\NaughtyAttributes\Core\ValidatorAttributes.meta" />
+  </ItemGroup>
+</Project>
