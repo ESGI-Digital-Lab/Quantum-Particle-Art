@@ -51,11 +51,6 @@ public class ParticleSimulation : APipeline<WorldInitializer, ParticleWorld>
         yield break;
     }
 
-    protected override IEnumerator Updated(ParticleWorld step)
-    {
-        yield break;
-    }
-
     protected override ParticleWorld GetLast(IStep<ParticleWorld> step)
     {
         return _world;

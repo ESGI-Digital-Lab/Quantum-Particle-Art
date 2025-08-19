@@ -1,30 +1,98 @@
 using Godot;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace UnityEngine
 {
-    public partial class MonobehaviourAdapter : GodotObject{
+    public partial class MonobehaviourAdapter : Node
+    {
         private MonoBehaviour _monoBehaviour;
+        private CancellationToken _token;
+
         public MonobehaviourAdapter(MonoBehaviour monoBehaviour)
         {
             _monoBehaviour = monoBehaviour;
+            _monoBehaviour.SetNode(this);
         }
+        
         public void _Ready()
         {
-            _monoBehaviour.Awake();
-            _monoBehaviour.Start();
-        }
-        public void _Process(float delta)
-        {
-            Time.deltaTime = delta;
-            _monoBehaviour.Update();
+            Task.Run(async () =>
+            {
+                await _monoBehaviour.Awake();
+                await _monoBehaviour.Start();
+                await Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        if (_token.IsCancellationRequested)
+                            break;
+                        await Task.Delay(160);
+                        await _monoBehaviour.Update();
+                    }
+                    _monoBehaviour.Dispose();
+                });
+            });
         }
     }
-    public abstract partial class MonoBehaviour 
+    public abstract partial class MonoBehaviour
     {
-        public virtual void Start(){}
-        public virtual void Awake(){}
-        public virtual void Update(){}
+        private Node _node;
+        public void SetNode(Node node)
+        {
+            _node = node;
+        }
+
+        protected T[] GetComponentsInChildren<T>(bool _)
+        {
+            // This is a placeholder for the actual implementation
+            // In Godot, you would typically use GetNode<T>() or GetParent().GetNode<T>()
+            return _node.GetChildren().OfType<T>().ToArray();
+        }
+
+        public async virtual Task Start()
+        {
+        }
+
+        public async virtual Task  Awake()
+        {
+        }
+
+        public async virtual Task Update()
+        {
+        }
+
+        public virtual void Dispose()
+        {
+            
+        }
+    }
+
+    public static class Debug
+    {
+        public static void Log(object message)
+        {
+            GD.Print(message);
+        }
+
+        public static void LogError(object message)
+        {
+            GD.PrintErr(message);
+        }
+
+        public static void LogWarning(object message)
+        {
+            GD.Print("warning :" + message);
+        }
+    }
+
+    public static class Time
+    {
+        public static float deltaTime;
     }
 
     public struct Transform
@@ -35,23 +103,42 @@ namespace UnityEngine
         {
             _transform = transform;
         }
+
         public static implicit operator Godot.Transform3D(Transform transform)
         {
             return transform._transform;
         }
+
         public static implicit operator Transform(Godot.Transform3D transform)
         {
             return new Transform(transform);
         }
     }
+
+    #region Sync
+
     public class WaitForSeconds
     {
         private float _seconds;
+
         public WaitForSeconds(float seconds)
         {
             this._seconds = seconds;
         }
     }
+
+    public class WaitUntil
+    {
+        private Func<bool> _condition;
+
+        public WaitUntil(Func<bool> condition)
+        {
+            this._condition = condition;
+        }
+    }
+
+    #endregion
+
 
     public partial class Texture : Godot.Texture
     {
@@ -59,20 +146,18 @@ namespace UnityEngine
 
     public partial class Texture2D : Godot.Texture2D
     {
-        public Texture2D(int width, int height) 
+        public Texture2D(int width, int height)
         {
             GD.PrintErr("interfacing not handled");
         }
     }
 
-    public static class Time
-    {
-        public static float deltaTime;
-    }
+
     public class Random
     {
         public static float Range(float min, float max) =>
             (float)GD.RandRange(min, max);
+
         public static Color ColorHSV() => Color.ColorHSV(Range(0f, 1f), Range(0f, 1f), Range(0f, 1f));
     }
 
@@ -82,12 +167,14 @@ namespace UnityEngine
         {
             public static void IsTrue(bool condition, string message = null)
             {
-                #if DEBUG
+#if DEBUG
                 if (!condition)
                     GD.PrintErr("Assertion failed: ", message ?? "Condition is false.");
-                #endif
+#endif
             }
+
             public static void IsFalse(bool condition, string message = null) => Assert.IsTrue(!condition, message);
+            public static void IsNotNull(object obj, string message = null) => Assert.IsTrue(obj == null, message);
         }
     }
 
@@ -105,6 +192,7 @@ namespace UnityEngine
         public static float Deg2Rad => (float)(Math.PI / 180.0);
         public static float Rad2Deg => (float)(180.0 / Math.PI);
         public static float Repeat(float t, float length) => t - (float)Math.Floor(t / length) * length;
+
         public static float InverseLerp(float a, float b, float value)
         {
             if (a == b) return 0f; // Avoid division by zero
@@ -116,32 +204,37 @@ namespace UnityEngine
     {
         private Godot.Vector2I _vector;
         public Vector2Int(int x, int y) => _vector = new(x, y);
+
         public int x
         {
             get => _vector.X;
             set => _vector.X = value;
         }
+
         public int y
         {
             get => _vector.Y;
             set => _vector.Y = value;
         }
     }
+
     public struct Vector2
     {
         private Godot.Vector2 _vector;
         public float magnitude => _vector.Length();
         public float sqrMagnitude => _vector.LengthSquared();
         public Vector2 normalized => _vector.Normalized();
-        
-        public static float Distance( Vector2 a, Vector2 b)
+
+        public static float Distance(Vector2 a, Vector2 b)
         {
             return a._vector.DistanceTo(b._vector);
         }
+
         public static Vector2 Lerp(Vector2 a, Vector2 b, float t)
         {
             return a._vector.Lerp(b._vector, t);
         }
+
         public float x
         {
             get => _vector.X;
@@ -178,10 +271,12 @@ namespace UnityEngine
         {
             return a._vector + b._vector;
         }
-        public static Vector2 operator  -(Vector2 v)
+
+        public static Vector2 operator -(Vector2 v)
         {
             return -v._vector;
         }
+
         public static Vector2 operator -(Vector2 a, Vector2 b)
         {
             return a._vector - b._vector;
@@ -196,6 +291,7 @@ namespace UnityEngine
         {
             return a._vector / b._vector;
         }
+
         public static Vector2 operator /(Vector2 a, float b)
         {
             return a._vector / b;
@@ -209,29 +305,35 @@ namespace UnityEngine
         public static Vector2 zero = new Vector2(0, 0);
         public static Vector2 one = new Vector2(1, 1);
     }
+
     public struct Vector3
     {
         private Godot.Vector3 _vector;
+
         public float x
         {
             get => _vector.X;
             set => _vector.X = value;
         }
+
         public float y
         {
             get => _vector.Y;
             set => _vector.Y = value;
         }
+
         public float z
         {
             get => _vector.Z;
             set => _vector.Z = value;
         }
+
         public Vector3(float x, float y, float z)
         {
             _vector = new Godot.Vector3(x, y, z);
         }
     }
+
     public struct Color
     {
         private Godot.Color color;
@@ -242,30 +344,37 @@ namespace UnityEngine
         public static Color green => new Color(0, 1, 0);
         public static Color blue => new Color(0, 0, 1);
         public static Color yellow => new Color(1, 1, 0);
+
         public float r
         {
             get => color.R;
             set => color.R = value;
         }
+
         public float g
         {
             get => color.G;
             set => color.G = value;
         }
+
         public float b
         {
             get => color.B;
             set => color.B = value;
         }
-        public static Color Lerp(Color a, Color b, float t)=> new Color(a.color.Lerp(b.color, t));
+
+        public static Color Lerp(Color a, Color b, float t) => new Color(a.color.Lerp(b.color, t));
+
         public Color(float r, float g, float b, float a = 1f)
         {
             color = new Godot.Color(r, g, b, a);
         }
+
         public Color(Godot.Color color)
         {
             this.color = color;
         }
+
         public static Color ColorHSV(float h, float s, float v, float a = 1f)
         {
             // Godot's Color constructor uses RGB, so we need to convert HSV to RGB
@@ -306,13 +415,14 @@ namespace UnityEngine
 
     public class ScriptableObject
     {
-        
     }
+
     public class CreateAssetMenuAttribute : Attribute
     {
         public string fileName;
         public string menuName;
         public int order;
+
         public CreateAssetMenuAttribute(string fileName = "", string menuName = "", int order = 0)
         {
             this.fileName = fileName;
@@ -320,6 +430,7 @@ namespace UnityEngine
             this.order = order;
         }
     }
+
     public class SerializeFieldAttribute : Attribute
     {
     }

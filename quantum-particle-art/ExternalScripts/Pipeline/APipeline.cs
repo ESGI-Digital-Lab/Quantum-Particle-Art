@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
+using Godot;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -7,7 +8,6 @@ using UnityEngine.Assertions;
 //Shortcut when we don't need explicitley the type of the steps in the pipeline logic
 public abstract class APipeline<TInit, T> : APipeline<TInit, T, IStep<T>> where TInit : class
 {
-    
 }
 public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : class where TStep : IStep<T>
 {
@@ -28,7 +28,7 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
     [SerializeField, Range(-1, 10f)] protected float _delay;
     private TStep _last;
 
-    public IEnumerator Restart(TInit init)
+    public IEnumerator Restart(TInit init,Node node)
     {
         Dispose();
         _info = init;
@@ -49,20 +49,14 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
                 Debug.LogWarning("Prewarming only once, with first input " + step.GetType().Name);
             yield return step.Init(firstInput);
         }
-        StartCoroutine(RaiseUpdateRoutine(firstInput, "all finished initializing"));
 
         Assert.IsNotNull(init, "Init values not found");
-        if (_logInit)
-            Debug.LogWarning("Init values : " +
-                             init.GetType().Name + "and steps : " + string.Join("\n",
-                                 _steps.Select(st => st.GetType().Name + " on " + (st as Component).gameObject.name)));
+        //if (_logInit)
+        //    Debug.LogWarning("Init values : " +
+        //                     init.GetType().Name + "and steps : " + string.Join("\n",
+        //                         _steps.Select(st => st.GetType().Name + " on " + (st as Component).gameObject.name)));
         yield return Sync();
         yield return StepEnumerator();
-    }
-    private IEnumerator Start()
-    {
-        var init = GetComponentInChildren<TInit>(false);
-        yield return Restart(init);
     }
     private IEnumerator StepEnumerator()
     {
@@ -80,7 +74,7 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
 
                 var input = GetInput(step);
                 yield return step.Step(input, _delay);
-                yield return ShaderCommons.Sync(_delay);
+                yield return Sync(_delay);
                 last = GetLast(step);
                 yield return Sync();
                 yield return Stepped(step, last);
@@ -90,13 +84,10 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
 
 
             yield return Sync();
-            if (_finalUpdateOnly)
-                yield return RaiseUpdateRoutine(last, "all finished a cycle");
         }
     }
-    public void Dispose()
+    public override void Dispose()
     {
-        StopAllCoroutines();
         if (_steps != null)
             foreach (var step in _steps)
                 step.Release();
@@ -106,17 +97,10 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
     protected abstract T GetInput(TStep step);
     protected abstract IEnumerator Sync(float delay);
     protected abstract IEnumerator Stepped(TStep step, T result);
-    protected abstract IEnumerator Updated(T step);
     protected abstract T GetLast(TStep step);
     protected abstract void Disposed();
 
     protected IEnumerator Sync() => Sync(_delay);
-    protected IEnumerator RaiseUpdateRoutine(T step, string stepName)
-    {
-        yield return Updated(step);
-        if (_logSteps)
-            Debug.LogWarning("Step : " + stepName + " completed");
-    }
     
     [Button]
     public void StepOnce()
