@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Linq;
-using NaughtyAttributes.Test;
 using UnityEngine;
 using UnityEngine.Serialization;
 
