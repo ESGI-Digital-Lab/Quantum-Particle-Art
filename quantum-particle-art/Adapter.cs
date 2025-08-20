@@ -23,8 +23,8 @@ namespace UnityEngine
         {
             Task.Run(async () =>
             {
-                await _monoBehaviour.Awake();
-                await _monoBehaviour.Start();
+                await Run(_monoBehaviour.Awake());
+                await Run(_monoBehaviour.Start());
                 await Task.Run(async () =>
                 {
                     while (true)
@@ -32,11 +32,19 @@ namespace UnityEngine
                         if (_token.IsCancellationRequested)
                             break;
                         await Task.Delay(160);
-                        await _monoBehaviour.Update();
+                        await Run(_monoBehaviour.Update());
                     }
                     _monoBehaviour.Dispose();
                 });
             });
+        }
+
+        private async Task Run(IEnumerator<AsyncEnumerator> fun)
+        {
+            while (fun.MoveNext())
+            {
+                await fun.Current.WaitForFinished();
+            }
         }
     }
     public abstract partial class MonoBehaviour
@@ -54,16 +62,19 @@ namespace UnityEngine
             return _node.GetChildren().OfType<T>().ToArray();
         }
 
-        public async virtual Task Start()
+        public virtual IEnumerator<AsyncEnumerator> Start()
         {
+            yield break;
         }
 
-        public async virtual Task  Awake()
+        public virtual IEnumerator<AsyncEnumerator>  Awake()
         {
+            yield break;
         }
 
-        public async virtual Task Update()
+        public virtual IEnumerator<AsyncEnumerator> Update()
         {
+            yield break;
         }
 
         public virtual void Dispose()
@@ -117,23 +128,45 @@ namespace UnityEngine
 
     #region Sync
 
-    public class WaitForSeconds
+    public abstract class AsyncEnumerator
+    {
+        protected abstract bool IsFinished();
+        public async Task WaitForFinished()
+        {
+            while (!IsFinished())
+            {
+                await Task.Delay(80);
+            }
+        }
+    }
+    public class WaitForSeconds : AsyncEnumerator
     {
         private float _seconds;
-
+        private DateTime _start;
         public WaitForSeconds(float seconds)
         {
             this._seconds = seconds;
+            this._start = DateTime.Now;
+        }
+
+        protected override bool IsFinished()
+        {
+            return DateTime.Now - _start >= TimeSpan.FromSeconds(_seconds);
         }
     }
 
-    public class WaitUntil
+    public class WaitUntil : AsyncEnumerator
     {
         private Func<bool> _condition;
 
         public WaitUntil(Func<bool> condition)
         {
             this._condition = condition;
+        }
+        protected override bool IsFinished()
+        {
+            var result = _condition.Invoke();
+            return result;
         }
     }
 
