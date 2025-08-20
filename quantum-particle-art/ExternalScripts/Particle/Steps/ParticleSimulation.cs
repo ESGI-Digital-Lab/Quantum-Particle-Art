@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class ParticleStep : MonoBehaviour, IStep<ParticleWorld>, IInit<WorldInitializer>
@@ -29,7 +30,7 @@ public class ParticleSimulation : APipeline<WorldInitializer, ParticleWorld>
 {
     ParticleWorld _world;
 
-    protected override IEnumerator Init(WorldInitializer init)
+    protected override IEnumerator<AsyncEnumerator> Init(WorldInitializer init)
     {
         var _worldSize = init.Size;
         _world = new ParticleWorld(init.RandomCollection(), init.Points(), _worldSize, init.Init.Rules);
@@ -41,7 +42,7 @@ public class ParticleSimulation : APipeline<WorldInitializer, ParticleWorld>
         return _world;
     }
 
-    protected override IEnumerator Sync(float delay)
+    protected override IEnumerator<AsyncEnumerator> Sync(float delay)
     {
         yield break;
     }

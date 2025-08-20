@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using NaughtyAttributes;
@@ -28,7 +29,7 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
     [SerializeField, Range(-1, 10f)] protected float _delay;
     private TStep _last;
 
-    public IEnumerator Restart(TInit init,Node node)
+    public IEnumerator<AsyncEnumerator> Restart(TInit init)
     {
         Dispose();
         _info = init;
@@ -58,14 +59,16 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
         yield return Sync();
         yield return StepEnumerator();
     }
-    private IEnumerator StepEnumerator()
+    private IEnumerator<AsyncEnumerator> StepEnumerator()
     {
         T last = default;
         while (_steps != null && _steps.Length > 0)
         {
             foreach (var step in _steps)
             {
-                yield return Sync();
+                var sync = Sync();
+                while(sync.MoveNext())
+                    yield return sync.Current;
                 if (!_autoRun)
                 {
                     yield return new WaitUntil(() => _manualStep || _manualCycle);
@@ -73,17 +76,26 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
                 }
 
                 var input = GetInput(step);
-                yield return step.Step(input, _delay);
-                yield return Sync(_delay);
+                var stepp = step.Step(input, _delay);;
+                while(stepp.MoveNext())
+                    yield return stepp.Current;
+                sync = Sync();
+                while(sync.MoveNext())
+                    yield return sync.Current;
                 last = GetLast(step);
-                yield return Sync();
-                yield return Stepped(step, last);
+                sync = Sync();
+                while(sync.MoveNext())
+                    yield return sync.Current;
+                var stepped = Stepped(step, last);
+                while(stepped.MoveNext())
+                    yield return stepped.Current;
             }
 
             _manualCycle = false; // Reset manual cycle flag
 
-
-            yield return Sync();
+            var lastSync = Sync();
+            while(lastSync.MoveNext())
+                yield return lastSync.Current;
         }
     }
     public override void Dispose()
@@ -93,14 +105,14 @@ public abstract class APipeline<TInit, T, TStep> : MonoBehaviour where TInit : c
                 step.Release();
         Disposed();
     }
-    protected abstract IEnumerator Init(TInit init);
+    protected abstract IEnumerator<AsyncEnumerator> Init(TInit init);
     protected abstract T GetInput(TStep step);
-    protected abstract IEnumerator Sync(float delay);
-    protected abstract IEnumerator Stepped(TStep step, T result);
+    protected abstract IEnumerator<AsyncEnumerator> Sync(float delay);
+    protected abstract IEnumerator<AsyncEnumerator> Stepped(TStep step, T result);
     protected abstract T GetLast(TStep step);
     protected abstract void Disposed();
 
-    protected IEnumerator Sync() => Sync(_delay);
+    protected IEnumerator<AsyncEnumerator> Sync() => Sync(_delay);
     
     [Button]
     public void StepOnce()

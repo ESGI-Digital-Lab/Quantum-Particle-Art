@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
@@ -13,20 +15,24 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     private void Awake()
     {
         pipeline = GetPipeline();
-        pipeline.enabled = false;
     }
 
-    private IEnumerator Start()
+    public override IEnumerator<AsyncEnumerator> Start()
     {
-        Coroutine running = null;
+        CancellationTokenSource tokens = null;
         var l = Loops;
         for (int i = 0; i < l; i++)
         {
             UpdateInitializer(_baseInitializer, i);
             //We let this enumerator run async
-            if (running != null)
-                StopCoroutine(running);
-            running = StartCoroutine(pipeline.Restart(_baseInitializer));
+            if (tokens != null)
+                tokens.Cancel();
+            tokens = new CancellationTokenSource();
+            Task.Run(() =>
+            {
+                pipeline.Restart(_baseInitializer);
+            });
+            StartCoroutine();
             if (_duration > 0)
                 yield return new WaitForSeconds(_duration);
             else

@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public interface IStep<TStep> 
 {
-    public IEnumerator Step(TStep entry, float delay);
+    public IEnumerator<AsyncEnumerator> Step(TStep entry, float delay);
     TStep Result { get; }
     void Release();
 }
