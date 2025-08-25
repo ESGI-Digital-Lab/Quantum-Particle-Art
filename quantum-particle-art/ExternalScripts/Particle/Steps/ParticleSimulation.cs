@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public abstract class ParticleStep : MonoBehaviour, IStep<ParticleWorld>, IInit<WorldInitializer>
@@ -7,18 +8,19 @@ public abstract class ParticleStep : MonoBehaviour, IStep<ParticleWorld>, IInit<
     [SerializeField] private bool _delayBeetweenEachParticle = false;
     protected ParticleWorld _world;
 
-    public virtual IEnumerator Init(WorldInitializer initializer)
+    public virtual async Task Init(WorldInitializer initializer)
     {
-        yield break;
+        
     }
 
-    public IEnumerator Step(ParticleWorld entry, float delay)
+    public async Task Step(ParticleWorld entry, float delay)
     {
         _world = entry;
-        yield return HandleParticles(entry, _delayBeetweenEachParticle ? delay : 0f);
+        Debug.LogWarning("Running step " + GetType().Name);
+        await HandleParticles(entry, _delayBeetweenEachParticle ? delay : 0f);
     }
 
-    public abstract IEnumerator HandleParticles(ParticleWorld entry, float delay);
+    public abstract Task HandleParticles(ParticleWorld entry, float delay);
     public ParticleWorld Result => _world;
 
     public virtual void Release()
@@ -30,11 +32,10 @@ public class ParticleSimulation : APipeline<WorldInitializer, ParticleWorld>
 {
     ParticleWorld _world;
 
-    protected override IEnumerator<AsyncEnumerator> Init(WorldInitializer init)
+    protected override async Task Init(WorldInitializer init)
     {
         var _worldSize = init.Size;
         _world = new ParticleWorld(init.RandomCollection(), init.Points(), _worldSize, init.Init.Rules);
-        yield break;
     }
 
     protected override ParticleWorld GetInput(IStep<ParticleWorld> step)
@@ -42,14 +43,14 @@ public class ParticleSimulation : APipeline<WorldInitializer, ParticleWorld>
         return _world;
     }
 
-    protected override IEnumerator<AsyncEnumerator> Sync(float delay)
+    protected override async Task Sync(float delay)
     {
-        yield break;
+        await Task.CompletedTask;
+        //await Task.Delay((int)(delay*1000));
     }
 
-    protected override IEnumerator Stepped(IStep<ParticleWorld> step, ParticleWorld result)
+    protected override async Task Stepped(IStep<ParticleWorld> step, ParticleWorld result)
     {
-        yield break;
     }
 
     protected override ParticleWorld GetLast(IStep<ParticleWorld> step)

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -11,7 +12,7 @@ public class PointsIntersection : ParticleStep
     private (Area2D a, Particle p) _lastEntangle = (default, null);
     private (Area2D a, Particle p) _lastTeleport = (default, null);
 
-    public override IEnumerator HandleParticles(ParticleWorld entry, float delay)
+    public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
         foreach (var point in entry.PointsOfInterest)
         {
@@ -90,7 +91,7 @@ public class PointsIntersection : ParticleStep
             }
 
             if (delay > 0)
-                yield return new WaitForSeconds(delay);
+                await Task.Delay((int)(delay*1000));
         }
     }
 }

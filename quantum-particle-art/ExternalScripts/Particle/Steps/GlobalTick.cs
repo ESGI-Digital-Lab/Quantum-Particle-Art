@@ -1,16 +1,17 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class GlobalTick : ParticleStep
 {
     private ColorPicker _colorPicker;
 
-    public override IEnumerator Init(WorldInitializer init)
+    public override async Task Init(WorldInitializer init)
     {
         _colorPicker = init.Init.Colors;
-        yield return base.Init(init);
+        await base.Init(init);
     }
-    public override IEnumerator HandleParticles(ParticleWorld entry, float delay)
+    public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
         float t = 1f; //_useDeltaTime ? Time.deltaTime : _timeSteps;
 
@@ -24,7 +25,7 @@ public class GlobalTick : ParticleStep
             }
 
             if (delay > 0)
-                yield return new WaitForSeconds(delay);
+                await Task.Delay((int)(delay*1000));
         }
     }
 

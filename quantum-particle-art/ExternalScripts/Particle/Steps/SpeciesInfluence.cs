@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class SpeciesInfluence : ParticleStep
 {
-    public override IEnumerator HandleParticles(ParticleWorld entry, float delay)
+    public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
         //Debug.Log("Species count : " + entry.Ruleset.NbSpecies);
         for (var index = 0; index < entry.Count; index++)
@@ -12,7 +13,7 @@ public class SpeciesInfluence : ParticleStep
             UpdateParticlesInteraction(p, entry);
             p.AdvanceSteps(entry.Ruleset[p.Species].Steps);
             if (delay > 0)
-                yield return new WaitForSeconds(delay);
+                await WaitForSeconds.Delay(delay);
         }
     }
 

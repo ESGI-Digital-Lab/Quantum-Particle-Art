@@ -5,13 +5,21 @@ using DefaultNamespace.Tools;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
+using Random = System.Random;
 
-public class WorldInitializer : MonoBehaviour
+public class WorldInitializer
 {
     [SerializeField] private Vector2 _size;
     [SerializeField] private InitConditions _init;
-    private Dictionary<Area2D.AreaType, float> _weights => _init.Weights;
-    private int _nbPoints => _init.NbRandomGates;
+
+    public WorldInitializer(Vector2 size, int nbParticles, Vector2 startArea, Vector2 areaSize)
+    {
+        _size = size;
+        _nbParticles = nbParticles;
+        _startArea = startArea;
+        _areaSize = areaSize;
+    }
+
     public ATexProvider Texture => _init.Texture;
 
     public InitConditions Init
@@ -60,53 +68,7 @@ public class WorldInitializer : MonoBehaviour
 
     public IEnumerable<Area2D> Points()
     {
-        if (_init.RandomGates)
-        {
-            return RandomPoints(_size, _init.Weights);
-        }
-        else
-        {
-            Assert.IsFalse(_init.Position == null || _init.Position.Count == 0,
-                "RandomGates is false, but no positions are defined in InitConditions.");
-            return _init.Position.SelectMany(kvp =>
-                kvp.Value.Select(v =>
-                    new Area2D(
-                        v * _size,
-                        _init.GateSize * (_size.x + _size.y) / 2f,
-                        kvp.Key)
-                )
-            );
-        }
-    }
-
-    public IEnumerable<Area2D> RandomPoints(Vector2 worldSize, Dictionary<Area2D.AreaType, float> dictionary)
-    {
-        if (_nbPoints <= 0)
-            yield break;
-        var total = dictionary.Values.Sum();
-        Assert.IsTrue(dictionary.Values.Any(v=>v>0), "One weight at least should be strictly positive > 0.");
-        var radius = _init.GateSize * (worldSize.x + worldSize.y) / 2f;
-        for (int i = 0; i < _nbPoints; i++)
-        {
-            yield return new Area2D(new Vector2(
-                RandomRange(0f, worldSize.x),
-                RandomRange(0f, worldSize.y)
-            ), radius, WeightedRandom(dictionary, total));
-        }
-    }
-
-    public T WeightedRandom<T>(Dictionary<T, float> weights, float total)
-    {
-        float rd = (float)random.NextDouble() * total;
-        float sum = 0f;
-        foreach (var weight in weights)
-        {
-            sum += weight.Value;
-            if (rd <= sum)
-                return weight.Key;
-        }
-
-        Assert.IsTrue(false);
-        return default(T);
+        var size = _init.GateSize * (_size.x + _size.y) / 2f;
+        return _init.Position.Select(v => new Area2D(v.pos * _size, size, v.type));
     }
 }

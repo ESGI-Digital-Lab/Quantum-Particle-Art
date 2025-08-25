@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.MonoBehaviour;
 
@@ -53,13 +54,13 @@ public class ViewCollection<T, TView>
         foreach (var v in toView)
         {
             var view = Object.Instantiate(prefab, _worldRoot);
-            view.name = $"{typeof(T).Name} View {i}";
+            //view.name = $"{typeof(T).Name} View {i}";
             view.InitView(v, world,colorSelector(v));
             _views[i++] = view;
         }
     }
 
-    public IEnumerator HandleParticles(ParticleWorld entry, float delay)
+    public async Task HandleParticles(ParticleWorld entry, float delay)
     {
         int i = 0;
         foreach (var p in _selector.Invoke(entry))
@@ -67,10 +68,9 @@ public class ViewCollection<T, TView>
             var view = _views[i++];
             view.UpdateView(p);
             if (delay > 0)
-                yield return new WaitForSeconds(delay);
+                await WaitForSeconds.Delay(delay);
         }
 
-        yield break;
     }
 
     public void Dispose()

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -10,19 +11,18 @@ public class View : ParticleStep, IInit<ParticleWorld>
     private ViewCollection<Particle, ParticleView> _particleViewCollection;
     private ViewCollection<Area2D, PointView> _pointViewCollection;
     private ColorPicker _colorPicker;
-    public override IEnumerator Init(WorldInitializer initializer)
+    public override async Task Init(WorldInitializer initializer)
     {
         _colorPicker = initializer.Init.Colors;
-        yield return base.Init(initializer);
+        await base.Init(initializer);
     }
 
-    public IEnumerator Init(ParticleWorld init)
+    public async Task Init(ParticleWorld init)
     {
         _particleViewCollection =
             new ViewCollection<Particle, ParticleView>(_worldRoot, _viewPrefab, init, w => w.Particles,  p=> _colorPicker.GetColor(p, init.Ruleset.NbSpecies));
         _pointViewCollection =
             new ViewCollection<Area2D, PointView>(_worldRoot, _pointPrefab, init, w => w.PointsOfInterest, AreaColor);
-        yield break;
     }
 
     private static Color AreaColor(Area2D p)
@@ -53,10 +53,10 @@ public class View : ParticleStep, IInit<ParticleWorld>
         return color;
     }
 
-    public override IEnumerator HandleParticles(ParticleWorld entry, float delay)
+    public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
-        yield return _particleViewCollection?.HandleParticles(entry, delay);
-        yield return _pointViewCollection?.HandleParticles(entry, delay);
+        await _particleViewCollection?.HandleParticles(entry, delay);
+        await _pointViewCollection?.HandleParticles(entry, delay);
     }
 
 
