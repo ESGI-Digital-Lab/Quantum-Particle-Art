@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="ExternalScripts\NaughtyAttributes\" />
+    <Folder Include="Scenes\Views\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ExternalScripts\NaughtyAttributes\Core\DrawerAttributes.meta" />

@@ -1,26 +1,30 @@
-﻿using UnityEngine.Assertions;
-using UnityEngine;
+using Godot;
+using UnityEngine.Assertions;
+using Color = UnityEngine.Color;
+using Vector2 = UnityEngine.Vector2;
 
-public class PointView : MonoBehaviour, IView<Area2D, ParticleWorld>
+public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 {
-    
-    private Vector2 bounds;
+	[Export] private Sprite2D[] _sprites;
+	private Vector2 bounds;
 
-    public void InitView(Area2D info, ParticleWorld w,Color color)
-    {
-        bounds = w.Size;
-        //foreach (var r in _renderer)
-        //    r.material.color = color;
-    }
+	public void InitView(Area2D info, ParticleWorld w, Color color)
+	{
+		bounds = w.Size;
+		foreach (var r in _sprites)
+			r.Modulate = color;
+	}
 
-    public void UpdateView(Area2D info)
-    {
-        //_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);
-        //_scale.localScale = new Vector3(info.Radius / bounds.x, 0.1f, info.Radius / bounds.y);
-    }
+	public void UpdateView(Area2D info)
+	{
+		this.Position = info.Center;
+		this.Scale = new Godot.Vector2(info.Radius, info.Radius);
+		//_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);
+		//_scale.localScale = new Vector3(info.Radius / bounds.x, 0.1f, info.Radius / bounds.y);
+	}
 
-    public void Dispose()
-    {
-        //GameObject.Destroy(this.gameObject);
-    }
+	public void Dispose()
+	{
+		//GameObject.Destroy(this.gameObject);
+	}
 }

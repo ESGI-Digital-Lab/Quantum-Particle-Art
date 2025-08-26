@@ -1,16 +1,24 @@
 ﻿using System.Collections;
 using System.Threading.Tasks;
+using Godot;
 using UnityEngine;
 using UnityEngine.Assertions;
+using Color = UnityEngine.Color;
 
 public class View : ParticleStep, IInit<ParticleWorld>
 {
-    [SerializeField] private Transform _worldRoot;
-    [SerializeField] private ParticleView _viewPrefab;
-    [SerializeField] private PointView _pointPrefab;
+    [SerializeField] private Node _worldRoot;
+    [SerializeField] private string _viewPrefab;
+    [SerializeField] private string _pointPrefab;
     private ViewCollection<Particle, ParticleView> _particleViewCollection;
     private ViewCollection<Area2D, PointView> _pointViewCollection;
     private ColorPicker _colorPicker;
+    public View(Node root, string viewPrefab, string pointPrefab)
+    {
+        _worldRoot = root;
+        _viewPrefab = viewPrefab;
+        _pointPrefab = pointPrefab;
+    }
     public override async Task Init(WorldInitializer initializer)
     {
         _colorPicker = initializer.Init.Colors;
@@ -65,5 +73,14 @@ public class View : ParticleStep, IInit<ParticleWorld>
         base.Release();
         _particleViewCollection?.Dispose();
         _pointViewCollection?.Dispose();
+    }
+
+    public static TView Instantiate<TView>(PackedScene scene, Node worldRoot) where TView : Node
+    {
+        var instance = scene.Instantiate();
+        worldRoot.AddChild(instance);
+        var script = instance as TView;
+        Assert.IsNotNull(script, $"The scene does not have the expected");
+        return script;
     }
 }

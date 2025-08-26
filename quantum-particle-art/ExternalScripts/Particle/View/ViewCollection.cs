@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
 using UnityEngine;
-using Object = UnityEngine.MonoBehaviour;
+using Color = UnityEngine.Color;
+using Mathf = UnityEngine.Mathf;
+using Object = Godot.Node;
 
 public static class ViewHelpers
 {
-    
     public static readonly Color SUP = Color.red;
     public static readonly Color MEA = new Color(0.5f, 0, 0);
     public static readonly Color ENT = Color.green;
@@ -31,7 +33,7 @@ public static class ViewHelpers
 
 public interface IView<T, TInit>
 {
-    void InitView(T info, TInit init,Color color);
+    void InitView(T info, TInit init, Color color);
     void UpdateView(T info);
     void Dispose();
 }
@@ -39,13 +41,15 @@ public interface IView<T, TInit>
 public class ViewCollection<T, TView>
     where TView : Object, IView<T, ParticleWorld>
 {
-    private Transform _worldRoot;
+    private Node _worldRoot;
     private TView[] _views;
     private Func<ParticleWorld, IEnumerable<T>> _selector;
+    private PackedScene scene;
 
-    public ViewCollection(Transform worldRoot, TView prefab, ParticleWorld world,
-        Func<ParticleWorld, IEnumerable<T>> selector, Func<T,Color> colorSelector)
+    public ViewCollection(Node worldRoot, string prefab, ParticleWorld world,
+        Func<ParticleWorld, IEnumerable<T>> selector, Func<T, Color> colorSelector)
     {
+        scene = GD.Load<PackedScene>(prefab);
         _selector = selector;
         _worldRoot = worldRoot;
         var toView = selector(world).ToArray();
@@ -53,9 +57,9 @@ public class ViewCollection<T, TView>
         int i = 0;
         foreach (var v in toView)
         {
-            var view = Object.Instantiate(prefab, _worldRoot);
+            var view = View.Instantiate<TView>(scene, _worldRoot);
             //view.name = $"{typeof(T).Name} View {i}";
-            view.InitView(v, world,colorSelector(v));
+            view.InitView(v, world, colorSelector(v));
             _views[i++] = view;
         }
     }
@@ -70,7 +74,6 @@ public class ViewCollection<T, TView>
             if (delay > 0)
                 await WaitForSeconds.Delay(delay);
         }
-
     }
 
     public void Dispose()

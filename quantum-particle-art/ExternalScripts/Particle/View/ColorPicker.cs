@@ -6,6 +6,17 @@ using UnityEngine.Assertions;
 [CreateAssetMenu(fileName = "ColorPicker", menuName = "Particle/ColorPicker", order = 0)]
 public class ColorPicker : ScriptableObject
 {
+    public static ColorPicker Random(int amount)
+    {
+        var picked = new ColorPicker(amount);
+        picked.RandomColors();
+        return picked;
+    }
+
+    private ColorPicker(int nb)
+    {
+        _nbColors = nb;
+    }
     [SerializeField] private ColorModes _colorMode;
 
     [SerializeField, ShowIf(nameof(_colorMode), ColorModes.Identical),
@@ -16,7 +27,7 @@ public class ColorPicker : ScriptableObject
      Tooltip("Assigned in order to each species in the scheme mode")]
     private Color[] _scheme;
 
-    private enum ColorModes
+    public enum ColorModes
     {
         [Tooltip("Same custom color for all particles")]
         Identical = 0,

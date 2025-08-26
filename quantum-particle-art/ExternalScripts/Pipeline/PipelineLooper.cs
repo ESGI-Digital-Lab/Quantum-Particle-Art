@@ -44,7 +44,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
             _lastStart = Time.time;
             UpdateInitializer(_baseInitializer, i);
             //Not awaited on purpose, this update juste starts the loop whenever the duration is passed
-            pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
+            Task.Run(() => pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms()));
         }
 
         return Task.CompletedTask;

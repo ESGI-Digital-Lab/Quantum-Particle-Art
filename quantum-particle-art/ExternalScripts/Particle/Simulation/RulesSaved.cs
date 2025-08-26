@@ -12,12 +12,18 @@ public class RulesSaved : ScriptableObject
     [SerializeField] private Ruleset _rules;
     public Ruleset Rules => _rules;
 
+    public RulesSaved(int nb, Defaults type)
+    {
+        _locked = false;
+        _nbSpecies = nb;
+        _rules = Load(type);
+    }
     public void ReplaceRules(Ruleset rules)
     {
         _rules = rules;
     }
 
-    private enum Defaults
+    public enum Defaults
     {
         Default = 0,
         Random = 1,
@@ -29,25 +35,25 @@ public class RulesSaved : ScriptableObject
 
     [HorizontalLine(10)] [Range(2, 100)] [SerializeField] [Header("Pre built rules")]
     private int _nbSpecies = 12;
+    
+    [Button]
+    public void LoadRandom() => LoadDefault(Defaults.Random, true);
 
     [Button]
-    private void LoadRandom() => LoadDefault(Defaults.Random, true);
+    public void LoadRandomNoStart() => LoadDefault(Defaults.Random, false);
 
     [Button]
-    private void LoadRandomNoStart() => LoadDefault(Defaults.Random, false);
-
-    [Button]
-    private void LoadAlliances() => LoadDefault(Defaults.Alliances);
+    public void LoadAlliances() => LoadDefault(Defaults.Alliances);
 
     //[Button] private void LoadShips() => LoadDefault(Defaults.Ships);
 
     [Button, Tooltip("Will override species count to 2")]
-    private void LoadStigmergy() => LoadDefault(Defaults.Purple);
+    public void LoadStigmergy() => LoadDefault(Defaults.Purple);
 
     //[Button, Tooltip("Basically empty interactions")] private void LoadDefault() => LoadDefault(Defaults.Default);
 
     [Button]
-    private void LoadSimplify() => LoadDefault(Defaults.Simplify);
+    public void LoadSimplify() => LoadDefault(Defaults.Simplify);
 
     [SerializeField,ReadOnly]
     private bool _locked = false;

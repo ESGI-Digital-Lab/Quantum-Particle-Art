@@ -75,12 +75,6 @@ namespace UnityEngine
 		public virtual void Dispose()
 		{
 		}
-
-		public static TView Instantiate<TView>(TView prefab, Transform worldRoot) where TView : Object
-		{
-			Debug.LogError("Instatiate not handled");
-			return null;
-		}
 	}
 
 	public static class Debug
@@ -223,7 +217,7 @@ namespace UnityEngine
 			}
 
 			public static void IsFalse(bool condition, string message = null) => Assert.IsTrue(!condition, message);
-			public static void IsNotNull(object obj, string message = null) => Assert.IsTrue(obj == null, message);
+			public static void IsNotNull(object obj, string message = null) => Assert.IsTrue(obj != null, message);
 		}
 	}
 
@@ -411,6 +405,11 @@ namespace UnityEngine
 			get => color.B;
 			set => color.B = value;
 		}
+		public float a
+		{
+			get => color.A;
+			set => color.A = value;
+		}
 
 		public static Color Lerp(Color a, Color b, float t) => new Color(a.color.Lerp(b.color, t));
 
@@ -422,6 +421,10 @@ namespace UnityEngine
 		public Color(Godot.Color color)
 		{
 			this.color = color;
+		}
+		public static implicit operator Godot.Color(Color color)
+		{
+			return color.color;
 		}
 
 		public static Color ColorHSV(float h, float s, float v, float a = 1f)
