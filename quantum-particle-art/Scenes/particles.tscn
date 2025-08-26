@@ -1,3 +1,23 @@
-[gd_scene format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=4 format=3 uid="uid://ctih7i2xfrdfg"]
+
+[ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
+[ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
+[ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
 
 [node name="Particles" type="Node3D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
+
+[node name="Simulation" type="Node" parent="."]
+script = ExtResource("1_lrx72")
+
+[node name="Space" type="Node2D" parent="Simulation"]
+
+[node name="ParticleView" parent="Simulation/Space" instance=ExtResource("2_fv5ml")]
+position = Vector2(-1, -1)
+
+[node name="Gate" parent="Simulation/Space" node_paths=PackedStringArray("_sprites") instance=ExtResource("3_yixwl")]
+position = Vector2(150, 150)
+scale = Vector2(30, 30)
+_sprites = []
