@@ -9,8 +9,9 @@
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(2, 2)
 
-[node name="Simulation" type="Node" parent="."]
+[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space")]
 script = ExtResource("1_lrx72")
+_space = NodePath("Space")
 
 [node name="Space" type="Node2D" parent="Simulation"]
 

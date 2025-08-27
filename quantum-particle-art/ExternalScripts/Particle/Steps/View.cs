@@ -13,24 +13,28 @@ public class View : ParticleStep, IInit<ParticleWorld>
     private ViewCollection<Particle, ParticleView> _particleViewCollection;
     private ViewCollection<Area2D, PointView> _pointViewCollection;
     private ColorPicker _colorPicker;
+
     public View(Node root, string viewPrefab, string pointPrefab)
     {
         _worldRoot = root;
         _viewPrefab = viewPrefab;
         _pointPrefab = pointPrefab;
     }
+
     public override async Task Init(WorldInitializer initializer)
     {
         _colorPicker = initializer.Init.Colors;
         await base.Init(initializer);
     }
 
-    public async Task Init(ParticleWorld init)
+    public Task Init(ParticleWorld init)
     {
-        _particleViewCollection =
-            new ViewCollection<Particle, ParticleView>(_worldRoot, _viewPrefab, init, w => w.Particles,  p=> _colorPicker.GetColor(p, init.Ruleset.NbSpecies));
-        _pointViewCollection =
-            new ViewCollection<Area2D, PointView>(_worldRoot, _pointPrefab, init, w => w.PointsOfInterest, AreaColor);
+        _particleViewCollection = ViewCollection<Particle, ParticleView>.Create(_worldRoot, _viewPrefab, init,
+            w => w.Particles,
+            p => _colorPicker.GetColor(p, init.Ruleset.NbSpecies));
+        _pointViewCollection = ViewCollection<Area2D, PointView>.Create(_worldRoot, _pointPrefab, init, w => w.PointsOfInterest,
+                AreaColor);
+        return Task.CompletedTask;
     }
 
     private static Color AreaColor(Area2D p)
@@ -77,9 +81,10 @@ public class View : ParticleStep, IInit<ParticleWorld>
 
     public static TView Instantiate<TView>(PackedScene scene, Node worldRoot) where TView : Node
     {
+        TView script = null;
         var instance = scene.Instantiate();
         worldRoot.AddChild(instance);
-        var script = instance as TView;
+        script = instance as TView;
         Assert.IsNotNull(script, $"The scene does not have the expected");
         return script;
     }

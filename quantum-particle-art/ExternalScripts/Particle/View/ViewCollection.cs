@@ -46,22 +46,29 @@ public class ViewCollection<T, TView>
     private Func<ParticleWorld, IEnumerable<T>> _selector;
     private PackedScene scene;
 
-    public ViewCollection(Node worldRoot, string prefab, ParticleWorld world,
+    public static ViewCollection<T, TView> Create(Node worldRoot, string prefab, ParticleWorld world,
         Func<ParticleWorld, IEnumerable<T>> selector, Func<T, Color> colorSelector)
+    {
+        var coll = new ViewCollection<T, TView>(worldRoot, prefab, selector);
+        var toView = selector(world).ToArray();
+        coll._views = new TView[toView.Length];
+        int i = 0;
+        foreach (var v in toView)
+        {
+            var view = View.Instantiate<TView>(coll.scene, worldRoot);
+            //view.name = $"{typeof(T).Name} View {i}";
+            view.InitView(v, world, colorSelector(v));
+            coll._views[i++] = view;
+        }
+
+        return coll;
+    }
+    private ViewCollection(Node worldRoot, string prefab,
+        Func<ParticleWorld, IEnumerable<T>> selector)
     {
         scene = GD.Load<PackedScene>(prefab);
         _selector = selector;
         _worldRoot = worldRoot;
-        var toView = selector(world).ToArray();
-        _views = new TView[toView.Length];
-        int i = 0;
-        foreach (var v in toView)
-        {
-            var view = View.Instantiate<TView>(scene, _worldRoot);
-            //view.name = $"{typeof(T).Name} View {i}";
-            view.InitView(v, world, colorSelector(v));
-            _views[i++] = view;
-        }
     }
 
     public async Task HandleParticles(ParticleWorld entry, float delay)

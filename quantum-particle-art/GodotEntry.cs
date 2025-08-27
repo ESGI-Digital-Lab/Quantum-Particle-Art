@@ -32,10 +32,10 @@ public partial class GodotEntry : Node
 		looper.BaseInitializer = world;
 		Add(looper);
 		_tasks = _monos.Select(m => m.Awake()).ToArray();
-		Task.WaitAll(_tasks);
+		//Task.WaitAll(_tasks);
 		Debug.LogWarning("Entry mid initializing");
 		_tasks = _monos.Select(m => m.Start()).ToArray();
-		Task.WaitAll(_tasks);
+		//Task.WaitAll(_tasks);
 		Debug.LogWarning("Entry finished initializing");
 	}
 
@@ -61,7 +61,7 @@ public partial class GodotEntry : Node
 		Time.time += (float)delta;
 		for (int i = 0; i < _tasks.Length; i++)
 			_tasks[i] = _monos[i].Update();
-		Task.WaitAll(_tasks);
+		//Task.WaitAll(_tasks);
 	}
 
 

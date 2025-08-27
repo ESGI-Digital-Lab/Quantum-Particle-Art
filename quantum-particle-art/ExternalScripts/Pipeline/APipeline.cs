@@ -57,7 +57,13 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         //                     init.GetType().Name + "and steps : " + string.Join("\n",
         //                         _steps.Select(st => st.GetType().Name + " on " + (st as Component).gameObject.name)));
         await Sync();
-        await StepEnumerator();
+        //await StepEnumerator();
+    }
+
+    private T last = default;
+    public void Tick()
+    {
+        StepOnce();
     }
 
     private async Task StepEnumerator()
@@ -65,19 +71,24 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         T last = default;
         while (_steps != null && _steps.Length > 0)
         {
-            foreach (var step in _steps)
-            {
-                await Sync();
-                var input = GetInput(step);
-                await step.Step(input, _delay);
-                await Sync();
-                last = GetLast(step);
-                await Sync();
-                await Stepped(step, last);
-            }
-
-            await Sync();
+            await StepOnce();
         }
+    }
+
+    private async Task StepOnce()
+    {
+        foreach (var step in _steps)
+        {
+            await Sync();
+            var input = GetInput(step);
+            await step.Step(input, _delay);
+            await Sync();
+            last = GetLast(step);
+            await Sync();
+            await Stepped(step, last);
+        }
+
+        await Sync();
     }
 
     public void Dispose()

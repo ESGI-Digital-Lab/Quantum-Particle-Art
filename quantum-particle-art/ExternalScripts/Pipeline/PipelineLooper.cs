@@ -32,9 +32,9 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     private float _lastStart;
     private int i = 0;
 
-    public override Task Update()
+    public override async Task Update()
     {
-        base.Update();
+        await base.Update();
         if (_lastStart < 0 || (_duration > 0 && i < Loops && Time.time - _lastStart < _lastStart + _duration))
         {
             if (i >= 0) //Skipped on first
@@ -44,10 +44,10 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
             _lastStart = Time.time;
             UpdateInitializer(_baseInitializer, i);
             //Not awaited on purpose, this update juste starts the loop whenever the duration is passed
-            Task.Run(() => pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms()));
+            await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
         }
 
-        return Task.CompletedTask;
+        pipeline.Tick();
     }
 
     protected abstract IEnumerable<IInit<T>> GetPrewarms();
