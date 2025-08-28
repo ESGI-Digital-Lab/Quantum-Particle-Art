@@ -63,7 +63,7 @@ public class ViewCollection<T, TView>
         foreach (var v in toView)
         {
             var view = View.Instantiate<TView>(coll.scene, worldRoot);
-            //view.name = $"{typeof(T).Name} View {i}";
+            view.Name = $"{typeof(T).Name} View {i}";
             view.InitView(v, world, colorSelector(v));
             coll._views[i++] = view;
         }
