@@ -11,12 +11,17 @@ public partial class GodotEntry : Node
 	private List<MonoBehaviour> _monos;
 	private Task[] _tasks;
 	[Export] private Node2D _space;
-	[ExportCategory("Settings")]
+	[ExportCategory("World")]
+	[Export] private Godot.Vector2 _worldSize = new(600, 600);
+	[ExportCategory("Particles")]
 	[Export(PropertyHint.Range, "1,12,1")]
 	private int _nbSpecies = 5;
 	[Export] private int _nbParticles = 100;
+	[Export] private RulesSaved.Defaults _ruleType = RulesSaved.Defaults.Alliances;
+	[ExportCategory("Gates")]
 	[Export] private int _nbGates = 20;
-	[Export] private Godot.Vector2 _worldSize = new(600, 600);
+	[Export(PropertyHint.Range, "0,1,0.01")]
+	private float _gateSize = .05f;
 
 	public override void _Ready()
 	{
@@ -32,7 +37,7 @@ public partial class GodotEntry : Node
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
 		prewarm.Add(view);
-		var looper = new MultipleImagesLooper(InitConditionsArray(_nbSpecies, _nbGates), psteps, psteps, prewarm);
+		var looper = new MultipleImagesLooper(InitConditionsArray(_nbSpecies, _nbGates,_gateSize), psteps, psteps, prewarm);
 
 		var world = new WorldInitializer(_worldSize, _nbParticles, Vector2.one/2f, Vector2.one/10f);
 		looper.BaseInitializer = world;
@@ -45,7 +50,7 @@ public partial class GodotEntry : Node
 		Debug.LogWarning("Entry finished initializing");
 	}
 
-	private static InitConditions[] InitConditionsArray(int nbSpecies, int nbPoints, float ent = 1f, float mea = 1f, float sup = 1f, float tel = 1f)
+	private InitConditions[] InitConditionsArray(float ent = 1f, float mea = 1f, float sup = 1f, float tel = 1f)
 	{
 		var gatesWeights = new DictionaryFromList<Area2D.AreaType, float>(
 			new()
@@ -55,9 +60,9 @@ public partial class GodotEntry : Node
 				{ Area2D.AreaType.Superpose, sup },
 				{ Area2D.AreaType.Teleport, tel }
 			});
-		var rules = new RulesSaved(nbSpecies, RulesSaved.Defaults.Alliances);
+		var rules = new RulesSaved(_nbSpecies, _ruleType);
 		InitConditions[] initConditionsArray = [
-			new InitConditions(new CanvasPixels(1024,1024, Color.blue), rules, ColorPicker.Random(nbSpecies), new Gates(.05f, new RandomGates(nbPoints, gatesWeights)))
+			new InitConditions(new CanvasPixels(1024,1024, Color.blue), rules, ColorPicker.Random(_nbSpecies), new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)))
 		];
 		return initConditionsArray;
 	}
