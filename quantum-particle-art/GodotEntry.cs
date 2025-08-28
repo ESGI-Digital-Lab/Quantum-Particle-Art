@@ -25,6 +25,12 @@ public partial class GodotEntry : Node
 	[Export] private int _nbGates = 20;
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
+	[ExportCategory("Gates weights")]
+	[Export(PropertyHint.Range, "0,10,0.1")] private float _entangleWeight = 1f;
+	[Export(PropertyHint.Range, "0,10,0.1")] private float _measureWeight = 1f;
+	[Export(PropertyHint.Range, "0,10,0.1")] private float _superposeWeight = 1f;
+	[Export(PropertyHint.Range, "0,10,0.1")] private float _teleportWeight = 1f;
+	
 
 	public override void _Ready()
 	{
@@ -40,7 +46,7 @@ public partial class GodotEntry : Node
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
 		prewarm.Add(view);
-		var looper = new MultipleImagesLooper(InitConditionsArray(), psteps, psteps, prewarm);
+		var looper = new MultipleImagesLooper(InitConditionsArray(_entangleWeight,_measureWeight,_superposeWeight,_teleportWeight), psteps, psteps, prewarm);
 
 		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea-_startAreaWidth/2f, _startAreaWidth);
 		looper.BaseInitializer = world;
