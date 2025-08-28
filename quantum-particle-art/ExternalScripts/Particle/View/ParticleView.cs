@@ -10,7 +10,7 @@ using Vector2 = Godot.Vector2;
 
 public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 {
-	[SerializeField, Header("Settings")] private bool _showOnlyChilds = false;
+	[Export] private bool _showOnlyChilds = false;
 	[Export] private Node2D _scale;
 	[Export] private Sprite2D _sprite;
 	[Export] private Line2D _line;
@@ -18,19 +18,15 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	private Particle particle;
 	private static Dictionary<Orientation, Particle> mapBack;
 	private Tuple<ParticleView, ParticleView> _childs;
-	ParticleWorld _world;
 
 	public void InitView(Particle info, ParticleWorld world, Color color)
 	{
 		this.particle = info;
-		_world = world;
 		mapBack ??= new();
 		mapBack.TryAdd(info.Orientation, particle);
 		_sprite.Modulate = color;
-		if (world != null)
-		{
+		if (_parent == null)
 			_parent = this.GetParent() as Node2D;
-		}
 	}
 
 
@@ -41,25 +37,26 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 			this.ToggleView(!_showOnlyChilds);
 			if (_childs == null)
 			{
-				//var c1 = Instantiate(this, transform.parent);
-				//c1.InitView(info.Superposition.Item1, null, _renderer.material.color);
-				//c1.parent = this._parent;
-				//c1.gameObject.name = $"Super1 of {gameObject.name} 1";
-				//var c2 = Instantiate(this, transform.parent);
-				//c2.InitView(info.Superposition.Item2, null, _renderer.material.color);
-				//c2.gameObject.name = $"Super2 of {gameObject.name} 1";
-				//c2.parent = this._parent;
-				//_childs = new(c1, c2);
+				var c1 = this.Duplicate() as ParticleView;
+				c1._parent = this._parent;
+				this._parent.AddChild(c1);
+				c1.InitView(info.Superposition.Item1, null, _sprite.Modulate);
+				c1.Name = $"Super1 of {this.Name}";
+				var c2 = this.Duplicate() as ParticleView;
+				c2._parent = this._parent;
+				this._parent.AddChild(c2);
+				c2.InitView(info.Superposition.Item2, null, _sprite.Modulate);
+				c2.Name = $"Super2 of {this.Name}";
+				_childs = new(c1, c2);
 			}
 
 			_childs.Item1.UpdateView(info.Superposition.Item1);
 			_childs.Item2.UpdateView(info.Superposition.Item2);
-			if (!_showOnlyChilds)
-				this.UpdateView(info.Orientation);
 			if (_showOnlyChilds)
 				LineTo(info.Superposition.Item1, info.Superposition.Item2.Orientation, ViewHelpers.SUP);
 			else
 			{
+				this.UpdateView(info.Orientation);
 				_childs.Item1.LineTo(info.Orientation, ViewHelpers.SUP);
 				_childs.Item2.LineTo(info.Orientation, ViewHelpers.SUP);
 			}
@@ -109,7 +106,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 			LineTo(Orientation.Teleportation, ViewHelpers.TEL);
 		else
 		{
-			_line.Points = [];	
+			_line.Points = [];
 			_line.DefaultColor = Color.clear;
 		}
 	}
@@ -123,8 +120,12 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	{
 		if (mapBack.TryGetValue(to, out var target))
 		{
-		   _line.Points = [ViewHelpers.Pos(from.NormalizedPosition,_parent), ViewHelpers.Pos(target.NormalizedPosition, _parent)];
-		   _line.DefaultColor = color;
+			_line.Points =
+			[
+				this.ToLocal(ViewHelpers.Pos(from.NormalizedPosition, _parent)),
+				this.ToLocal(ViewHelpers.Pos(target.NormalizedPosition, _parent))
+			];
+			_line.DefaultColor = color;
 		}
 	}
 

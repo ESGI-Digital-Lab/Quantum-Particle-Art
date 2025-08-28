@@ -12,6 +12,11 @@ public class PointsIntersection : ParticleStep
     private (Area2D a, Particle p) _lastEntangle = (default, null);
     private (Area2D a, Particle p) _lastTeleport = (default, null);
 
+    public PointsIntersection(bool gatesShouldDraw)
+    {
+        _gatesShouldDraw = gatesShouldDraw;
+    }
+
     public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
         foreach (var point in entry.PointsOfInterest)
