@@ -11,28 +11,30 @@
 [node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space")]
 script = ExtResource("1_lrx72")
 _space = NodePath("Space")
-_nbGates = 0
+_worldSize = Vector2(500, 500)
+_nbSpecies = 7
+_nbParticles = 200
+_gateSize = 0.02
 
 [node name="Space" type="Node2D" parent="Simulation"]
-scale = Vector2(300, 300)
+scale = Vector2(600, 600)
 
 [node name="Corner" type="Node2D" parent="Simulation/Space"]
-position = Vector2(-1, -1)
+position = Vector2(-0.5, 0.5)
 
 [node name="Corner2" type="Node2D" parent="Simulation/Space"]
-position = Vector2(1, -1)
+position = Vector2(0.5, -0.5)
 
 [node name="Corner3" type="Node2D" parent="Simulation/Space"]
-position = Vector2(1, 1)
+position = Vector2(0.5, 0.5)
 
 [node name="Corner4" type="Node2D" parent="Simulation/Space"]
-position = Vector2(-1, 1)
+position = Vector2(-0.5, -0.5)
 
 [node name="ParticleView" parent="Simulation/Space" instance=ExtResource("2_fv5ml")]
-position = Vector2(-100, -10)
+visible = false
 
 [node name="Gate" parent="Simulation/Space" node_paths=PackedStringArray("_sprites") instance=ExtResource("3_yixwl")]
 visible = false
-position = Vector2(150, 150)
-scale = Vector2(30, 30)
+scale = Vector2(0.013, 0.013)
 _sprites = []
