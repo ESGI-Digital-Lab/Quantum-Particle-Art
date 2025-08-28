@@ -135,11 +135,7 @@ public class Particle
         particle._position += particle.Orientation.Velocity * deltaTime;
         wrappedX = particle._position.x < 0 || particle._position.x >= bounds.x;
         if (wrappedX)
-        {
-            Debug.Log($"Wrap X {particle._position.x}in {bounds.x}"); 
             particle._position.x = Mathf.Repeat(particle._position.x, bounds.x);
-            Debug.Log("Wrapperd to " + particle._position.x);
-        }
         wrappedY = particle._position.y < 0 || particle._position.y >= bounds.y;
         
         if (wrappedY)
