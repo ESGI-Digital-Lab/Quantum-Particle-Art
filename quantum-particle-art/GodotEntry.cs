@@ -12,10 +12,10 @@ public partial class GodotEntry : Node
 	private Task[] _tasks;
 	[Export] private Node2D _space;
 	[ExportCategory("World")]
-	[Export] private Godot.Vector2 _worldSize = new(600, 600);
+	[Export(PropertyHint.Link)] private Godot.Vector2 _worldSize = new(600, 600);
 
-	[Export] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
-	[Export] private Godot.Vector2 _startAreaWidth = new(1, 1);
+	[Export(PropertyHint.Link)] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
+	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
 	[ExportCategory("Particles")]
 	[Export(PropertyHint.Range, "1,12")]
 	private int _nbSpecies = 5;
@@ -41,7 +41,7 @@ public partial class GodotEntry : Node
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
 		psteps.Add(Influence);
-		var gates = new PointsIntersection();
+		var gates = new PointsIntersection(false);
 		psteps.Add(gates);
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
