@@ -12,6 +12,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 {
 	[SerializeField, Header("Settings")] private bool _showOnlyChilds = false;
 	[Export] private Node2D _scale;
+	private Node2D _parent;
 	[Export] private Sprite2D _sprite;
 	private Particle particle;
 	private static Dictionary<Orientation, Particle> mapBack;
@@ -24,9 +25,10 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		_world = world;
 		mapBack ??= new();
 		mapBack.TryAdd(info.Orientation, particle);
+		_sprite.Modulate = color;
 		if (world != null)
 		{
-			
+			_parent = this.GetParent() as Node2D;
 		}
 	}
 
@@ -40,10 +42,12 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 			{
 				//var c1 = Instantiate(this, transform.parent);
 				//c1.InitView(info.Superposition.Item1, null, _renderer.material.color);
+				//c1.parent = this._parent;
 				//c1.gameObject.name = $"Super1 of {gameObject.name} 1";
 				//var c2 = Instantiate(this, transform.parent);
 				//c2.InitView(info.Superposition.Item2, null, _renderer.material.color);
 				//c2.gameObject.name = $"Super2 of {gameObject.name} 1";
+				//c2.parent = this._parent;
 				//_childs = new(c1, c2);
 			}
 
@@ -92,11 +96,12 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	public void UpdateView(Orientation Orientation)
 	{
 		ToggleView(true);
-		this.Position = particle.Position;
+		this.GlobalPosition = ViewHelpers.Pos(particle.NormalizedPosition, _parent);
+		//Debug.Log($"Pos for view from {particle.Position} {particle.NormalizedPosition} to {this.GlobalPosition} in local {this.Position}");
 		ApplyOrientation(Orientation);
 		//if (Orientation.NormalizedSpeed <= 0.0f)
 		//    _renderer.material.color = Color.gray;
-		_scale.Scale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
+		_scale.GlobalScale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
 		if (Orientation.IsEntangled)
 			LineTo(Orientation.Entanglement, ViewHelpers.ENT);
 		else if (Orientation.IsTeleported)

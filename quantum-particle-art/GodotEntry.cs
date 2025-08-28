@@ -11,6 +11,12 @@ public partial class GodotEntry : Node
 	private List<MonoBehaviour> _monos;
 	private Task[] _tasks;
 	[Export] private Node2D _space;
+	[ExportCategory("Settings")]
+	[Export(PropertyHint.Range, "1,12,1")]
+	private int _nbSpecies = 5;
+	[Export] private int _nbParticles = 100;
+	[Export] private int _nbGates = 20;
+	[Export] private Godot.Vector2 _worldSize = new(600, 600);
 
 	public override void _Ready()
 	{
@@ -26,9 +32,9 @@ public partial class GodotEntry : Node
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
 		prewarm.Add(view);
-		var looper = new MultipleImagesLooper(InitConditionsArray(4, 10), psteps, psteps, prewarm);
+		var looper = new MultipleImagesLooper(InitConditionsArray(_nbSpecies, _nbGates), psteps, psteps, prewarm);
 
-		var world = new WorldInitializer(new Vector2(150, 150), 10, Vector2.zero, Vector2.one);
+		var world = new WorldInitializer(_worldSize, _nbParticles, Vector2.one/2f, Vector2.one/10f);
 		looper.BaseInitializer = world;
 		Add(looper);
 		_tasks = _monos.Select(m => m.Awake()).ToArray();

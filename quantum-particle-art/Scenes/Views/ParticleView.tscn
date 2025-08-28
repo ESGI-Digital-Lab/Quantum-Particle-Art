@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cffopff1qm7g0"]
 
 [ext_resource type="Script" uid="uid://djnaja3gbydgy" path="res://ExternalScripts/Particle/View/ParticleView.cs" id="1_pgop8"]
-[ext_resource type="Texture2D" uid="uid://dopcskr4gereo" path="res://icon.svg" id="2_0kqa1"]
+[ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="2_pgop8"]
 
 [node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite")]
 script = ExtResource("1_pgop8")
@@ -11,5 +11,7 @@ _sprite = NodePath("Scale/Sprite2D")
 [node name="Scale" type="Node2D" parent="."]
 
 [node name="Sprite2D" type="Sprite2D" parent="Scale"]
-scale = Vector2(0.1, 0.1)
-texture = ExtResource("2_0kqa1")
+texture_filter = 2
+texture_repeat = 2
+scale = Vector2(10, 10)
+texture = ExtResource("2_pgop8")

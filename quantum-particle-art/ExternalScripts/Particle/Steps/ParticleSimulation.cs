@@ -16,7 +16,7 @@ public abstract class ParticleStep : MonoBehaviour, IStep<ParticleWorld>, IInit<
     public async Task Step(ParticleWorld entry, float delay)
     {
         _world = entry;
-        Debug.LogWarning("Running step " + GetType().Name);
+        //Debug.LogWarning("Running step " + GetType().Name);
         await HandleParticles(entry, _delayBeetweenEachParticle ? delay : 0f);
     }
 

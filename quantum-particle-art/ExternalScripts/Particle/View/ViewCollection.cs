@@ -8,6 +8,8 @@ using UnityEngine;
 using Color = UnityEngine.Color;
 using Mathf = UnityEngine.Mathf;
 using Object = Godot.Node;
+using Vector2 = Godot.Vector2;
+using Vector3 = UnityEngine.Vector3;
 
 public static class ViewHelpers
 {
@@ -15,6 +17,11 @@ public static class ViewHelpers
     public static readonly Color MEA = new Color(0.5f, 0, 0);
     public static readonly Color ENT = Color.green;
     public static readonly Color TEL = Color.blue;
+
+    public static Vector2 Pos(UnityEngine.Vector2 normalized, Node2D root)
+    {
+        return root.ToGlobal(new Vector2(normalized.x - .5f, normalized.y - .5f));
+    }
 
     public static Color ColorRamp360(Particle particle)
     {
@@ -63,6 +70,7 @@ public class ViewCollection<T, TView>
 
         return coll;
     }
+
     private ViewCollection(Node worldRoot, string prefab,
         Func<ParticleWorld, IEnumerable<T>> selector)
     {
