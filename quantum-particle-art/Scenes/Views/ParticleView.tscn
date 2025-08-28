@@ -1,12 +1,18 @@
-[gd_scene load_steps=3 format=3 uid="uid://cffopff1qm7g0"]
+[gd_scene load_steps=4 format=3 uid="uid://cffopff1qm7g0"]
 
 [ext_resource type="Script" uid="uid://djnaja3gbydgy" path="res://ExternalScripts/Particle/View/ParticleView.cs" id="1_pgop8"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="2_pgop8"]
 
-[node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite")]
+[sub_resource type="Curve" id="Curve_pgop8"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0]
+point_count = 1
+metadata/_snap_enabled = true
+
+[node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite", "_line")]
 script = ExtResource("1_pgop8")
 _scale = NodePath("Scale")
 _sprite = NodePath("Scale/Sprite2D")
+_line = NodePath("Line2D")
 
 [node name="Scale" type="Node2D" parent="."]
 
@@ -15,3 +21,8 @@ texture_filter = 2
 texture_repeat = 2
 scale = Vector2(10, 10)
 texture = ExtResource("2_pgop8")
+
+[node name="Line2D" type="Line2D" parent="."]
+points = PackedVector2Array(0, 0, 1, 1)
+width = 0.01
+width_curve = SubResource("Curve_pgop8")

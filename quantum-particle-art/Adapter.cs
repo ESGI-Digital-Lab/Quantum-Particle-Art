@@ -381,7 +381,8 @@ namespace UnityEngine
 	public struct Color
 	{
 		private Godot.Color color;
-		public static Color black => new Color(0, 0, 0);
+		public static Godot.Color clear => new Color(0,0,0,0);
+		public static Color black => new Color(0, 0, 0,1);
 		public static Color gray => new Color(0.5f, 0.5f, 0.5f);
 		public static Color white => new Color(1, 1, 1);
 		public static Color red => new Color(1, 0, 0);

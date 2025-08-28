@@ -13,28 +13,30 @@ script = ExtResource("1_lrx72")
 _space = NodePath("Space")
 _worldSize = Vector2(500, 500)
 _nbSpecies = 7
-_nbParticles = 200
+_nbGates = 50
 _gateSize = 0.02
 
 [node name="Space" type="Node2D" parent="Simulation"]
 scale = Vector2(600, 600)
 
-[node name="Corner" type="Node2D" parent="Simulation/Space"]
+[node name="Editor" type="Node2D" parent="Simulation/Space"]
+
+[node name="Corner" type="Node2D" parent="Simulation/Space/Editor"]
 position = Vector2(-0.5, 0.5)
 
-[node name="Corner2" type="Node2D" parent="Simulation/Space"]
+[node name="Corner2" type="Node2D" parent="Simulation/Space/Editor"]
 position = Vector2(0.5, -0.5)
 
-[node name="Corner3" type="Node2D" parent="Simulation/Space"]
+[node name="Corner3" type="Node2D" parent="Simulation/Space/Editor"]
 position = Vector2(0.5, 0.5)
 
-[node name="Corner4" type="Node2D" parent="Simulation/Space"]
+[node name="Corner4" type="Node2D" parent="Simulation/Space/Editor"]
 position = Vector2(-0.5, -0.5)
 
-[node name="ParticleView" parent="Simulation/Space" instance=ExtResource("2_fv5ml")]
+[node name="ParticleView" parent="Simulation/Space/Editor" instance=ExtResource("2_fv5ml")]
 visible = false
 
-[node name="Gate" parent="Simulation/Space" node_paths=PackedStringArray("_sprites") instance=ExtResource("3_yixwl")]
+[node name="Gate" parent="Simulation/Space/Editor" node_paths=PackedStringArray("_sprites") instance=ExtResource("3_yixwl")]
 visible = false
 scale = Vector2(0.013, 0.013)
 _sprites = []

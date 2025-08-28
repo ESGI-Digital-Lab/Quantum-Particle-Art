@@ -13,8 +13,11 @@ public partial class GodotEntry : Node
 	[Export] private Node2D _space;
 	[ExportCategory("World")]
 	[Export] private Godot.Vector2 _worldSize = new(600, 600);
+
+	[Export] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
+	[Export] private Godot.Vector2 _startAreaWidth = new(1, 1);
 	[ExportCategory("Particles")]
-	[Export(PropertyHint.Range, "1,12,1")]
+	[Export(PropertyHint.Range, "1,12")]
 	private int _nbSpecies = 5;
 	[Export] private int _nbParticles = 100;
 	[Export] private RulesSaved.Defaults _ruleType = RulesSaved.Defaults.Alliances;
@@ -37,9 +40,9 @@ public partial class GodotEntry : Node
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
 		prewarm.Add(view);
-		var looper = new MultipleImagesLooper(InitConditionsArray(_nbSpecies, _nbGates,_gateSize), psteps, psteps, prewarm);
+		var looper = new MultipleImagesLooper(InitConditionsArray(), psteps, psteps, prewarm);
 
-		var world = new WorldInitializer(_worldSize, _nbParticles, Vector2.one/2f, Vector2.one/10f);
+		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea-_startAreaWidth/2f, _startAreaWidth);
 		looper.BaseInitializer = world;
 		Add(looper);
 		_tasks = _monos.Select(m => m.Awake()).ToArray();

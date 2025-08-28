@@ -12,8 +12,9 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 {
 	[SerializeField, Header("Settings")] private bool _showOnlyChilds = false;
 	[Export] private Node2D _scale;
-	private Node2D _parent;
 	[Export] private Sprite2D _sprite;
+	[Export] private Line2D _line;
+	private Node2D _parent;
 	private Particle particle;
 	private static Dictionary<Orientation, Particle> mapBack;
 	private Tuple<ParticleView, ParticleView> _childs;
@@ -102,12 +103,16 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		//if (Orientation.NormalizedSpeed <= 0.0f)
 		//    _renderer.material.color = Color.gray;
 		_scale.GlobalScale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
+		return;
 		if (Orientation.IsEntangled)
 			LineTo(Orientation.Entanglement, ViewHelpers.ENT);
 		else if (Orientation.IsTeleported)
 			LineTo(Orientation.Teleportation, ViewHelpers.TEL);
-		//else
-		//    _line.SetPositions(Array.Empty<Vector3>());
+		else
+		{
+			_line.Points = [];	
+			_line.DefaultColor = Color.clear;
+		}
 	}
 
 	private void LineTo(Orientation to, Color color)
@@ -119,7 +124,8 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	{
 		if (mapBack.TryGetValue(to, out var target))
 		{
-		   
+		   _line.Points = [ViewHelpers.Pos(from.NormalizedPosition,_parent), ViewHelpers.Pos(target.NormalizedPosition, _parent)];
+		   _line.DefaultColor = color;
 		}
 	}
 
