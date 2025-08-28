@@ -102,8 +102,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		ApplyOrientation(Orientation);
 		//if (Orientation.NormalizedSpeed <= 0.0f)
 		//    _renderer.material.color = Color.gray;
-		_scale.GlobalScale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
-		return;
+		_scale.Scale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
 		if (Orientation.IsEntangled)
 			LineTo(Orientation.Entanglement, ViewHelpers.ENT);
 		else if (Orientation.IsTeleported)
@@ -132,5 +131,6 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	private void ApplyOrientation(Orientation or)
 	{
 		var deg = or.Degrees;
+		//TODO
 	}
 }

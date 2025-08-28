@@ -19,7 +19,7 @@ _line = NodePath("Line2D")
 [node name="Sprite2D" type="Sprite2D" parent="Scale"]
 texture_filter = 2
 texture_repeat = 2
-scale = Vector2(10, 10)
+scale = Vector2(0.015, 0.015)
 texture = ExtResource("2_pgop8")
 
 [node name="Line2D" type="Line2D" parent="."]

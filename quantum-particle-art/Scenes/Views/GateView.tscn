@@ -8,6 +8,5 @@ script = ExtResource("1_pm10d")
 _sprites = [NodePath("Sprite2D")]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-visible = false
 scale = Vector2(0.01, 0.01)
 texture = ExtResource("2_pm10d")
