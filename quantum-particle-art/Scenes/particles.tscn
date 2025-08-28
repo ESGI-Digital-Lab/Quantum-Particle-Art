@@ -15,9 +15,6 @@ _worldSize = Vector2(500, 500)
 _nbSpecies = 7
 _nbParticles = 200
 _gateSize = 0.02
-_entangleWeight = 0.0
-_measureWeight = 0.0
-_teleportWeight = 0.0
 
 [node name="Space" type="Node2D" parent="Simulation"]
 scale = Vector2(600, 600)
