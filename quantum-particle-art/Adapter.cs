@@ -428,6 +428,10 @@ namespace UnityEngine
 		{
 			return color.color;
 		}
+		public static implicit operator Color(Godot.Color color)
+		{
+			return new Color(color);
+		}
 
 		public static Color ColorHSV(float h, float s, float v, float a = 1f)
 		{
