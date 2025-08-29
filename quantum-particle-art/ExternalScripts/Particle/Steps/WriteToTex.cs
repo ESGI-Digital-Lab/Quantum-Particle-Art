@@ -37,7 +37,7 @@ public class WriteToTex : ParticleStep
     {
         _toSave.SetImage(_toSaveImage);
         _drawing.SetImage(_drawingImage);
-        _renderer.Texture = _drawing;
+        _renderer.Texture = _toSave;
     }
     public override async Task Init(WorldInitializer init)
     {
@@ -51,6 +51,7 @@ public class WriteToTex : ParticleStep
         _drawingImage.Fill(Color.black);
         _toSave = ImageTexture.CreateFromImage(_toSaveImage);
         _drawing = ImageTexture.CreateFromImage(_drawingImage);
+        _renderer.Scale = new Vector2(1f/_drawingImage.GetWidth(), 1f/_drawingImage.GetHeight());
         RefreshTex();
     }
 
