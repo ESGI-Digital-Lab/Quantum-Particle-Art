@@ -20,7 +20,7 @@ public static class ViewHelpers
 
     public static Vector2 Pos(UnityEngine.Vector2 normalized, Node2D root)
     {
-        return root.ToGlobal(new Vector2(normalized.x - .5f, normalized.y - .5f));
+        return root.ToGlobal(new Vector2(normalized.x-.5f, normalized.y-.5f));
     }
 
     public static Color ColorRamp360(Particle particle)

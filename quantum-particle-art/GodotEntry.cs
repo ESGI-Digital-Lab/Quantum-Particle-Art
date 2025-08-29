@@ -11,26 +11,51 @@ public partial class GodotEntry : Node
 	private List<MonoBehaviour> _monos;
 	private Task[] _tasks;
 	[Export] private Node2D _space;
-	[ExportCategory("World")]
-	[Export(PropertyHint.Link)] private Godot.Vector2 _worldSize = new(600, 600);
+
+	[ExportCategory("World")] [Export(PropertyHint.Link)]
+	private float _worldSize = 600;
+
+	[Export()]
+	private float _worldAspect = 2;
 
 	[Export(PropertyHint.Link)] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
 	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
-	[ExportCategory("Particles")]
-	[Export(PropertyHint.Range, "1,12")]
+
+	[ExportCategory("Particles")] [Export(PropertyHint.Range, "1,12")]
 	private int _nbSpecies = 5;
+
 	[Export] private int _nbParticles = 100;
 	[Export] private RulesSaved.Defaults _ruleType = RulesSaved.Defaults.Alliances;
-	[ExportCategory("Gates")]
-	[Export] private int _nbGates = 20;
+	[ExportCategory("Gates")] [Export] private int _nbGates = 20;
+
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
-	[ExportCategory("Gates weights")]
-	[Export(PropertyHint.Range, "0,10,0.1")] private float _entangleWeight = 1f;
-	[Export(PropertyHint.Range, "0,10,0.1")] private float _measureWeight = 1f;
-	[Export(PropertyHint.Range, "0,10,0.1")] private float _superposeWeight = 1f;
-	[Export(PropertyHint.Range, "0,10,0.1")] private float _teleportWeight = 1f;
-	
+
+	[ExportCategory("Gates weights")] [Export(PropertyHint.Range, "0,10,0.1")]
+	private float _entangleWeight = 1f;
+
+	[Export(PropertyHint.Range, "0,10,0.1")]
+	private float _measureWeight = 1f;
+
+	[Export(PropertyHint.Range, "0,10,0.1")]
+	private float _superposeWeight = 1f;
+
+	[Export(PropertyHint.Range, "0,10,0.1")]
+	private float _teleportWeight = 1f;
+
+	[ExportCategory("Tex")] 
+	[Export] private Sprite2D _display;
+	[Export] private Godot.Color _color;
+	[Export(PropertyHint.Link)] private int _textureSize;
+	[ExportCategory("Saving")] [Export] private bool _saveLastFrame = true;
+	[ExportCategory("View")] 
+	[Export] private float _viewportSizeInWindow = 400f;
+
+	[Export] private Camera2D _camera;
+	[Export(PropertyHint.Range,"0,10,0.1")] private float _zoom = 1f;
+
+	private Vector2 WorldSize(float height) => new(height * _worldAspect, height);
+	private Vector2I WorldSize(int height) => new((int)(height * _worldAspect), height);
 
 	public override void _Ready()
 	{
@@ -43,12 +68,21 @@ public partial class GodotEntry : Node
 		psteps.Add(Influence);
 		var gates = new PointsIntersection(false);
 		psteps.Add(gates);
+		var viewScale = WorldSize(_viewportSizeInWindow);
+		_space.Scale = viewScale;
+		_camera.Zoom = Godot.Vector2.One*_zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
+		var writeToTex = new WriteToTex(_display, viewScale.y,_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
+		psteps.Add(writeToTex);
 		prewarm.Add(view);
-		var looper = new MultipleImagesLooper(InitConditionsArray(_entangleWeight,_measureWeight,_superposeWeight,_teleportWeight), psteps, psteps, prewarm);
+		var looper =
+			new MultipleImagesLooper(
+				InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight), psteps, psteps,
+				prewarm);
 
-		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea-_startAreaWidth/2f, _startAreaWidth);
+		var world = new WorldInitializer(WorldSize(_worldSize), _nbParticles, _startArea - _startAreaWidth / 2f,
+			_startAreaWidth);
 		looper.BaseInitializer = world;
 		Add(looper);
 		_tasks = _monos.Select(m => m.Awake()).ToArray();
@@ -70,8 +104,10 @@ public partial class GodotEntry : Node
 				{ Area2D.AreaType.Teleport, tel }
 			});
 		var rules = new RulesSaved(_nbSpecies, _ruleType);
-		InitConditions[] initConditionsArray = [
-			new InitConditions(new CanvasPixels(1024,1024, Color.blue), rules, ColorPicker.Random(_nbSpecies), new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)))
+		InitConditions[] initConditionsArray =
+		[
+			new InitConditions(new CanvasPixels(WorldSize(_textureSize), _color),
+				rules, ColorPicker.Random(_nbSpecies), new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)))
 		];
 		return initConditionsArray;
 	}
@@ -82,6 +118,16 @@ public partial class GodotEntry : Node
 		for (int i = 0; i < _tasks.Length; i++)
 			_tasks[i] = _monos[i].Update();
 		//Task.WaitAll(_tasks);
+	}
+
+	public override void _Notification(int what)
+	{
+		if (what == NotificationWMCloseRequest)
+		{
+			_monos.ForEach(m => m.Dispose());
+		}
+
+		base._Notification(what);
 	}
 
 

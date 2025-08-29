@@ -9,17 +9,24 @@
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
-[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_display")]
+[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_display", "_camera")]
 script = ExtResource("1_lrx72")
 _space = NodePath("Space")
-_worldSize = Vector2(500, 500)
+_worldSize = 400.0
+_worldAspect = 1.778
 _nbSpecies = 7
-_nbParticles = 200
+_nbParticles = 250
 _gateSize = 0.02
-_display = NodePath("Space/Sprite2D")
+_display = NodePath("Sprite2D")
+_color = Color(0, 0, 0, 1)
+_textureSize = 4096
+_camera = NodePath("../Camera2D")
+_zoom = 2.0
 
 [node name="Space" type="Node2D" parent="Simulation"]
-scale = Vector2(600, 600)
+top_level = true
+texture_repeat = 1
+scale = Vector2(400, 400)
 
 [node name="Editor" type="Node2D" parent="Simulation/Space"]
 
@@ -43,6 +50,7 @@ visible = false
 scale = Vector2(0.013, 0.013)
 _sprites = []
 
-[node name="Sprite2D" type="Sprite2D" parent="Simulation/Space"]
+[node name="Sprite2D" type="Sprite2D" parent="Simulation"]
 z_index = -4096
+scale = Vector2(200, 200)
 texture = ExtResource("4_yixwl")

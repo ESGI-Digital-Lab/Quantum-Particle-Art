@@ -9,19 +9,18 @@ using NaughtyAttributes;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using Mathf = UnityEngine.Mathf;
-using Texture2D = Godot.Texture2D;
 using Vector2 = UnityEngine.Vector2;
 
 public class WriteToTex : ParticleStep
 {
-    private bool _stretchVOverH = false;
+    private float _viewSize;
     private Saver _saver;
 
-    public WriteToTex(Sprite2D renderer, Saver saver = null, bool stretchVOverH = false)
+    public WriteToTex(Sprite2D renderer, float viewSize, Saver saver = null)
     {
-        _stretchVOverH = stretchVOverH;
         _renderer = renderer;
         _saver = saver;
+        _viewSize = viewSize;
     }
 
     private Sprite2D _renderer;
@@ -52,14 +51,13 @@ public class WriteToTex : ParticleStep
         _texProvider = init.Texture;
         _texProvider.Create();
         //We need to have the tex before initializing the saving
-        //_saver.Name = _texProvider.Name + "_" + init.Init.Rules.Name;
         _toSaveImage = _baseTexture.Duplicate() as Image;
         _drawingImage = Image.CreateEmpty(_baseTexture.GetWidth(), _baseTexture.GetHeight(), false, Image.Format.Rgba8);
         _drawingImage.Fill(Color.black);
         _toSave = ImageTexture.CreateFromImage(_toSaveImage);
         _drawing = ImageTexture.CreateFromImage(_drawingImage);
-        var stretch = 1f / (_stretchVOverH ? _drawingImage.GetWidth() : _drawingImage.GetHeight());
-        //We keep aspect ratio of image but we make sure it takes full space on desired axis
+        var stretch =  _viewSize / _drawingImage.GetHeight();
+        //We keep aspect ratio of image (defined in the texture and not the scale of the sprited2D) but we make sure it takes full space on height axis
         _renderer.Scale = new Vector2(stretch, stretch);
         if (_saver != null)
         {

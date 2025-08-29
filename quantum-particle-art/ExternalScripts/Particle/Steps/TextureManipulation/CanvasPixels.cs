@@ -29,7 +29,7 @@ public class CanvasPixels : ATexProvider
     private string name = null;
 
     public override string Name => name ??=
-        ColorString(_color) + (_size.X != _size.Y ? $"_{ResString(_size.X)}x{ResString(_size.Y)}" : ResString(_size.X));
+        ColorString(_color) + (_size.X != _size.Y ? $"{ResString(_size.X)}x{ResString(_size.Y)}" : ResString(_size.X));
 
     private string ColorString(Color c)
     {
