@@ -1,0 +1,111 @@
+﻿using System;
+using System.Collections;
+using System.Linq;
+using System.Threading.Tasks;
+using DefaultNamespace.Tools;
+using Godot;
+using NaughtyAttributes;
+using UnityEngine;
+using Color = UnityEngine.Color;
+using Mathf = UnityEngine.Mathf;
+using Texture2D = Godot.Texture2D;
+using Vector2 = UnityEngine.Vector2;
+
+public class WriteToTex : ParticleStep
+{
+    public WriteToTex(Sprite2D renderer)
+    {
+        _renderer = renderer;
+    }
+
+    private Sprite2D _renderer;
+    private ATexProvider _texProvider;
+    //[SerializeField] private bool _enableDistorsion = true;
+
+    private Image _baseTexture
+    {
+        get => _texProvider.Texture;
+    }
+
+    private Image _toSaveImage;
+    private Image _drawingImage;
+    private ImageTexture _toSave;
+    private ImageTexture _drawing;
+    private Color[] pixels;
+
+    public void RefreshTex()
+    {
+        _toSave.SetImage(_toSaveImage);
+        _drawing.SetImage(_drawingImage);
+        _renderer.Texture = _drawing;
+    }
+    public override async Task Init(WorldInitializer init)
+    {
+        await base.Init(init);
+        _texProvider = init.Texture;
+        _texProvider.Create();
+        //We need to have the tex before initializing the saving
+        //_saver.Name = _texProvider.Name + "_" + init.Init.Rules.Name;
+        _toSaveImage = _baseTexture.Duplicate() as Image;
+        _drawingImage = Image.CreateEmpty(_baseTexture.GetWidth(), _baseTexture.GetHeight(), false, Image.Format.Rgba8);
+        _drawingImage.Fill(Color.black);
+        _toSave = ImageTexture.CreateFromImage(_toSaveImage);
+        _drawing = ImageTexture.CreateFromImage(_drawingImage);
+        RefreshTex();
+    }
+
+    public override async Task HandleParticles(ParticleWorld entry, float delay)
+    {
+        await Draw(entry);
+    }
+
+    private Task Draw(ParticleWorld entry)
+    {
+        foreach (var line in entry.Drawer.GetLines())
+        {
+            var start = ToPixelCoord(line.Start);
+            var end = ToPixelCoord(line.End);
+            var points = Drawer.Line.GetPixels(start, end);
+            foreach (var coords in points)
+            {
+                //This is raw results on a blank tex
+                _drawingImage.SetPixel(coords.x, coords.y, line.Color);
+                //This is results overwriting the base texture
+                _toSaveImage.SetPixel(coords.x, coords.y, line.Color);
+            }
+        }
+
+        entry.Drawer.Clear();
+        RefreshTex();
+        return Task.CompletedTask;
+    }
+
+    private Vector2Int ToPixelCoord(Vector2 coord)
+    {
+        var x = Mathf.RoundToInt(coord.x * (_drawing.GetWidth()-1));
+        var y = Mathf.RoundToInt(coord.y * (_drawing.GetHeight()-1));
+        return new Vector2Int(x, y);
+    }
+
+    protected Vector2Int GetSize(WorldInitializer init)
+    {
+        return new Vector2Int(_baseTexture.GetWidth(), _baseTexture.GetHeight());
+    }
+
+
+    protected void GetFrame(ParticleWorld entry, in float[] buffer)
+    {
+        //pixels = _toSave.GetPixels();
+        //for (int i = 0; i < pixels.Length; i++)
+        //{
+        //    var bufferIndex = i * _nbColorChannels;
+        //    buffer[bufferIndex] = pixels[i].r;
+        //    if (_nbColorChannels > 1)
+        //        buffer[bufferIndex + 1] = pixels[i].g;
+        //    if (_nbColorChannels > 2)
+        //        buffer[bufferIndex + 2] = pixels[i].b;
+        //    if (_nbColorChannels > 3)
+        //        buffer[bufferIndex + 3] = pixels[i].a;
+        //}
+    }
+}

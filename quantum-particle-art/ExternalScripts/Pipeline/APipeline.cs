@@ -35,7 +35,7 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         foreach (var step in _inits)
         {
             if (_logInit)
-                Debug.LogWarning("Initing with global initializer" + step.GetType().Name);
+                Debug.LogWarning("Initing with global initializer " + step.GetType().Name);
             await step.Init(init);
         }
 

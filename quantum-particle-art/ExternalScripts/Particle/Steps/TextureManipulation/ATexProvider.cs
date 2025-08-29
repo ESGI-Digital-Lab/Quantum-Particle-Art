@@ -6,7 +6,7 @@ using Texture = Godot.Texture;
 public abstract class ATexProvider : ScriptableObject
 {
     public abstract void Create();
-    public abstract Texture Texture { get; }
+    public abstract Image Texture { get; }
     public abstract byte[] GetPixels();
     public virtual string Name => name;
 }
@@ -20,7 +20,7 @@ public class CanvasPixels : ATexProvider
 
     private Vector2Int _size;
     [SerializeField] private Color _color;
-    private Godot.ImageTexture _texture;
+    private Godot.Image _texture;
 
     public CanvasPixels(int x, int y, Color color) : this(new Vector2Int(x, y), color) { }
     public CanvasPixels(Vector2Int size, Color color)
@@ -46,11 +46,10 @@ public class CanvasPixels : ATexProvider
             pixels[i + 3] = a;
         }
 
-        var img = Image.CreateFromData(_size.x, _size.y, false, Image.Format.Rgba8, pixels);
-        _texture.SetImage(img);
+        _texture = Image.CreateFromData(_size.x, _size.y, false, Image.Format.Rgba8, pixels);
     }
 
-    public override Texture Texture
+    public override Image Texture
     {
         get => _texture;
     }
