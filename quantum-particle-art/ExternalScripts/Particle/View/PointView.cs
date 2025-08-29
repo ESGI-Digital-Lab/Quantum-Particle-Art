@@ -22,9 +22,4 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 		//_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);
 		//_scale.localScale = new Vector3(info.Radius / bounds.x, 0.1f, info.Radius / bounds.y);
 	}
-
-	public void Dispose()
-	{
-		//GameObject.Destroy(this.gameObject);
-	}
 }

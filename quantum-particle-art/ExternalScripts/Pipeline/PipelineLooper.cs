@@ -31,6 +31,11 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     private float _lastStart;
     private int i = 0;
+    public override void Dispose()
+    {
+        base.Dispose();
+        pipeline?.Dispose();
+    }
 
     public override async Task Update()
     {

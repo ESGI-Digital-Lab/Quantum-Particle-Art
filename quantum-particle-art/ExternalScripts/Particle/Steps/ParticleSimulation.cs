@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public abstract class ParticleStep : MonoBehaviour, IStep<ParticleWorld>, IInit<WorldInitializer>
+public abstract class ParticleStep : IStep<ParticleWorld>, IInit<WorldInitializer>
 {
     [SerializeField] private bool _delayBeetweenEachParticle = false;
     protected ParticleWorld _world;

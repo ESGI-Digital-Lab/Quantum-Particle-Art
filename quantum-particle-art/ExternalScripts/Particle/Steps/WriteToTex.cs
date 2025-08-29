@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Tools;
@@ -13,9 +14,14 @@ using Vector2 = UnityEngine.Vector2;
 
 public class WriteToTex : ParticleStep
 {
-    public WriteToTex(Sprite2D renderer)
+    private bool _stretchVOverH = false;
+    private Saver _saver;
+
+    public WriteToTex(Sprite2D renderer, Saver saver = null, bool stretchVOverH = false)
     {
+        _stretchVOverH = stretchVOverH;
         _renderer = renderer;
+        _saver = saver;
     }
 
     private Sprite2D _renderer;
@@ -39,6 +45,7 @@ public class WriteToTex : ParticleStep
         _drawing.SetImage(_drawingImage);
         _renderer.Texture = _toSave;
     }
+
     public override async Task Init(WorldInitializer init)
     {
         await base.Init(init);
@@ -51,8 +58,21 @@ public class WriteToTex : ParticleStep
         _drawingImage.Fill(Color.black);
         _toSave = ImageTexture.CreateFromImage(_toSaveImage);
         _drawing = ImageTexture.CreateFromImage(_drawingImage);
-        _renderer.Scale = new Vector2(1f/_drawingImage.GetWidth(), 1f/_drawingImage.GetHeight());
+        var stretch = 1f / (_stretchVOverH ? _drawingImage.GetWidth() : _drawingImage.GetHeight());
+        //We keep aspect ratio of image but we make sure it takes full space on desired axis
+        _renderer.Scale = new Vector2(stretch, stretch);
+        if (_saver != null)
+        {
+            _saver.Init(_toSaveImage, _texProvider.Name + "_" + init.Init.Rules.Name);
+        }
         RefreshTex();
+    }
+
+    public override void Release()
+    {
+        base.Release();
+        if (_saver != null)
+            _saver.SaveTexToDisk();
     }
 
     public override async Task HandleParticles(ParticleWorld entry, float delay)
@@ -83,8 +103,8 @@ public class WriteToTex : ParticleStep
 
     private Vector2Int ToPixelCoord(Vector2 coord)
     {
-        var x = Mathf.RoundToInt(coord.x * (_drawing.GetWidth()-1));
-        var y = Mathf.RoundToInt(coord.y * (_drawing.GetHeight()-1));
+        var x = Mathf.RoundToInt(coord.x * (_drawing.GetWidth() - 1));
+        var y = Mathf.RoundToInt(coord.y * (_drawing.GetHeight() - 1));
         return new Vector2Int(x, y);
     }
 

@@ -8,41 +8,6 @@ using Object = UnityEngine.MonoBehaviour;
 
 namespace UnityEngine
 {
-	public partial class MonobehaviourAdapter
-	{
-		private MonoBehaviour _monoBehaviour;
-		private CancellationToken _token;
-
-		public MonobehaviourAdapter(MonoBehaviour mono, Node holder)
-		{
-			_monoBehaviour = mono;
-			_monoBehaviour.SetNode(holder);
-		}
-
-		public void _Ready()
-		{
-			Task.Run(async () =>
-			{
-				while (_monoBehaviour == null)
-					await Task.Delay(80);
-				await _monoBehaviour.Awake();
-				await _monoBehaviour.Start();
-				await Task.Run(async () =>
-				{
-					while (true)
-					{
-						if (_token.IsCancellationRequested)
-							break;
-						await Task.Delay(160);
-						await _monoBehaviour.Update();
-					}
-
-					_monoBehaviour.Dispose();
-				});
-			});
-		}
-	}
-
 	public abstract partial class MonoBehaviour
 	{
 		private Node _node;
@@ -223,6 +188,7 @@ namespace UnityEngine
 
 	public static class Mathf
 	{
+		public static bool IsPowerOfTwo(int value) => value > 0 && (value & (value - 1)) == 0; 
 		public static float Pow(float f, float p) => (float)Math.Pow(f, p);
 		public static float Sqrt(float f) => (float)Math.Sqrt(f);
 		public static float Abs(float f) => (float)Math.Abs(f);
@@ -473,7 +439,7 @@ namespace UnityEngine
 
 	public class ScriptableObject
 	{
-		protected string name;
+		
 	}
 
 	public class CreateAssetMenuAttribute : Attribute
