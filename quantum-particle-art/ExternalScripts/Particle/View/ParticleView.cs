@@ -11,6 +11,7 @@ using Vector2 = Godot.Vector2;
 public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 {
 	[Export] private bool _showOnlyChilds = false;
+	[Export] private bool _drawLines = false;
 	[Export] private Node2D _scale;
 	[Export] private Sprite2D _sprite;
 	[Export] private Line2D _line;
@@ -27,6 +28,8 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		_sprite.Modulate = color;
 		if (_parent == null)
 			_parent = this.GetParent() as Node2D;
+		if(!_drawLines)
+			ClearLine();
 	}
 
 
@@ -106,9 +109,14 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 			LineTo(Orientation.Teleportation, ViewHelpers.TEL);
 		else
 		{
-			_line.Points = [];
-			_line.DefaultColor = Color.clear;
+			ClearLine();
 		}
+	}
+
+	private void ClearLine()
+	{
+		_line.Points = [];
+		_line.DefaultColor = Color.clear;
 	}
 
 	private void LineTo(Orientation to, Color color)
@@ -118,6 +126,8 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 
 	private void LineTo(Particle from, Orientation to, Color color)
 	{
+		if (!_drawLines)
+			return;
 		if (mapBack.TryGetValue(to, out var target))
 		{
 			_line.Points =
