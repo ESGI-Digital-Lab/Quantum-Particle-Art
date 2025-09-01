@@ -3,9 +3,33 @@
 [ext_resource type="Script" uid="uid://cgc1xg8bbjfsi" path="res://ExternalScripts/Particle/View/PointView.cs" id="1_pm10d"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="2_pm10d"]
 
-[node name="Gate" type="Node2D" node_paths=PackedStringArray("_sprites")]
+[node name="Gate" type="Node2D" node_paths=PackedStringArray("_sprites", "_label")]
 script = ExtResource("1_pm10d")
 _sprites = [NodePath("Sprite2D")]
+_label = NodePath("RichTextLabel")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+z_index = 2
+clip_contents = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -3.0
+offset_top = -4.0
+offset_right = 117.0
+offset_bottom = 156.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.05, 0.05)
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 70
+bbcode_enabled = true
+text = "[center]Q[/center]"
+fit_content = true
+scroll_active = false
+vertical_alignment = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 z_index = 1
