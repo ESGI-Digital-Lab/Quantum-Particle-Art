@@ -5,6 +5,7 @@ using NaughtyAttributes;
 using UnityEditor;
 #endif
 using UnityEngine;
+using UnityEngine.Assertions;
 
 [CreateAssetMenu(menuName = "Particle/InitConditions", fileName = "InitConditions", order = 0)]
 public class RulesSaved : ScriptableObject
@@ -16,6 +17,7 @@ public class RulesSaved : ScriptableObject
     {
         _locked = false;
         _nbSpecies = nb;
+        Assert.IsTrue(type != Defaults.Default, "Default rules are purely internal and don't do nothing");
         _rules = Load(type);
     }
     public void ReplaceRules(Ruleset rules)
@@ -30,7 +32,7 @@ public class RulesSaved : ScriptableObject
         Alliances = 2,
         Ships = 3,
         Purple = 4,
-        Simplify
+        Simplify = 5
     }
 
     [HorizontalLine(10)] [Range(2, 100)] [SerializeField] [Header("Pre built rules")]
@@ -267,7 +269,7 @@ public class RulesSaved : ScriptableObject
             );
         }
 
-        return new Ruleset(species, "Random_" + nb + string.Join('_',species.Select(s=> s.Steps.ToString())));
+        return new Ruleset(species, "Random_" + nb +"_"+ string.Join('_',species.Select(s=> s.Steps.ToString())));
     }
 
     private float RandomRange(System.Random random, float min, float max)
