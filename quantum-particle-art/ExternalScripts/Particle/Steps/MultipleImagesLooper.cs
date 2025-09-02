@@ -11,10 +11,9 @@ namespace DefaultNamespace.Particle.Steps
         private IStep<ParticleWorld>[] _steps;
         private IInit<ParticleWorld>[] _prewarm;
 
-        public MultipleImagesLooper(float duration,InitConditions[] textures, IEnumerable<IInit<WorldInitializer>> inits,
+        public MultipleImagesLooper(InitConditions[] textures, IEnumerable<IInit<WorldInitializer>> inits,
             IEnumerable<IStep<ParticleWorld>> step, IEnumerable<IInit<ParticleWorld>> prewarm)
         {
-            _duration = duration;
             _textures = textures;
             _inits = inits.ToArray();
             _steps = step.ToArray();

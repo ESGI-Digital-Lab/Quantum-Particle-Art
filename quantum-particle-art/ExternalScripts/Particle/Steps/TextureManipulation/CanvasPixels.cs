@@ -79,4 +79,8 @@ public class CanvasPixels : ATexProvider
         get => _texture;
     }
 
+    public override byte[] GetPixels()
+    {
+        return pixels;
+    }
 }

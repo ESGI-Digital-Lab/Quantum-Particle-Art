@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
 using Godot;
-using UnityEngine.Assertions;
 
 namespace UnityEngine;
 
@@ -17,17 +15,17 @@ public partial class GodotEntry : Node
 	[ExportCategory("World")] [Export(PropertyHint.Link)]
 	private float _worldSize = 600;
 
-	[Export()] private float _worldAspect = 2;
+	[Export()]
+	private float _worldAspect = 2;
 
 	[Export(PropertyHint.Link)] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
 	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
 
-	[ExportCategory("Loop")] [Export] private float _duration;
-	[ExportCategory("Particles")] [Export] private int _nbParticles;
-	[Export(PropertyHint.Range, "1,12")] private int[] _nbSpecies;
-	[Export] private ColorPalette[] _schemes;
+	[ExportCategory("Particles")] [Export(PropertyHint.Range, "1,12")]
+	private int _nbSpecies = 5;
 
-	[Export] private int[] _ruleType;
+	[Export] private int _nbParticles = 100;
+	[Export] private RulesSaved.Defaults _ruleType = RulesSaved.Defaults.Alliances;
 	[ExportCategory("Gates")] [Export] private int _nbGates = 20;
 
 	[Export(PropertyHint.Range, "0,1,0.01")]
@@ -45,16 +43,16 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _teleportWeight = 1f;
 
-	[ExportCategory("Tex")] [Export] private Sprite2D _display;
-	[Export] private Godot.Color[] _color;
+	[ExportCategory("Tex")] 
+	[Export] private Sprite2D _display;
+	[Export] private Godot.Color _color;
 	[Export(PropertyHint.Link)] private int _textureSize;
 	[ExportCategory("Saving")] [Export] private bool _saveLastFrame = true;
-	[ExportCategory("View")] [Export] private float _viewportSizeInWindow = 400f;
+	[ExportCategory("View")] 
+	[Export] private float _viewportSizeInWindow = 400f;
 
 	[Export] private Camera2D _camera;
-
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _zoom = 1f;
+	[Export(PropertyHint.Range,"0,10,0.1")] private float _zoom = 1f;
 
 	private Vector2 WorldSize(float height) => new(height * _worldAspect, height);
 	private Vector2I WorldSize(int height) => new((int)(height * _worldAspect), height);
@@ -72,15 +70,14 @@ public partial class GodotEntry : Node
 		psteps.Add(gates);
 		var viewScale = WorldSize(_viewportSizeInWindow);
 		_space.Scale = viewScale;
-		_camera.Zoom = Godot.Vector2.One * _zoom;
+		_camera.Zoom = Godot.Vector2.One*_zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
-		var writeToTex = new WriteToTex(_display, viewScale.y,
-			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
+		var writeToTex = new WriteToTex(_display, viewScale.y,_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
 		psteps.Add(writeToTex);
 		prewarm.Add(view);
 		var looper =
-			new MultipleImagesLooper(_duration,
+			new MultipleImagesLooper(
 				InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight), psteps, psteps,
 				prewarm);
 
@@ -96,7 +93,6 @@ public partial class GodotEntry : Node
 		Debug.LogWarning("Entry finished initializing");
 	}
 
-
 	private InitConditions[] InitConditionsArray(float ent = 1f, float mea = 1f, float sup = 1f, float tel = 1f)
 	{
 		var gatesWeights = new DictionaryFromList<Area2D.AreaType, float>(
@@ -107,27 +103,12 @@ public partial class GodotEntry : Node
 				{ Area2D.AreaType.Superpose, sup },
 				{ Area2D.AreaType.Teleport, tel }
 			});
-		var ruleEnums = Enum.GetValues(typeof(RulesSaved.Defaults)).Cast<RulesSaved.Defaults>().ToArray();
-		var amt = Math.Max(_nbSpecies.Length, Math.Max(_color.Length, _ruleType.Length));
-		InitConditions[] initConditionsArray = new InitConditions[amt];
-		for (int i = 0; i < amt; i++)
-		{
-			var ruleIndex = _ruleType[i % _ruleType.Length];
-			Assert.IsTrue(ruleIndex >= 0 && ruleIndex < ruleEnums.Length,
-				$"Rule type index {_ruleType[i % _ruleType.Length]} at position {i} is out of range");
-			var rules = new RulesSaved(_nbSpecies[i % _nbSpecies.Length], (RulesSaved.Defaults)ruleIndex);
-			var scheme = _schemes[i % _schemes.Length];
-			var color = _color[i % _color.Length];
-			initConditionsArray[i] = new InitConditions(
-				new CanvasPixels(WorldSize(_textureSize), color.A == 0f ? ColorPicker.Random() : color),
-				rules,
-				scheme == null
-					? ColorPicker.Random(_nbSpecies[i % _nbSpecies.Length])
-					: ColorPicker.FromScheme(scheme.Colors),
-				new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)));
-		}
-
-
+		var rules = new RulesSaved(_nbSpecies, _ruleType);
+		InitConditions[] initConditionsArray =
+		[
+			new InitConditions(new CanvasPixels(WorldSize(_textureSize), _color),
+				rules, ColorPicker.Random(_nbSpecies), new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)))
+		];
 		return initConditionsArray;
 	}
 

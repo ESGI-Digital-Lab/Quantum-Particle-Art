@@ -10,7 +10,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     [SerializeField, Range(-1, 1000),
      Tooltip(
          "Negative duration means it will run indefinitely, it can be changed to positive duration while it's running to make it last again N seconds")]
-    protected float _duration;
+    private float _duration;
 
     [SerializeField] private TInit _baseInitializer;
     [SerializeField] protected abstract int Loops { get; }
@@ -40,7 +40,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     public override async Task Update()
     {
         await base.Update();
-        if (_lastStart < 0 || (_duration > 0 && i < Loops && Time.time - _lastStart > _duration))
+        if (_lastStart < 0 || (_duration > 0 && i < Loops && Time.time - _lastStart < _lastStart + _duration))
         {
             if (i >= 0) //Skipped on first
                 OnFinished(pipeline);

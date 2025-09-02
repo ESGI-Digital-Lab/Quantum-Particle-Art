@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cffopff1qm7g0"]
 
 [ext_resource type="Script" uid="uid://djnaja3gbydgy" path="res://ExternalScripts/Particle/View/ParticleView.cs" id="1_pgop8"]
-[ext_resource type="Texture2D" uid="uid://cvqj7kiqiakg0" path="res://Visuals/circle.png" id="2_pgop8"]
+[ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="2_pgop8"]
 
 [sub_resource type="Curve" id="Curve_pgop8"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0]
@@ -10,19 +10,16 @@ metadata/_snap_enabled = true
 
 [node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite", "_line")]
 script = ExtResource("1_pgop8")
-_scale = NodePath("DynamicScale")
-_sprite = NodePath("DynamicScale/Node2D/Sprite2D")
+_scale = NodePath("Scale")
+_sprite = NodePath("Scale/Sprite2D")
 _line = NodePath("Line2D")
 
-[node name="DynamicScale" type="Node2D" parent="."]
+[node name="Scale" type="Node2D" parent="."]
 
-[node name="Node2D" type="Node2D" parent="DynamicScale"]
-scale = Vector2(0.002, 0.002)
-
-[node name="Sprite2D" type="Sprite2D" parent="DynamicScale/Node2D"]
+[node name="Sprite2D" type="Sprite2D" parent="Scale"]
 texture_filter = 2
 texture_repeat = 2
-scale = Vector2(0.004, 0.004)
+scale = Vector2(0.015, 0.015)
 texture = ExtResource("2_pgop8")
 
 [node name="Line2D" type="Line2D" parent="."]

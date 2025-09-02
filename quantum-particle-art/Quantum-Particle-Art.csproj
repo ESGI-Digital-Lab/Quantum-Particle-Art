@@ -18,7 +18,4 @@
     <Content Include="ExternalScripts\NaughtyAttributes\Core\Utility.meta" />
     <Content Include="ExternalScripts\NaughtyAttributes\Core\ValidatorAttributes.meta" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="KGySoft.Drawing" Version="9.2.0" />
-  </ItemGroup>
 </Project>

@@ -6,5 +6,6 @@ public abstract class ATexProvider : ScriptableObject
 {
     public abstract void Create();
     public abstract Image Texture { get; }
+    public abstract byte[] GetPixels();
     public abstract string Name { get; }
 }
