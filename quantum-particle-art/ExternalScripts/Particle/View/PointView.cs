@@ -6,6 +6,7 @@ using Vector2 = UnityEngine.Vector2;
 public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 {
 	[Export] private bool _showSprite = true;
+	[Export] private bool _overrideColor = false;
 	[Export] private bool _showText = true;
 	[Export] private Sprite2D[] _sprites;
 	[Export] private RichTextLabel _label;
@@ -16,7 +17,8 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 		bounds = w.Size;
 		foreach (var r in _sprites)
 		{
-			r.Modulate = color;
+			if(_overrideColor)
+				r.Modulate = color;
 			r.Visible = _showSprite;
 		}
 		this.GlobalPosition = ViewHelpers.Pos(info.Center / bounds, this.GetParent() as Node2D);

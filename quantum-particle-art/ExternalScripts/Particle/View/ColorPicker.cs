@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using Godot;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
+using Color = Godot.Color;
 
 [CreateAssetMenu(fileName = "ColorPicker", menuName = "Particle/ColorPicker", order = 0)]
 public class ColorPicker : ScriptableObject
@@ -13,6 +15,15 @@ public class ColorPicker : ScriptableObject
         return picked;
     }
 
+    public static Godot.Color Random() => UnityEngine.Random.ColorHSV();
+    public static ColorPicker FromScheme(Godot.Color[] scheme)
+    {
+        var picked = new ColorPicker(scheme.Length);
+        picked._colorMode = ColorModes.Scheme;
+        picked._scheme = scheme;
+        return picked;
+    }
+
     private ColorPicker(int nb)
     {
         _nbColors = nb;
@@ -21,11 +32,11 @@ public class ColorPicker : ScriptableObject
 
     [SerializeField, ShowIf(nameof(_colorMode), ColorModes.Identical),
      Tooltip("Base/first color for fixed or specie mode")]
-    private Color _color;
+    private Godot.Color _color;
 
     [SerializeField, ShowIf(nameof(_colorMode), ColorModes.Scheme),
      Tooltip("Assigned in order to each species in the scheme mode")]
-    private Color[] _scheme;
+    private Godot.Color[] _scheme;
 
     public enum ColorModes
     {
@@ -41,10 +52,10 @@ public class ColorPicker : ScriptableObject
 
     public Color GetColor(Particle particle, int totalNbSpecies)
     {
-        Color color = Color.black;
+        Color color = Colors.Black;
         switch (_colorMode)
         {
-            case ColorModes.Identical: color = Color.white; break;
+            case ColorModes.Identical: color = Colors.White; break;
             case ColorModes.Direction:
                 color = ViewHelpers.ColorRamp360(particle);
                 break;
@@ -72,8 +83,8 @@ public class ColorPicker : ScriptableObject
     private void ProceduralColors()
     {
         _colorMode = ColorModes.Scheme;
-        _scheme = new Color[_nbColors];
-        int baseColor = (int)(_baseColor.r * 0xFF) << 16 | (int)(_baseColor.g * 0xFF) << 8 | (int)(_baseColor.b * 0xFF); //Convert to hex
+        _scheme = new Godot.Color[_nbColors];
+        int baseColor = (int)(_baseColor.R * 0xFF) << 16 | (int)(_baseColor.G * 0xFF) << 8 | (int)(_baseColor.B * 0xFF); //Convert to hex
         for (int i = 0; i < _nbColors; i++)
             _scheme[i] = ColorFromSpeciesIndex(i, _nbColors,baseColor);
     }
@@ -84,15 +95,15 @@ public class ColorPicker : ScriptableObject
         _colorMode = ColorModes.Scheme;
         _scheme = new Color[_nbColors];
         for (int i = 0; i < _nbColors; i++)
-            _scheme[i] = UnityEngine.Random.ColorHSV();
+            _scheme[i] = Random();
     }
 
-    public Color ColorFromSpeciesIndex(int infoSpecies, int rulesetNbSpecies, int baseColor)
+    public Godot.Color ColorFromSpeciesIndex(int infoSpecies, int rulesetNbSpecies, int baseColor)
     {
         var key = (infoSpecies, rulesetNbSpecies);
         int hex = ((int)((infoSpecies * 1f / (rulesetNbSpecies)) * 0xFFFFFF) + baseColor) %
                   0xFFFFFF; // "Random" fixed base color to avoid having only greys or other repeating patterns
-        return new Color(
+        return new Godot.Color(
             ((hex >> 2 * 8) & 0xFF) / 255f,
             ((hex >> 1 * 8) & 0xFF) / 255f,
             (hex & 0xFF) / 255f

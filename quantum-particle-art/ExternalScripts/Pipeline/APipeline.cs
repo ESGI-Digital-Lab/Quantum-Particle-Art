@@ -27,7 +27,6 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
     public async Task Restart(TInit init, IEnumerable<TStep> steps, IEnumerable<IInit<TInit>> inits,
         IEnumerable<IInit<T>> prewarms)
     {
-        Dispose();
         _info = init;
         _steps = steps.ToArray();
         var _inits = inits.ToArray();
