@@ -45,7 +45,10 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _teleportWeight = 1f;
 
-	[ExportCategory("Tex")] [Export] private Sprite2D _display;
+	[ExportCategory("Tex")] 
+	[Export] private Sprite2D _display;
+
+	[Export] private Godot.Texture2D _backgrounds;
 	[Export] private Godot.Color[] _color;
 	[Export(PropertyHint.Link)] private int _textureSize;
 	[ExportCategory("Saving")] [Export] private bool _saveLastFrame = true;
@@ -110,19 +113,25 @@ public partial class GodotEntry : Node
 		var ruleEnums = Enum.GetValues(typeof(RulesSaved.Defaults)).Cast<RulesSaved.Defaults>().ToArray();
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_color.Length, _ruleType.Length));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
+		//Assert.IsTrue(_backgrounds.Length == _color.Length," Backgrounds and colors arrays must be of same length");
+			//The build method threw an exception.
+			//System.IO.FileNotFoundException: Could not load file or assembly 'Microsoft.Build.Framework, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Le fichier spécifié est introuvable. (0,0)
+
 		for (int i = 0; i < amt; i++)
 		{
 			var ruleIndex = _ruleType[i % _ruleType.Length];
 			Assert.IsTrue(ruleIndex >= 0 && ruleIndex < ruleEnums.Length,
 				$"Rule type index {_ruleType[i % _ruleType.Length]} at position {i} is out of range");
-			var rules = new RulesSaved(_nbSpecies[i % _nbSpecies.Length], (RulesSaved.Defaults)ruleIndex);
+			int nbSpecy = _nbSpecies[i % _nbSpecies.Length];
+			var rules = new RulesSaved(nbSpecy, (RulesSaved.Defaults)ruleIndex);
+			var texture = _backgrounds;
 			var scheme = _schemes[i % _schemes.Length];
 			var color = _color[i % _color.Length];
 			initConditionsArray[i] = new InitConditions(
-				new CanvasPixels(WorldSize(_textureSize), color.A == 0f ? ColorPicker.Random() : color),
+				texture == null ? new CanvasPixels(WorldSize(_textureSize), color.A == 0f ? ColorPicker.Random() : color) : new QuantizedImage(texture,nbSpecy),
 				rules,
 				scheme == null
-					? ColorPicker.Random(_nbSpecies[i % _nbSpecies.Length])
+					? ColorPicker.Random(nbSpecy)
 					: ColorPicker.FromScheme(scheme.Colors),
 				new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)));
 		}

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=9 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="4_yixwl"]
+[ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="5_jp56q"]
 
 [node name="Particles" type="Node3D"]
 
@@ -24,6 +25,7 @@ _schemes = Array[Resource]([null, ExtResource("2_0qkf8"), null, ExtResource("3_j
 _ruleType = PackedInt32Array(1, 2, 1, 1, 1)
 _gateSize = 0.02
 _display = NodePath("Sprite2D")
+_backgrounds = ExtResource("5_jp56q")
 _color = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1)
 _textureSize = 1024
 _camera = NodePath("../Camera2D")
