@@ -27,6 +27,7 @@ namespace DefaultNamespace.Particle.Steps
         protected override void UpdateInitializer(WorldInitializer init, int loop)
         {
             init.Init = _textures[loop];
+            init.Init.Texture.Create();
         }
 
         protected override void OnFinished(ParticleSimulation pipeline)

@@ -45,7 +45,6 @@ public class WriteToTex : ParticleStep
     {
         await base.Init(init);
         _texProvider = init.Texture;
-        _texProvider.Create();
         //We need to have the tex before initializing the saving
         var original = _texProvider.Texture;
         _toSaveImage = original.Duplicate() as Image;
