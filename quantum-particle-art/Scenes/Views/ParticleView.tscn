@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cffopff1qm7g0"]
 
 [ext_resource type="Script" uid="uid://djnaja3gbydgy" path="res://ExternalScripts/Particle/View/ParticleView.cs" id="1_pgop8"]
-[ext_resource type="Texture2D" uid="uid://c7dj2sguoi10o" path="res://Visuals/Init/Circle.png" id="2_pgop8"]
+[ext_resource type="Texture2D" uid="uid://cvqj7kiqiakg0" path="res://Visuals/circle.png" id="2_pgop8"]
 
 [sub_resource type="Curve" id="Curve_pgop8"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0]
