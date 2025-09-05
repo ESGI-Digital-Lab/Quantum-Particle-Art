@@ -5,6 +5,7 @@ using DefaultNamespace.Tools;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.ExternalScripts.Particle.Simulation;
 using Random = System.Random;
 
 public class WorldInitializer
@@ -57,9 +58,10 @@ public class WorldInitializer
         var ub = _startArea + _areaSize;
         for (int i = 0; i < _nbParticles; i++)
         {
+            var normalizedPos = new Vector2(RandomRange(lb.x, ub.x), RandomRange(lb.y, ub.y));
             particles[i] = new Particle(
                 new Orientation(),
-                new Vector2(RandomRange(lb.x, ub.x), RandomRange(lb.y, ub.y)), _size, random.Next(_init.Rules.NbSpecies)
+                normalizedPos, _size,  _init.SpecyPicker.SpeciyIndex(normalizedPos)
             );
         }
 

@@ -11,15 +11,18 @@ using System.Runtime.InteropServices;
 using KGySoft.CoreLibraries;
 using KGySoft.Drawing;
 using KGySoft.Drawing.Imaging;
+using UnityEngine.ExternalScripts.Particle.Simulation;
 using Bitmap = System.Drawing.Bitmap;
 using Color = Godot.Color;
 using Image = Godot.Image;
+using Vector2 = UnityEngine.Vector2;
 
-public class QuantizedImage : ATexProvider,IColorPicker
+public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 {
 	private int _paletteSize;
 	private Godot.Image _image;
-	private Godot.Color[] _colors;
+	private Color32[] _colors;
+	private Dictionary<Color32, int> _mapBack;
 
 	public QuantizedImage(Texture2D image, int paletteSize)
 	{
@@ -51,7 +54,7 @@ public class QuantizedImage : ATexProvider,IColorPicker
 		map.Quantize(OptimizedPaletteQuantizer.Octree(_paletteSize));
 
 		row = map.FirstRow;
-		HashSet<Color> palette = new HashSet<Color>(_paletteSize);
+		HashSet<Color32> palette = new(_paletteSize);
 		do
 		{
 			for (int x = 0; x < row.Width; x++)
@@ -62,19 +65,31 @@ public class QuantizedImage : ATexProvider,IColorPicker
 				original[idx + 1] = c.G;
 				original[idx + 2] = c.B;
 				if (palette.Count < _paletteSize)
-					palette.Add(new Color(c.R / 255f, c.G / 255f, c.B / 255f));
+					palette.Add(new Color32(c.R, c.G, c.B));
 			}
 		} while (row.MoveNextRow());
 
 		_image = Image.CreateFromData(_image.GetWidth(), _image.GetHeight(), false, format, original);
 		_colors = palette.ToArray();
+		_mapBack = palette.Select((v, i) => (v, i)).ToDictionary(x => x.v, x => x.i);
 	}
 
 	public override Godot.Image Texture => _image;
 
 	public override string Name => _image.ResourceName;
+
 	public Color GetColor(Particle particle, int totalNbSpecies)
 	{
-		return _colors[particle.Species];
+		var col32 = _colors[particle.Species];
+		return new Color(col32.R / 255f, col32.G / 255f, col32.B / 255f, col32.A / 255f);
+	}
+
+	public int SpeciyIndex(Vector2 position)
+	{
+		var color = _image.GetPixel(Mathf.FloorToInt(position.x * _image.GetWidth()), Mathf.FloorToInt(position.y * _image.GetHeight()));
+		var col32 = new Color32((byte)(color.R * 255), (byte)(color.G * 255), (byte)(color.B * 255));
+		if (_mapBack.TryGetValue(col32, out var idx))
+			return idx;
+		throw new KeyNotFoundException("Speciied color in image not found in palette");
 	}
 }

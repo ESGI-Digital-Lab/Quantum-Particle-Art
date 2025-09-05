@@ -5,6 +5,7 @@ using DefaultNamespace.Tools;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.ExternalScripts.Particle.Simulation;
 using Random = System.Random;
 
 public interface IGates
@@ -93,12 +94,13 @@ public struct Gates
 [Serializable]
 public struct InitConditions
 {
-	public InitConditions(ATexProvider texture, RulesSaved rules, IColorPicker colors, Gates gates)
+	public InitConditions(ATexProvider texture, RulesSaved rules, IColorPicker colors, Gates gates, ISpecyPicker specyPicker)
 	{
 		_texture = texture;
 		_rules = rules;
 		_colors = colors;
 		_gates = gates;
+		_specyPicker = specyPicker;
 	}
 
 	[Header("Data settings")]
@@ -108,6 +110,7 @@ public struct InitConditions
 	[SerializeField] private RulesSaved _rules;
 	[SerializeField] private IColorPicker _colors;
 	[SerializeField] private Gates _gates;
+	[SerializeField] private ISpecyPicker _specyPicker;
 
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
@@ -117,4 +120,6 @@ public struct InitConditions
 	public float GateSize => _gates.Size;
 
 	public IColorPicker Colors => _colors;
+
+	public ISpecyPicker SpecyPicker => _specyPicker;
 }
