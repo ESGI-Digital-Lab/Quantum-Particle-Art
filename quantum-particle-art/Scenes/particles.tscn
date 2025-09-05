@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="4_yixwl"]
-[ext_resource type="Texture2D" uid="uid://dsd80w6kxeoxj" path="res://Visuals/Init/ColorSpace.png" id="5_jp56q"]
+[ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="5_jp56q"]
 
 [node name="Particles" type="Node3D"]
 
@@ -16,16 +16,16 @@
 [node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_display", "_camera")]
 script = ExtResource("1_lrx72")
 _space = NodePath("Space")
-_worldSize = 400.0
+_worldBaseImage = ExtResource("5_jp56q")
+_worldSize = 300.0
 _worldAspect = 1.778
-_duration = 300.0
+_duration = 20.0
 _nbParticles = 250
 _nbSpecies = PackedInt32Array(4, 8, 10, 12, 12)
-_schemes = Array[Resource]([null, ExtResource("2_0qkf8"), null, ExtResource("3_jp56q"), ExtResource("4_sph3f")])
 _ruleType = PackedInt32Array(1, 2, 1, 1, 1)
 _gateSize = 0.02
 _display = NodePath("Sprite2D")
-_backgrounds = ExtResource("5_jp56q")
+_schemes = Array[Resource]([null, ExtResource("2_0qkf8"), null, ExtResource("3_jp56q"), ExtResource("4_sph3f")])
 _color = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1)
 _textureSize = 1024
 _camera = NodePath("../Camera2D")
