@@ -12,7 +12,7 @@ public class View : ParticleStep, IInit<ParticleWorld>
     [SerializeField] private string _pointPrefab;
     private ViewCollection<Particle, ParticleView> _particleViewCollection;
     private ViewCollection<Area2D, PointView> _pointViewCollection;
-    private ColorPicker _colorPicker;
+    private IColorPicker _colorPicker;
 
     public View(Node root, string viewPrefab, string pointPrefab)
     {

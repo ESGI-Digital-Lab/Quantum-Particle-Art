@@ -27,10 +27,6 @@ public class WriteToTex : ParticleStep
     private ATexProvider _texProvider;
     //[SerializeField] private bool _enableDistorsion = true;
 
-    private Image _baseTexture
-    {
-        get => _texProvider.Texture;
-    }
 
     private Image _toSaveImage;
     private Image _drawingImage;
@@ -51,8 +47,9 @@ public class WriteToTex : ParticleStep
         _texProvider = init.Texture;
         _texProvider.Create();
         //We need to have the tex before initializing the saving
-        _toSaveImage = _baseTexture.Duplicate() as Image;
-        _drawingImage = Image.CreateEmpty(_baseTexture.GetWidth(), _baseTexture.GetHeight(), false, Image.Format.Rgba8);
+        var original = _texProvider.Texture;
+        _toSaveImage = original.Duplicate() as Image;
+        _drawingImage = Image.CreateEmpty(original.GetWidth(), original.GetHeight(), false, original.GetFormat());
         _drawingImage.Fill(Color.black);
         _toSave = ImageTexture.CreateFromImage(_toSaveImage);
         _drawing = ImageTexture.CreateFromImage(_drawingImage);
@@ -104,11 +101,6 @@ public class WriteToTex : ParticleStep
         var x = Mathf.RoundToInt(coord.x * (_drawing.GetWidth() - 1));
         var y = Mathf.RoundToInt(coord.y * (_drawing.GetHeight() - 1));
         return new Vector2Int(x, y);
-    }
-
-    protected Vector2Int GetSize(WorldInitializer init)
-    {
-        return new Vector2Int(_baseTexture.GetWidth(), _baseTexture.GetHeight());
     }
 
 

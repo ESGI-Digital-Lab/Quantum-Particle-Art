@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GlobalTick : ParticleStep
 {
-    private ColorPicker _colorPicker;
+    private IColorPicker _colorPicker;
 
     public override async Task Init(WorldInitializer init)
     {
