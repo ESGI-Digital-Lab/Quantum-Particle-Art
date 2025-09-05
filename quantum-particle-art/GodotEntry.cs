@@ -67,7 +67,7 @@ public partial class GodotEntry : Node
 		if (_worldBaseImage != null)
 		{
 			_worldAspect = _worldBaseImage.GetWidth() / (float)_worldBaseImage.GetHeight();
-			_worldSize = _worldBaseImage.GetHeight();
+			//_worldSize = _worldBaseImage.GetHeight();
 		}
 		_monos = new();
 		List<ParticleStep> psteps = new();
