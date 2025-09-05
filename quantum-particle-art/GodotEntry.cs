@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
 using Godot;
 using UnityEngine.Assertions;
+using UnityEngine.ExternalScripts.Particle.Simulation;
 
 namespace UnityEngine;
 
@@ -14,19 +15,20 @@ public partial class GodotEntry : Node
 	private Task[] _tasks;
 	[Export] private Node2D _space;
 
-	[ExportCategory("World")] [Export(PropertyHint.Link)]
-	private float _worldSize = 600;
-
+	[ExportCategory("World")] 
+	[Export] private Godot.Texture2D _worldBaseImage;
+	[Export(PropertyHint.Link)] private float _worldSize = 600;
 	[Export()] private float _worldAspect = 2;
 
-	[Export(PropertyHint.Link)] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
-	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
+
+	
 
 	[ExportCategory("Loop")] [Export] private float _duration;
-	[ExportCategory("Particles")] [Export] private int _nbParticles;
+	[ExportCategory("Particles")]
+	[Export] private int _nbParticles;
+	[Export(PropertyHint.Link)] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
+	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
 	[Export(PropertyHint.Range, "1,12")] private int[] _nbSpecies;
-	[Export] private ColorPalette[] _schemes;
-
 	[Export] private int[] _ruleType;
 	[ExportCategory("Gates")] [Export] private int _nbGates = 20;
 
@@ -46,8 +48,7 @@ public partial class GodotEntry : Node
 	private float _teleportWeight = 1f;
 
 	[ExportCategory("Tex")] [Export] private Sprite2D _display;
-
-	[Export] private Godot.Texture2D _backgrounds;
+	[Export] private ColorPalette[] _schemes;
 	[Export] private Godot.Color[] _color;
 	[Export(PropertyHint.Link)] private int _textureSize;
 	[ExportCategory("Saving")] [Export] private bool _saveLastFrame = true;
@@ -63,6 +64,11 @@ public partial class GodotEntry : Node
 
 	public override void _Ready()
 	{
+		if (_worldBaseImage != null)
+		{
+			_worldAspect = _worldBaseImage.GetWidth() / (float)_worldBaseImage.GetHeight();
+			_worldSize = _worldBaseImage.GetHeight();
+		}
 		_monos = new();
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
@@ -129,15 +135,17 @@ public partial class GodotEntry : Node
 			IColorPicker colors = scheme == null
 				? ColorPicker.Random(nbSpecy)
 				: ColorPicker.FromScheme(scheme.Colors);
-			if (_backgrounds != null)//Real image override
+			ISpecyPicker specyPicker = new UniformSpecyPicker(nbSpecy);
+			if (_worldBaseImage != null)//Real image override
 			{
-				var quantized = new QuantizedImage(_backgrounds, nbSpecy);
+				var quantized = new QuantizedImage(_worldBaseImage, nbSpecy);
 				tex = quantized;
 				colors = quantized;
+				specyPicker = quantized;
 			}
 
 			initConditionsArray[i] = new InitConditions(tex, rules, colors,
-				new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)));
+				new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)), specyPicker);
 		}
 
 
