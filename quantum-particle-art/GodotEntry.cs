@@ -66,6 +66,10 @@ public partial class GodotEntry : Node
 	{
 		if (_worldBaseImage != null)
 		{
+			if (_worldBaseImage is CameraTexture camera)
+			{
+				camera.CameraIsActive = true;
+			}
 			_worldAspect = _worldBaseImage.GetWidth() / (float)_worldBaseImage.GetHeight();
 			//_worldSize = _worldBaseImage.GetHeight();
 		}
