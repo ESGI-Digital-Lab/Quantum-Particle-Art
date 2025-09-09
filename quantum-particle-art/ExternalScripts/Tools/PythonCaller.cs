@@ -16,6 +16,7 @@ public partial class PythonCaller : Node
     [Header("Run settings"),
      InfoBox("Overridden when init is called externaly, use them for direct call from editor")]
     [Export] private bool _killOnExit = true;
+    [Export] private bool _showTerminal = false;
 
     [InfoBox("Select the local correct interpretor/venv that has correct package installation")] [Export]
     protected string _pythonInterpreter = "python";
@@ -73,12 +74,18 @@ public partial class PythonCaller : Node
         {
             if (_killOnExit)
             {
-                _process?.Kill(true);
+                Kill();
                 Stop();
             }
         }
 
         base._Notification(what);
+    }
+
+    public void Kill()
+    {
+        _process?.Kill(true);
+        _process = null;
     }
 
     //[Button]
@@ -119,17 +126,14 @@ public partial class PythonCaller : Node
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            CreateNoWindow = false
+            CreateNoWindow = !_showTerminal
         };
         _process = new Process() { StartInfo = startInfo };
         _process.Start();
-        //Release if used
-        //_process.MaxWorkingSet = new IntPtr(8000000000);
-        //_process.MinWorkingSet = new IntPtr(2000000000);
         _process.PriorityClass = ProcessPriorityClass.High;
         _cancel = new CancellationTokenSource();
         Func<bool> endCondition = () => _process != null && _process.HasExited;
-        _running1 = ReadOutput(_process.StandardError, _cancel, endCondition, Debug.LogWarning);
+        _running1 = ReadOutput(_process.StandardError, _cancel, endCondition, s=> Debug.LogWarning("Fomr stderror: "+s), onEnd);
         _running2 = ReadOutput(_process.StandardOutput, _cancel, endCondition, onOutput, onEnd);
     }
 
