@@ -13,14 +13,13 @@ using Debug = UnityEngine.Debug;
 public partial class PythonCaller : Node
 {
     [Export, Range(1, 64 * 64 * 64)] private int _readBuffer;
+    [Header("Run settings"),
+     InfoBox("Overridden when init is called externaly, use them for direct call from editor")]
+    [Export] private bool _killOnExit = true;
 
     [InfoBox("Select the local correct interpretor/venv that has correct package installation")] [Export]
     protected string _pythonInterpreter = "python";
 
-    [Header("Run settings"),
-     InfoBox("Overridden when init is called externaly, use them for direct call from editor")]
-    [Export]
-    private bool _killOnExit = true;
 
     [Export] [InfoBox("Working directory needs to be set correctly in order for the script to call it's dependecies")]
     protected string folder = "External\\Lenia\\Python";
@@ -65,7 +64,7 @@ public partial class PythonCaller : Node
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
-        CallPython(null, false, null);
+        CallPython(null, true, null);
     }
 
     public override void _Notification(int what)
@@ -102,9 +101,11 @@ public partial class PythonCaller : Node
         string workingDirectory;
         if (isAssetRooted)
         {
-            throw new NotImplementedException("Build local resource godot path");
-            var assets = "";
-            workingDirectory = string.Join('\\', assets, 0, assets.Length - 1) + '\\' + folder;
+            var res = ProjectSettings.GlobalizePath("res://").Trim('/');
+            var splitted = res.Split('/');
+            var root = string.Join('\\', splitted, 0, splitted.Length - 1);
+            workingDirectory = root + '\\' + splitted[^1] + '\\' + folder;
+            _pythonInterpreter = root + "\\" + _pythonInterpreter;
         }
         else
             workingDirectory = folder;

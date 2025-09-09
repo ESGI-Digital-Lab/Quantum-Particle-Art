@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=10 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -10,8 +10,6 @@
 [ext_resource type="Script" uid="uid://be230ovsjv1nx" path="res://ExternalScripts/trflorian/godot-python-comm/godot/camera_stream/camera_stream.gd" id="8_jp56q"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 
-[sub_resource type="CameraTexture" id="CameraTexture_0qkf8"]
-
 [node name="Particles" type="Node3D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -19,7 +17,6 @@
 [node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_display", "_camera")]
 script = ExtResource("1_lrx72")
 _space = NodePath("Space")
-_worldBaseImage = SubResource("CameraTexture_0qkf8")
 _worldSize = 300.0
 _worldAspect = 1.778
 _duration = 20.0
@@ -68,8 +65,8 @@ texture = ExtResource("4_yixwl")
 
 [node name="PythonRoot" type="Node" parent="."]
 script = ExtResource("8_sph3f")
-_pythonInterpreter = "F:\\Projects\\Pro\\Quantum-Particle-Art\\.venv\\Scripts\\python.exe"
-folder = "F:\\Projects\\Pro\\Quantum-Particle-Art\\quantum-particle-art\\ExternalScripts\\trflorian\\godot-python-comm\\python"
+_pythonInterpreter = ".venv\\Scripts\\python.exe"
+folder = "ExternalScripts\\trflorian\\godot-python-comm\\python"
 _filename = "camera_stream"
 
 [node name="TextureRect" type="TextureRect" parent="PythonRoot"]
