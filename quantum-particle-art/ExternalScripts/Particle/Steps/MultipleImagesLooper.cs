@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace DefaultNamespace.Particle.Steps
@@ -24,10 +25,10 @@ namespace DefaultNamespace.Particle.Steps
         public InitConditions[] Textures => _textures;
         protected override int Loops => _textures.Length;
 
-        protected override void UpdateInitializer(WorldInitializer init, int loop)
+        protected override async Task UpdateInitializer(WorldInitializer init, int loop)
         {
             init.Init = _textures[loop];
-            init.Init.Texture.Create();
+            await init.Init.Texture.Create();
         }
 
         protected override void OnFinished(ParticleSimulation pipeline)

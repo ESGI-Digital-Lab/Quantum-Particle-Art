@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
 using Color = Godot.Color;
@@ -56,7 +57,7 @@ public class CanvasPixels : ATexProvider
     }
     
 
-    public override void Create()
+    public override Task Create()
     {
         pixels = new byte[_size.X * _size.Y * 4];
         var r = (byte)(_color.R * 255);
@@ -72,6 +73,7 @@ public class CanvasPixels : ATexProvider
         }
 
         _texture = Image.CreateFromData(_size.X, _size.Y, false, Image.Format.Rgba8, pixels);
+        return Task.CompletedTask;
     }
 
     public override Image Texture
