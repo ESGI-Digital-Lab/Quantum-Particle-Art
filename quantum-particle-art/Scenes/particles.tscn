@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=12 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -7,21 +7,26 @@
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="4_yixwl"]
-[ext_resource type="Script" uid="uid://be230ovsjv1nx" path="res://ExternalScripts/trflorian/godot-python-comm/godot/camera_stream/camera_stream.gd" id="8_jp56q"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
+[ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
+[ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
+
+[sub_resource type="CameraTexture" id="CameraTexture_sph3f"]
 
 [node name="Particles" type="Node3D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
-[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_display", "_camera")]
+[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_webcamFeed", "_display", "_camera")]
 script = ExtResource("1_lrx72")
 _space = NodePath("Space")
+_webcamFeed = NodePath("../PythonRoot/WebcamUDP")
+_worldBaseImage = SubResource("CameraTexture_sph3f")
 _worldSize = 300.0
 _worldAspect = 1.778
-_duration = 20.0
+_duration = 200.0
 _nbParticles = 250
-_nbSpecies = PackedInt32Array(4, 8, 10, 12, 12)
+_nbSpecies = PackedInt32Array(12, 8, 10, 12, 12)
 _ruleType = PackedInt32Array(1, 2, 1, 1, 1)
 _gateSize = 0.02
 _display = NodePath("Sprite2D")
@@ -69,7 +74,15 @@ _pythonInterpreter = ".venv\\Scripts\\python.exe"
 folder = "ExternalScripts\\trflorian\\godot-python-comm\\python"
 _filename = "camera_stream"
 
+[node name="WebcamUDP" type="Node" parent="PythonRoot" node_paths=PackedStringArray("_python", "_display")]
+script = ExtResource("10_f56ef")
+_python = NodePath("..")
+_display = NodePath("../TextureRect")
+
 [node name="TextureRect" type="TextureRect" parent="PythonRoot"]
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("8_jp56q")
+offset_left = -320.0
+offset_top = -180.0
+offset_right = 320.0
+offset_bottom = 180.0
+texture = ExtResource("10_8ns5o")
+expand_mode = 1
