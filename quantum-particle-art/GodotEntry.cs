@@ -15,7 +15,9 @@ public partial class GodotEntry : Node
 	private Task[] _tasks;
 	[Export] private Node2D _space;
 
-	[ExportCategory("World")] 
+	[ExportCategory("World")] [Export] private bool _useWebcam = true;
+	[Export] private CameraCSBindings _webcamFeed;
+	[Export] private Vector2I _webcamRatio = new(16, 9);
 	[Export] private Godot.Texture2D _worldBaseImage;
 	[Export(PropertyHint.Link)] private float _worldSize = 600;
 	[Export()] private float _worldAspect = 2;
@@ -50,7 +52,7 @@ public partial class GodotEntry : Node
 	[ExportCategory("Tex")] [Export] private Sprite2D _display;
 	[Export] private ColorPalette[] _schemes;
 	[Export] private Godot.Color[] _color;
-	[Export(PropertyHint.Link)] private int _textureSize;
+	[Export] private int _textureSize;
 	[ExportCategory("Saving")] [Export] private bool _saveLastFrame = true;
 	[ExportCategory("View")] [Export] private float _viewportSizeInWindow = 400f;
 
@@ -64,12 +66,13 @@ public partial class GodotEntry : Node
 
 	public override void _Ready()
 	{
-		if (_worldBaseImage != null)
+		InitConditions[] conditions = InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight);
+		if (_useWebcam)
 		{
-			if (_worldBaseImage is CameraTexture camera)
-			{
-				camera.CameraIsActive = true;
-			}
+			_worldAspect = _webcamRatio.X / (1f*_webcamRatio.Y);
+		}
+		else if (_worldBaseImage != null)
+		{
 			_worldAspect = _worldBaseImage.GetWidth() / (float)_worldBaseImage.GetHeight();
 			//_worldSize = _worldBaseImage.GetHeight();
 		}
@@ -91,10 +94,7 @@ public partial class GodotEntry : Node
 			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
 		psteps.Add(writeToTex);
 		prewarm.Add(view);
-		var looper =
-			new MultipleImagesLooper(_duration,
-				InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight), psteps, psteps,
-				prewarm);
+		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm);
 
 		var world = new WorldInitializer(WorldSize(_worldSize), _nbParticles, _startArea - _startAreaWidth / 2f,
 			_startAreaWidth);
@@ -122,10 +122,6 @@ public partial class GodotEntry : Node
 		var ruleEnums = Enum.GetValues(typeof(RulesSaved.Defaults)).Cast<RulesSaved.Defaults>().ToArray();
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_color.Length, _ruleType.Length));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
-		//Assert.IsTrue(_backgrounds.Length == _color.Length," Backgrounds and colors arrays must be of same length");
-		//The build method threw an exception.
-		//System.IO.FileNotFoundException: Could not load file or assembly 'Microsoft.Build.Framework, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Le fichier spécifié est introuvable. (0,0)
-
 		for (int i = 0; i < amt; i++)
 		{
 			var ruleIndex = _ruleType[i % _ruleType.Length];
@@ -140,7 +136,15 @@ public partial class GodotEntry : Node
 				? ColorPicker.Random(nbSpecy)
 				: ColorPicker.FromScheme(scheme.Colors);
 			ISpecyPicker specyPicker = new UniformSpecyPicker(nbSpecy);
-			if (_worldBaseImage != null)//Real image override
+			if (_useWebcam)
+			{
+				_webcamFeed._Ready();
+				var quantized = new QuantizedImage(_webcamFeed.Texture, nbSpecy);
+				tex = quantized;
+				colors = quantized;
+				specyPicker = quantized;
+			}
+			else if (_worldBaseImage != null)//Real image override
 			{
 				var quantized = new QuantizedImage(_worldBaseImage, nbSpecy);
 				tex = quantized;
@@ -161,7 +165,7 @@ public partial class GodotEntry : Node
 		Time.time += (float)delta;
 		for (int i = 0; i < _tasks.Length; i++)
 			_tasks[i] = _monos[i].Update();
-		//Task.WaitAll(_tasks);
+		//Task.WaitAll(_tasks);²
 	}
 
 	public override void _Notification(int what)
