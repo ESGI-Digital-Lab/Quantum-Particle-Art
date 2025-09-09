@@ -65,15 +65,6 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         StepOnce();
     }
 
-    private async Task StepEnumerator()
-    {
-        T last = default;
-        while (_steps != null && _steps.Length > 0)
-        {
-            await StepOnce();
-        }
-    }
-
     private async Task StepOnce()
     {
         foreach (var step in _steps)
