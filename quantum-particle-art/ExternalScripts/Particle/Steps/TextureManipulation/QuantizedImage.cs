@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using KGySoft.CoreLibraries;
 using KGySoft.Drawing;
 using KGySoft.Drawing.Imaging;
@@ -24,10 +25,14 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 	private Color32[] _colors;
 	private Dictionary<Color32, int> _mapBack;
 
-	public QuantizedImage(Texture2D image, int paletteSize)
+	public QuantizedImage(Image image, int paletteSize)
 	{
 		this._paletteSize = paletteSize;
-		this._image = image.GetImage();
+		this._image = image;
+	}
+	public QuantizedImage(Texture2D image, int paletteSize) : this(image.GetImage(), paletteSize)
+	{
+		
 	}
 
 
