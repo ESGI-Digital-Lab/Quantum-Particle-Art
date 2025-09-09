@@ -32,8 +32,10 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 
 
 	[SuppressMessage("Interoperability", "CA1416:Valider la compatibilité de la plateforme")]
-	public override void Create()
+	public override async Task Create()
 	{
+		while (_image == null || _image.IsEmpty())
+			await Task.Delay(100);
 		var format = Image.Format.Rgb8;
 		_image.Convert(format);
 		var original = _image.GetData();
