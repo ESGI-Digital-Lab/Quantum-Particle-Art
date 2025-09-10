@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=11 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -11,8 +11,6 @@
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
 
-[sub_resource type="CameraTexture" id="CameraTexture_sph3f"]
-
 [node name="Particles" type="Node3D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -21,7 +19,6 @@
 script = ExtResource("1_lrx72")
 _space = NodePath("Space")
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_worldBaseImage = SubResource("CameraTexture_sph3f")
 _worldSize = 300.0
 _worldAspect = 1.778
 _duration = 200.0
