@@ -42,7 +42,7 @@ public interface IView<T, TInit>
 {
     void InitView(T info, TInit init, Color color);
     void UpdateView(T info);
-    void Dispose();
+    void Cleanup();
 }
 
 public class ViewCollection<T, TView>
@@ -97,7 +97,7 @@ public class ViewCollection<T, TView>
         {
             if (_views[i] != null)
             {
-                _views[i].Dispose();
+                _views[i].Cleanup();
             }
         }
     }
