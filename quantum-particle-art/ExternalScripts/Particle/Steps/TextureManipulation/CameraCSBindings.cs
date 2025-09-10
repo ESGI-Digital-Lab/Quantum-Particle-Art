@@ -67,39 +67,44 @@ public partial class CameraCSBindings : Node
         {
             //Debug.LogError("Peer not bound");
         }
-        else if (peer.GetAvailablePacketCount() > 0)
+        else
         {
-            //peer.Bind(port, adress);
-            var data = peer.GetPacket();
-            if (data != null && data.Length > 0)
+            while (peer.GetAvailablePacketCount() > 0)
             {
-                int i = 0;
-                if (_accumulator == null)
+                Debug.Log("Nb packets in queue : " + peer.GetAvailablePacketCount());
+                //peer.Bind(port, adress);
+                var data = peer.GetPacket();
+                if (data != null && data.Length > 0)
                 {
-                    var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
-                    //i=4
-                    _accumulator = new byte[length];
-                    _head = 0;
-                    //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length);
-                }
+                    int i = 0;
+                    if (_accumulator == null)
+                    {
+                        var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
+                        //i=4
+                        _accumulator = new byte[length];
+                        _head = 0;
+                        //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length);
+                    }
 
-                for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
-                {
-                    _accumulator[_head] = data[i];
-                }
+                    for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
+                    {
+                        _accumulator[_head] = data[i];
+                    }
 
-                if (_head >= _accumulator.Length)
-                {
-                    if (_cache.IsEmpty())
-                        Debug.Log(
-                            "CameraCSBindings: Connection available, showing as debug display, ready to take instant");
-                    var err = _cache.LoadJpgFromBuffer(_accumulator);
-                    _accumulator = null;
-                    if (err != Error.Ok)
-                        GD.PrintErr("Failed to load image from buffer: " + err);
-                    else
-                        _display.Texture = ImageTexture.CreateFromImage(_cache);
-                    _display.SetVisible(true);
+                    if (_head >= _accumulator.Length)
+                    {
+                        if (_cache.IsEmpty())
+                            Debug.Log(
+                                "CameraCSBindings: Connection available, showing as debug display, ready to take instant");
+                        var err = _cache.LoadJpgFromBuffer(_accumulator);
+                        _accumulator = null;
+                        if (err != Error.Ok)
+                            GD.PrintErr("Failed to load image from buffer: " + err);
+                        else
+                            _display.Texture = ImageTexture.CreateFromImage(_cache);
+                        _display.SetVisible(true);
+                        break;
+                    }
                 }
             }
         }
