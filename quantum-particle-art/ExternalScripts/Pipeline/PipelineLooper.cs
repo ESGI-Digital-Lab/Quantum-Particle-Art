@@ -31,6 +31,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     private float _lastStart;
     private int i = 0;
+
     public override void Dispose()
     {
         base.Dispose();
@@ -52,7 +53,8 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
             await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
         }
 
-        pipeline.Tick();
+        if (this.FinishedInitializing)
+            pipeline.Tick();
     }
 
     protected abstract IEnumerable<IInit<T>> GetPrewarms();
@@ -60,6 +62,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     protected abstract IEnumerable<IInit<TInit>> GetInits();
 
     protected abstract IEnumerable<IStep<T>> GetSteps();
+    protected abstract bool FinishedInitializing { get; }
 
     protected abstract TPipe GetPipeline();
     //{

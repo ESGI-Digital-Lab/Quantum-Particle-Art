@@ -24,11 +24,13 @@ namespace DefaultNamespace.Particle.Steps
 
         public InitConditions[] Textures => _textures;
         protected override int Loops => _textures.Length;
-
+        private bool _ready = false;
         protected override async Task UpdateInitializer(WorldInitializer init, int loop)
         {
+            _ready = false;
             init.Init = _textures[loop];
             await init.Init.Texture.Create();
+            _ready = true;
         }
 
         protected override void OnFinished(ParticleSimulation pipeline)
@@ -41,6 +43,7 @@ namespace DefaultNamespace.Particle.Steps
 
 
         protected override IEnumerable<IStep<ParticleWorld>> GetSteps() => _steps;
+        protected override bool FinishedInitializing => _ready;
 
 
         protected override ParticleSimulation GetPipeline()

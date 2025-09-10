@@ -65,7 +65,7 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         StepOnce();
     }
 
-    private async Task StepOnce()
+    protected virtual async Task StepOnce()
     {
         foreach (var step in _steps)
         {
