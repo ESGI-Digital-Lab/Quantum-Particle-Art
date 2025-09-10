@@ -35,12 +35,17 @@ public partial class CameraCSBindings : Node
 
     private byte[] _accumulator;
     private int _head;
-    private bool _finished => !_texture.IsEmpty();
+    private bool _finished => _texture!= null && !_texture.IsEmpty();
 
     public override void _Ready()
     {
+        _display.SetVisible(false);
+    }
+    public void Start()
+    {
         if (peer != null) //Safe in case we inited twice
             return;
+        _python.CallPython();
         peer = new();
         var peered = peer.Bind(port, adress);
         if (peered != Error.Ok)
@@ -53,7 +58,6 @@ public partial class CameraCSBindings : Node
         _cache = new Image();
         _head = 0;
         _accumulator = null;
-        _display.SetVisible(false);
     }
 
     public override void _Process(double delta)
@@ -63,43 +67,48 @@ public partial class CameraCSBindings : Node
         //var poll = _server.Poll();
         //Debug.Log("CameraCSBindings: Polling server, result: " + poll);
         //if (_server.IsConnectionAvailable()) {
-        if (!peer.IsBound())
+        if (peer==null || !peer.IsBound())
         {
             //Debug.LogError("Peer not bound");
         }
-        else if (peer.GetAvailablePacketCount() > 0)
+        else
         {
-            //peer.Bind(port, adress);
-            var data = peer.GetPacket();
-            if (data != null && data.Length > 0)
+            while (peer.GetAvailablePacketCount() > 0)
             {
-                int i = 0;
-                if (_accumulator == null)
+                Debug.Log("Nb packets in queue : " + peer.GetAvailablePacketCount());
+                //peer.Bind(port, adress);
+                var data = peer.GetPacket();
+                if (data != null && data.Length > 0)
                 {
-                    var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
-                    //i=4
-                    _accumulator = new byte[length];
-                    _head = 0;
-                    //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length);
-                }
+                    int i = 0;
+                    if (_accumulator == null)
+                    {
+                        var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
+                        //i=4
+                        _accumulator = new byte[length];
+                        _head = 0;
+                        //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length);
+                    }
 
-                for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
-                {
-                    _accumulator[_head] = data[i];
-                }
+                    for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
+                    {
+                        _accumulator[_head] = data[i];
+                    }
 
-                if (_head >= _accumulator.Length)
-                {
-                    if (_cache.IsEmpty())
-                        Debug.Log(
-                            "CameraCSBindings: Connection available, showing as debug display, ready to take instant");
-                    var err = _cache.LoadJpgFromBuffer(_accumulator);
-                    _accumulator = null;
-                    if (err != Error.Ok)
-                        GD.PrintErr("Failed to load image from buffer: " + err);
-                    else
-                        _display.Texture = ImageTexture.CreateFromImage(_cache);
-                    _display.SetVisible(true);
+                    if (_head >= _accumulator.Length)
+                    {
+                        if (_cache.IsEmpty())
+                            Debug.Log(
+                                "CameraCSBindings: Connection available, showing as debug display, ready to take instant");
+                        var err = _cache.LoadJpgFromBuffer(_accumulator);
+                        _accumulator = null;
+                        if (err != Error.Ok)
+                            GD.PrintErr("Failed to load image from buffer: " + err);
+                        else
+                            _display.Texture = ImageTexture.CreateFromImage(_cache);
+                        _display.SetVisible(true);
+                        break;
+                    }
                 }
             }
         }

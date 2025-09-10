@@ -10,31 +10,30 @@
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
-
-[sub_resource type="CameraTexture" id="CameraTexture_sph3f"]
+[ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 
 [node name="Particles" type="Node3D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
-[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_space", "_webcamFeed", "_display", "_camera")]
+[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_display", "_camera", "_space", "_webcamFeed")]
 script = ExtResource("1_lrx72")
-_space = NodePath("Space")
-_webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_worldBaseImage = SubResource("CameraTexture_sph3f")
-_worldSize = 300.0
-_worldAspect = 1.778
-_duration = 200.0
-_nbParticles = 250
-_nbSpecies = PackedInt32Array(12, 8, 10, 12, 12)
-_ruleType = PackedInt32Array(1, 2, 1, 1, 1)
-_gateSize = 0.02
 _display = NodePath("Sprite2D")
-_schemes = Array[Resource]([null, ExtResource("2_0qkf8"), null, ExtResource("3_jp56q"), ExtResource("4_sph3f")])
-_color = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1)
-_textureSize = 1024
 _camera = NodePath("../Camera2D")
+_space = NodePath("Space")
 _zoom = 2.0
+_worldSize = 300.0
+_heightSize = 1080
+_webcamFeed = NodePath("../PythonRoot/WebcamUDP")
+_nbParticles = 250
+_gateSize = 0.02
+_duration = 5.0
+_backgroundTypes = Array[int]([2, 0, 0, 0, 2, 2, 2])
+_backgroundColorForCanva = PackedColorArray(1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1)
+_colorSchemeForCanva = Array[ColorPalette]([null, ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
+_realImage = Array[Texture2D]([ExtResource("10_8ns5o")])
+_nbSpecies = PackedInt32Array(12, 8, 10, 12, 12)
+_ruleType = Array[int]([1, 2, 1, 4, 5])
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true
@@ -84,5 +83,5 @@ offset_left = -320.0
 offset_top = -180.0
 offset_right = 320.0
 offset_bottom = 180.0
-texture = ExtResource("10_8ns5o")
+texture = ExtResource("11_8ns5o")
 expand_mode = 1

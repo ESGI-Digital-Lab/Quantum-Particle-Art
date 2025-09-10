@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,15 +23,26 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         set { _baseInitializer = value; }
     }
 
+    private bool _shouldRestart;
+
+    Func<Task> timer;
+
     public override async Task Start()
     {
         pipeline = GetPipeline();
-        _lastStart = -1;
         i = -1;
+        timer = async () =>
+        {
+            if (_duration > 0)
+                await Task.Delay((int)(_duration * 1000));
+            _shouldRestart = true;
+        };
+        _shouldRestart = true;
     }
 
-    private float _lastStart;
     private int i = 0;
+    private bool _ready = false;
+
     public override void Dispose()
     {
         base.Dispose();
@@ -40,19 +52,23 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     public override async Task Update()
     {
         await base.Update();
-        if (_lastStart < 0 || (_duration > 0 && i < Loops && Time.time - _lastStart > _duration))
+        if (_shouldRestart)
         {
-            if (i >= 0) //Skipped on first
+            _shouldRestart = false;
+            _ready = false;
+            if (i >= 0)
                 OnFinished(pipeline);
             pipeline.Dispose();
             i++;
-            _lastStart = Time.time;
             await UpdateInitializer(_baseInitializer, i);
-            //Not awaited on purpose, this update juste starts the loop whenever the duration is passed
             await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
+            _ready = true;
+            //Not awaited so non blocking, just launching the timer after initialization finished so we'll reenter this after duration
+            Task.Run(timer);
         }
 
-        pipeline.Tick();
+        if (_ready)
+            pipeline.Tick();
     }
 
     protected abstract IEnumerable<IInit<T>> GetPrewarms();

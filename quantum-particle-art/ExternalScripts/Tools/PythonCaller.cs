@@ -57,9 +57,8 @@ public partial class PythonCaller : Node
     private Task _running2;
     private CancellationTokenSource _cancel = new();
 
-    public override void _Ready()
+    public void CallPython()
     {
-        base._Ready();
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;

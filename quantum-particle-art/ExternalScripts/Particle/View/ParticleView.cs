@@ -77,17 +77,17 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		}
 	}
 
-	public void Dispose()
+	public void Cleanup()
 	{
 		mapBack = null;
 		if (_childs != null)
 		{
-			_childs.Item1.Dispose();
-			_childs.Item2.Dispose();
+			_childs.Item1.Cleanup();
+			_childs.Item2.Cleanup();
 			_childs = null;
 		}
 
-		//GameObject.Destroy(this.gameObject);
+		this.QueueFree();
 	}
 
 	private void ToggleView(bool state)
