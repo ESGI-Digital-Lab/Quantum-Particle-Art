@@ -35,12 +35,17 @@ public partial class CameraCSBindings : Node
 
     private byte[] _accumulator;
     private int _head;
-    private bool _finished => !_texture.IsEmpty();
+    private bool _finished => _texture!= null && !_texture.IsEmpty();
 
     public override void _Ready()
     {
+        _display.SetVisible(false);
+    }
+    public void Start()
+    {
         if (peer != null) //Safe in case we inited twice
             return;
+        _python.CallPython();
         peer = new();
         var peered = peer.Bind(port, adress);
         if (peered != Error.Ok)
@@ -53,7 +58,6 @@ public partial class CameraCSBindings : Node
         _cache = new Image();
         _head = 0;
         _accumulator = null;
-        _display.SetVisible(false);
     }
 
     public override void _Process(double delta)
@@ -63,7 +67,7 @@ public partial class CameraCSBindings : Node
         //var poll = _server.Poll();
         //Debug.Log("CameraCSBindings: Polling server, result: " + poll);
         //if (_server.IsConnectionAvailable()) {
-        if (!peer.IsBound())
+        if (peer==null || !peer.IsBound())
         {
             //Debug.LogError("Peer not bound");
         }
