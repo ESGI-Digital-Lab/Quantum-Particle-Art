@@ -179,7 +179,7 @@ public partial class GodotEntry : Node
 				{ Area2D.AreaType.Teleport, tel }
 			});
 		var ruleEnums = Enum.GetValues(typeof(RulesSaved.Defaults)).Cast<RulesSaved.Defaults>().ToArray();
-		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundColorForCanva.Length, _ruleType.Count));
+		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		int canvasCount = -1;
 		int imageCount = -1;
