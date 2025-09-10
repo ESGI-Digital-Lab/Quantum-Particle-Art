@@ -103,9 +103,8 @@ public partial class GodotEntry : Node
 
 	#endregion
 
-	private float _worldAspectOnCanvas = 2;
-	private Vector2 WorldSize(float height) => new(height * _worldAspectOnCanvas, height);
-	private Vector2I WorldSize(int height) => new((int)(height * _worldAspectOnCanvas), height);
+	private static Vector2 WorldSize(float height, float ratio) => new(height * ratio, height);
+	private static Vector2I WorldSize(int height, float ratio) => new((int)(height * ratio), height);
 
 	private T SwitchOnBgType<T>(T ifCanvas, T ifWebcam, T ifImage, int loopIndex = 0)
 	{
@@ -132,8 +131,7 @@ public partial class GodotEntry : Node
 	{
 		InitConditions[] conditions =
 			InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight);
-		_worldAspectOnCanvas = SwitchOnBgType(_ratio.X / (1f * _ratio.Y),
-			_webcamRatio.X / (1f * _webcamRatio.Y), _realImage[0].GetWidth() / (float)_realImage[0].GetHeight());
+		float initialRatio = conditions[0].Ratio;//TODO generalize scaling for every step
 
 		_monos = new();
 		List<ParticleStep> psteps = new();
@@ -144,7 +142,7 @@ public partial class GodotEntry : Node
 		psteps.Add(Influence);
 		var gates = new PointsIntersection(false);
 		psteps.Add(gates);
-		var viewScale = WorldSize(_viewportSizeInWindow);
+		var viewScale = WorldSize(_viewportSizeInWindow,initialRatio);
 		_space.Scale = viewScale;
 		_camera.Zoom = Godot.Vector2.One * _zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
@@ -155,7 +153,7 @@ public partial class GodotEntry : Node
 		prewarm.Add(view);
 		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm);
 
-		var world = new WorldInitializer(WorldSize(_worldSize), _nbParticles, _startArea - _startAreaWidth / 2f,
+		var world = new WorldInitializer(WorldSize(_worldSize,initialRatio), _nbParticles, _startArea - _startAreaWidth / 2f,
 			_startAreaWidth);
 		looper.BaseInitializer = world;
 		Add(looper);
@@ -178,7 +176,6 @@ public partial class GodotEntry : Node
 				{ Area2D.AreaType.Superpose, sup },
 				{ Area2D.AreaType.Teleport, tel }
 			});
-		var ruleEnums = Enum.GetValues(typeof(RulesSaved.Defaults)).Cast<RulesSaved.Defaults>().ToArray();
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		int canvasCount = -1;
@@ -192,13 +189,15 @@ public partial class GodotEntry : Node
 			ATexProvider tex;
 			IColorPicker colors;
 			ISpecyPicker specyPicker;
+			float ratio = 1f;
 			var bgType = _backgroundTypes[i % _backgroundTypes.Count];
 			switch (bgType)
 			{
 				case BackgroundSource.Canvas:
 					canvasCount++;
 					var color = _backgroundColorForCanva[canvasCount % _backgroundColorForCanva.Length];
-					tex = new CanvasPixels(WorldSize(_heightSize), color.A == 0f ? ColorPicker.Random() : color);
+					ratio = _ratio.X / (1f * _ratio.Y);
+					tex = new CanvasPixels(WorldSize(_heightSize, ratio), color.A == 0f ? ColorPicker.Random() : color);
 					var scheme = _colorSchemeForCanva[canvasCount % _colorSchemeForCanva.Length];
 					Assert.IsTrue(scheme == null || (scheme.Colors != null && scheme.Colors.Length >= nbSpecy),
 						"Color scheme has less colors than species, will fallback to a random scheme of the correct size.");
@@ -208,6 +207,7 @@ public partial class GodotEntry : Node
 					specyPicker = new UniformSpecyPicker(nbSpecy);
 					break;
 				case BackgroundSource.Webcam:
+					ratio = _webcamRatio.X / (1f * _webcamRatio.Y);
 					_webcamFeed.Start();
 					var quantizedWebcam = new QuantizedImage(_webcamFeed.Texture, nbSpecy);
 					tex = quantizedWebcam;
@@ -217,6 +217,7 @@ public partial class GodotEntry : Node
 				case BackgroundSource.RealImage:
 					imageCount++;
 					var img = _realImage[imageCount % _realImage.Count];
+					ratio = img.GetWidth() / (1f * img.GetHeight());
 					var quantizdBg = new QuantizedImage(img, nbSpecy);
 					tex = quantizdBg;
 					colors = quantizdBg;
@@ -225,7 +226,7 @@ public partial class GodotEntry : Node
 				default: throw new ArgumentOutOfRangeException();
 			}
 
-			initConditionsArray[i] = new InitConditions(tex, rules, colors,
+			initConditionsArray[i] = new InitConditions(ratio, tex, rules, colors,
 				new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)), specyPicker);
 		}
 

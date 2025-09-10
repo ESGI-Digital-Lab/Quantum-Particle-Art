@@ -94,13 +94,14 @@ public struct Gates
 [Serializable]
 public struct InitConditions
 {
-	public InitConditions(ATexProvider texture, RulesSaved rules, IColorPicker colors, Gates gates, ISpecyPicker specyPicker)
+	public InitConditions(float ratio, ATexProvider texture, RulesSaved rules, IColorPicker colors, Gates gates, ISpecyPicker specyPicker)
 	{
 		_texture = texture;
 		_rules = rules;
 		_colors = colors;
 		_gates = gates;
 		_specyPicker = specyPicker;
+		_ratio = ratio;
 	}
 
 	[Header("Data settings")]
@@ -111,6 +112,7 @@ public struct InitConditions
 	[SerializeField] private IColorPicker _colors;
 	[SerializeField] private Gates _gates;
 	[SerializeField] private ISpecyPicker _specyPicker;
+	private float _ratio;
 
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
@@ -122,4 +124,6 @@ public struct InitConditions
 	public IColorPicker Colors => _colors;
 
 	public ISpecyPicker SpecyPicker => _specyPicker;
+
+	public float Ratio => _ratio;
 }
