@@ -11,11 +11,12 @@ using Random = System.Random;
 public class WorldInitializer
 {
     [SerializeField] private Vector2 _size;
+    private float _baseheight;
     [SerializeField] private InitConditions _init;
 
-    public WorldInitializer(Vector2 size, int nbParticles, Vector2 startArea, Vector2 areaSize)
+    public WorldInitializer(float height,int nbParticles, Vector2 startArea, Vector2 areaSize)
     {
-        _size = size;
+        _baseheight = height;
         _nbParticles = nbParticles;
         _startArea = startArea;
         _areaSize = areaSize;
@@ -26,7 +27,11 @@ public class WorldInitializer
     public InitConditions Init
     {
         get => _init;
-        set => _init = value;
+        set
+        {
+            _init = value;
+            _size = new(_init.Ratio * _baseheight,_baseheight);
+        }
     }
 
     public Vector2 Size => _size;

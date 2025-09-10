@@ -102,30 +102,10 @@ public partial class GodotEntry : Node
 	[Export] private Godot.Collections.Array<RulesSaved.Defaults> _ruleType;
 
 	#endregion
+	private WriteToTex _write;
 
 	private static Vector2 WorldSize(float height, float ratio) => new(height * ratio, height);
 	private static Vector2I WorldSize(int height, float ratio) => new((int)(height * ratio), height);
-
-	private T SwitchOnBgType<T>(T ifCanvas, T ifWebcam, T ifImage, int loopIndex = 0)
-	{
-		T variable;
-		switch (_backgroundTypes[loopIndex])
-		{
-			case BackgroundSource.Canvas:
-				variable = ifCanvas;
-				break;
-			case BackgroundSource.Webcam:
-				variable = ifWebcam;
-				break;
-			case BackgroundSource.RealImage:
-				variable = ifImage;
-				break;
-			default:
-				throw new ArgumentOutOfRangeException(nameof(_backgroundTypes), _backgroundTypes, null);
-		}
-
-		return variable;
-	}
 
 	public override void _Ready()
 	{
@@ -142,18 +122,16 @@ public partial class GodotEntry : Node
 		psteps.Add(Influence);
 		var gates = new PointsIntersection(false);
 		psteps.Add(gates);
-		var viewScale = WorldSize(_viewportSizeInWindow,initialRatio);
-		_space.Scale = viewScale;
 		_camera.Zoom = Godot.Vector2.One * _zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
-		var writeToTex = new WriteToTex(_display, viewScale.y,
+		_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow,conditions[0].Ratio).y,
 			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
-		psteps.Add(writeToTex);
+		psteps.Add(_write);
 		prewarm.Add(view);
 		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm);
-
-		var world = new WorldInitializer(WorldSize(_worldSize,initialRatio), _nbParticles, _startArea - _startAreaWidth / 2f,
+		looper.InitChange += OnInitChanged;
+		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea - _startAreaWidth / 2f,
 			_startAreaWidth);
 		looper.BaseInitializer = world;
 		Add(looper);
@@ -163,6 +141,13 @@ public partial class GodotEntry : Node
 		_tasks = _monos.Select(m => m.Start()).ToArray();
 		//Task.WaitAll(_tasks);
 		Debug.LogWarning("Entry finished initializing");
+	}
+	private void OnInitChanged(InitConditions init)
+	{
+		var ratio = init.Ratio;
+		var viewScale = WorldSize(_viewportSizeInWindow, ratio);
+		_space.Scale = viewScale;
+		_write.ViewSize = viewScale.y;
 	}
 
 

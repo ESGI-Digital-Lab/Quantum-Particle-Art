@@ -14,6 +14,12 @@ using Vector2 = UnityEngine.Vector2;
 public class WriteToTex : ParticleStep
 {
     private float _viewSize;
+
+    public float ViewSize
+    {
+        get => _viewSize;
+        set => _viewSize = value;
+    }
     private Saver _saver;
 
     public WriteToTex(Sprite2D renderer, float viewSize, Saver saver = null)
