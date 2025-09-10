@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
@@ -13,31 +14,55 @@ public partial class GodotEntry : Node
 {
 	private List<MonoBehaviour> _monos;
 	private Task[] _tasks;
+
+	[ExportCategory("Display settings")] [ExportGroup("References")] [Export]
+	private Sprite2D _display;
+
+	[Export] private Camera2D _camera;
 	[Export] private Node2D _space;
+	[ExportGroup("View")] [Export] private float _viewportSizeInWindow = 400f;
 
-	[ExportCategory("World")] [Export] private bool _useWebcam = true;
-	[Export] private CameraCSBindings _webcamFeed;
+	[Export(PropertyHint.Range, "0,10,0.1")]
+	private float _zoom = 1f;
+
+	[ExportCategory("Common parameters for all iterations")] [Export]
+	private bool _saveLastFrame = true;
+
+	[ExportGroup("World")] [Export(PropertyHint.Link)]
+	private float _worldSize = 600;
+
+	private enum BackgroundSource
+	{
+		Canvas = 0,
+		Webcam = 1,
+		RealImage = 2
+	}
+
+	[ExportGroup("Background")] [ExportSubgroup("Canvas common settings")] [Export]
+	private int _heightSize;
+
+	[Export] private Vector2I _ratio = new(16, 9);
+
+	[ExportSubgroup("Webcam (only) common settings")] [Export]
+	private CameraCSBindings _webcamFeed;
+
 	[Export] private Vector2I _webcamRatio = new(16, 9);
-	[Export] private Godot.Texture2D _worldBaseImage;
-	[Export(PropertyHint.Link)] private float _worldSize = 600;
-	[Export()] private float _worldAspect = 2;
 
+	#region Particles&Gates
 
-	
+	[ExportGroup("Particles")] [Export] private int _nbParticles;
 
-	[ExportCategory("Loop")] [Export] private float _duration;
-	[ExportCategory("Particles")]
-	[Export] private int _nbParticles;
-	[Export(PropertyHint.Link)] private Godot.Vector2 _startArea = new(0.5f, 0.5f);
+	[ExportSubgroup("Spawn area")] [Export(PropertyHint.Link)]
+	private Godot.Vector2 _startArea = new(0.5f, 0.5f);
+
 	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
-	[Export(PropertyHint.Range, "1,12")] private int[] _nbSpecies;
-	[Export] private int[] _ruleType;
-	[ExportCategory("Gates")] [Export] private int _nbGates = 20;
+
+	[ExportGroup("Gates")] [Export] private int _nbGates = 20;
 
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
 
-	[ExportCategory("Gates weights")] [Export(PropertyHint.Range, "0,10,0.1")]
+	[ExportSubgroup("Gates weights")] [Export(PropertyHint.Range, "0,10,0.1")]
 	private float _entangleWeight = 1f;
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
@@ -49,33 +74,67 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _teleportWeight = 1f;
 
-	[ExportCategory("Tex")] [Export] private Sprite2D _display;
-	[Export] private ColorPalette[] _schemes;
-	[Export] private Godot.Color[] _color;
-	[Export] private int _textureSize;
-	[ExportCategory("Saving")] [Export] private bool _saveLastFrame = true;
-	[ExportCategory("View")] [Export] private float _viewportSizeInWindow = 400f;
+	#endregion
 
-	[Export] private Camera2D _camera;
+	#region Loop
 
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _zoom = 1f;
+	[ExportCategory(
+		"Loop settings, goes to next value in each array (warping) on one step finished after defined duration")]
+	[Export]
+	private float _duration;
 
-	private Vector2 WorldSize(float height) => new(height * _worldAspect, height);
-	private Vector2I WorldSize(int height) => new((int)(height * _worldAspect), height);
+	[ExportGroup(
+		"Backgrounds, any time a canvas or image is used it will progress on it's relative list, webcam settings are constant any time it's used")]
+	[Export]
+	private Godot.Collections.Array<BackgroundSource> _backgroundTypes;
+
+	[ExportSubgroup("Canvas list")] [Export(PropertyHint.ColorNoAlpha)]
+	private Godot.Color[] _backgroundColorForCanva;
+
+	[Export] private ColorPalette[] _colorSchemeForCanva;
+
+	[ExportSubgroup("Real image list")] [Export]
+	private Godot.Collections.Array<Godot.Texture2D> _realImage;
+
+	[ExportGroup("Species interactions")] [Export(PropertyHint.Range, "1,12")]
+	private int[] _nbSpecies;
+
+	[Export] private Godot.Collections.Array<RulesSaved.Defaults> _ruleType;
+
+	#endregion
+
+	private float _worldAspectOnCanvas = 2;
+	private Vector2 WorldSize(float height) => new(height * _worldAspectOnCanvas, height);
+	private Vector2I WorldSize(int height) => new((int)(height * _worldAspectOnCanvas), height);
+
+	private T SwitchOnBgType<T>(T ifCanvas, T ifWebcam, T ifImage, int loopIndex = 0)
+	{
+		T variable;
+		switch (_backgroundTypes[loopIndex])
+		{
+			case BackgroundSource.Canvas:
+				variable = ifCanvas;
+				break;
+			case BackgroundSource.Webcam:
+				variable = ifWebcam;
+				break;
+			case BackgroundSource.RealImage:
+				variable = ifImage;
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(_backgroundTypes), _backgroundTypes, null);
+		}
+
+		return variable;
+	}
 
 	public override void _Ready()
 	{
-		InitConditions[] conditions = InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight);
-		if (_useWebcam)
-		{
-			_worldAspect = _webcamRatio.X / (1f*_webcamRatio.Y);
-		}
-		else if (_worldBaseImage != null)
-		{
-			_worldAspect = _worldBaseImage.GetWidth() / (float)_worldBaseImage.GetHeight();
-			//_worldSize = _worldBaseImage.GetHeight();
-		}
+		InitConditions[] conditions =
+			InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight);
+		_worldAspectOnCanvas = SwitchOnBgType(_ratio.X / (1f * _ratio.Y),
+			_webcamRatio.X / (1f * _webcamRatio.Y), _realImage[0].GetWidth() / (float)_realImage[0].GetHeight());
+
 		_monos = new();
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
@@ -120,36 +179,50 @@ public partial class GodotEntry : Node
 				{ Area2D.AreaType.Teleport, tel }
 			});
 		var ruleEnums = Enum.GetValues(typeof(RulesSaved.Defaults)).Cast<RulesSaved.Defaults>().ToArray();
-		var amt = Math.Max(_nbSpecies.Length, Math.Max(_color.Length, _ruleType.Length));
+		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundColorForCanva.Length, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
+		int canvasCount = -1;
+		int imageCount = -1;
 		for (int i = 0; i < amt; i++)
 		{
-			var ruleIndex = _ruleType[i % _ruleType.Length];
-			Assert.IsTrue(ruleIndex >= 0 && ruleIndex < ruleEnums.Length,
-				$"Rule type index {_ruleType[i % _ruleType.Length]} at position {i} is out of range");
+			var rule = _ruleType[i % _ruleType.Count];
+			Assert.IsTrue(rule != RulesSaved.Defaults.Default);
 			int nbSpecy = _nbSpecies[i % _nbSpecies.Length];
-			var rules = new RulesSaved(nbSpecy, (RulesSaved.Defaults)ruleIndex);
-			var color = _color[i % _color.Length];
-			ATexProvider tex = new CanvasPixels(WorldSize(_textureSize), color.A == 0f ? ColorPicker.Random() : color);
-			var scheme = _schemes[i % _schemes.Length];
-			IColorPicker colors = scheme == null
-				? ColorPicker.Random(nbSpecy)
-				: ColorPicker.FromScheme(scheme.Colors);
-			ISpecyPicker specyPicker = new UniformSpecyPicker(nbSpecy);
-			if (_useWebcam)
+			var rules = new RulesSaved(nbSpecy, rule);
+			ATexProvider tex;
+			IColorPicker colors;
+			ISpecyPicker specyPicker;
+			var bgType = _backgroundTypes[i % _backgroundTypes.Count];
+			switch (bgType)
 			{
-				_webcamFeed._Ready();
-				var quantized = new QuantizedImage(_webcamFeed.Texture, nbSpecy);
-				tex = quantized;
-				colors = quantized;
-				specyPicker = quantized;
-			}
-			else if (_worldBaseImage != null)//Real image override
-			{
-				var quantized = new QuantizedImage(_worldBaseImage, nbSpecy);
-				tex = quantized;
-				colors = quantized;
-				specyPicker = quantized;
+				case BackgroundSource.Canvas:
+					canvasCount++;
+					var color = _backgroundColorForCanva[canvasCount % _backgroundColorForCanva.Length];
+					tex = new CanvasPixels(WorldSize(_heightSize), color.A == 0f ? ColorPicker.Random() : color);
+					var scheme = _colorSchemeForCanva[canvasCount % _colorSchemeForCanva.Length];
+					Assert.IsTrue(scheme == null || (scheme.Colors != null && scheme.Colors.Length >= nbSpecy),
+						"Color scheme has less colors than species, will fallback to a random scheme of the correct size.");
+					colors = scheme?.Colors == null || scheme.Colors.Length < nbSpecy
+						? ColorPicker.Random(nbSpecy)
+						: ColorPicker.FromScheme(scheme.Colors);
+					specyPicker = new UniformSpecyPicker(nbSpecy);
+					break;
+				case BackgroundSource.Webcam:
+					_webcamFeed.Start();
+					var quantizedWebcam = new QuantizedImage(_webcamFeed.Texture, nbSpecy);
+					tex = quantizedWebcam;
+					colors = quantizedWebcam;
+					specyPicker = quantizedWebcam;
+					break;
+				case BackgroundSource.RealImage:
+					imageCount++;
+					var img = _realImage[imageCount % _realImage.Count];
+					var quantizdBg = new QuantizedImage(img, nbSpecy);
+					tex = quantizdBg;
+					colors = quantizdBg;
+					specyPicker = quantizdBg;
+					break;
+				default: throw new ArgumentOutOfRangeException();
 			}
 
 			initConditionsArray[i] = new InitConditions(tex, rules, colors,
