@@ -9,12 +9,12 @@ point_count = 1
 metadata/_snap_enabled = true
 
 [node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite", "_outline", "_line")]
-scale = Vector2(100, 100)
 script = ExtResource("1_pgop8")
 _scale = NodePath("DynamicScale")
 _sprite = NodePath("DynamicScale/Node2D/Sprite2D")
 _outline = NodePath("DynamicScale/Node2D/Outline")
 _line = NodePath("Line2D")
+_stretchDependingOnSpeed = false
 
 [node name="DynamicScale" type="Node2D" parent="."]
 
