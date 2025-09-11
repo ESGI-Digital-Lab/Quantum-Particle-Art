@@ -75,7 +75,7 @@ public partial class CameraCSBindings : Node
         {
             while (peer.GetAvailablePacketCount() > 0)
             {
-                Debug.Log("Nb packets in queue : " + peer.GetAvailablePacketCount());
+                //Debug.Log("Nb packets in queue : " + peer.GetAvailablePacketCount());
                 //peer.Bind(port, adress);
                 var data = peer.GetPacket();
                 if (data != null && data.Length > 0)
