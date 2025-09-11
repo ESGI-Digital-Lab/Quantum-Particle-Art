@@ -14,6 +14,7 @@ using Vector2 = UnityEngine.Vector2;
 public class WriteToTex : ParticleStep
 {
     private float _viewSize;
+    private int _lineRadius;
 
     public float ViewSize
     {
@@ -22,11 +23,12 @@ public class WriteToTex : ParticleStep
     }
     private Saver _saver;
 
-    public WriteToTex(Sprite2D renderer, float viewSize, Saver saver = null)
+    public WriteToTex(Sprite2D renderer, float viewSize,int size = 0, Saver saver = null)
     {
         _renderer = renderer;
         _saver = saver;
         _viewSize = viewSize;
+        _lineRadius = size;
     }
 
     private Sprite2D _renderer;
@@ -52,8 +54,8 @@ public class WriteToTex : ParticleStep
         await base.Init(init);
         _texProvider = init.Texture;
         //We need to have the tex before initializing the saving
-        var original = _texProvider.Texture;
-        _toSaveImage = original.Duplicate() as Image;
+        var original = _texProvider.Texture.Duplicate() as Image;
+        _toSaveImage = original;
         _drawingImage = Image.CreateEmpty(original.GetWidth(), original.GetHeight(), false, original.GetFormat());
         _drawingImage.Fill(Color.black);
         _toSave = ImageTexture.CreateFromImage(_toSaveImage);
@@ -66,6 +68,7 @@ public class WriteToTex : ParticleStep
             _saver.Init(_toSaveImage, _texProvider.Name + "_" + init.Init.Rules.Name);
         }
         RefreshTex();
+        //Debug.Log($"WriteToTex initialized on {_toSave.GetWidth()}x{_toSave.GetHeight()} texture with stroke size {_lineRadius}");
     }
 
     public override void Release()
@@ -89,10 +92,15 @@ public class WriteToTex : ParticleStep
             var points = Drawer.Line.GetPixels(start, end);
             foreach (var coords in points)
             {
+                var rect = new Rect2I(coords.x - _lineRadius, coords.y - _lineRadius, _lineRadius * 2 + 1,
+                    _lineRadius * 2 + 1);
                 //This is raw results on a blank tex
-                _drawingImage.SetPixel(coords.x, coords.y, line.Color);
+                //_drawingImage.SetPixel(coords.x, coords.y, line.Color);
+                
+                _drawingImage.FillRect(rect,line.Color);
                 //This is results overwriting the base texture
-                _toSaveImage.SetPixel(coords.x, coords.y, line.Color);
+                //_toSaveImage.SetPixel(coords.x, coords.y, line.Color);
+                _toSaveImage.FillRect(rect, line.Color);
             }
         }
 
