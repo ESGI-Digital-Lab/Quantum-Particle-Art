@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
+using UnityEngine.Assertions;
 using Color = Godot.Color;
 using Mathf = Godot.Mathf;
 
@@ -59,6 +60,7 @@ public class CanvasPixels : ATexProvider
 
     public override Task Create()
     {
+        Assert.IsTrue(_size.X > 0 && _size.Y > 0, "Size must be positive");
         pixels = new byte[_size.X * _size.Y * 4];
         var r = (byte)(_color.R * 255);
         var g = (byte)(_color.G * 255);
