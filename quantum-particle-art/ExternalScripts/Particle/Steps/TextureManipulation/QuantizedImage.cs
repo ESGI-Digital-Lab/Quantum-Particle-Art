@@ -25,14 +25,11 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 	private Color32[] _colors;
 	private Dictionary<Color32, int> _mapBack;
 
-	public QuantizedImage(Image image, int paletteSize)
+	public QuantizedImage(Image image, int paletteSize, Vector2I targetRes)
 	{
+		image.Resize(targetRes.X, targetRes.Y, Image.Interpolation.Trilinear);
 		this._paletteSize = paletteSize;
 		this._image = image;
-	}
-	public QuantizedImage(Texture2D image, int paletteSize) : this(image.GetImage(), paletteSize)
-	{
-		
 	}
 
 
