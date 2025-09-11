@@ -32,13 +32,14 @@ public partial class GodotEntry : Node
 	[ExportGroup("Drawing")] [Export]
 	private bool _saveLastFrame = true;
 
+	[ExportSubgroup("Stroke settings")]
 	[Export(PropertyHint.Range, "0,100,1")]
 	private int _maxStrokeSize = 10;
+	[Export] private float _sineFrequency;
+	[ExportSubgroup("Type of stroke")]
 	[Export] private bool _squareStrokeOverCircle = false;
-
 	[Export] private bool _useSpeed;
 	[Export] private bool _dynamicMax;
-	[Export] private float _sineFrequency;
 
 
 
