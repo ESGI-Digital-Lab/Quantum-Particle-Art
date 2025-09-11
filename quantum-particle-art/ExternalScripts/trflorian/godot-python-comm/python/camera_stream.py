@@ -6,7 +6,7 @@ from constants import SERVER_IP, SERVER_PORT
 
 text = False
 sendOnlyFrame = True
-display = True
+display = False
 camera_id = 0
 size = (1920, 1080)
 fps = 15
