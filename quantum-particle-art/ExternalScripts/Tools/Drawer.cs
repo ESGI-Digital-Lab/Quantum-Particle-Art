@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace DefaultNamespace.Tools
 {
@@ -11,17 +12,26 @@ namespace DefaultNamespace.Tools
             private Vector2 _start;
             public Vector2 Start => _start;
             private Vector2 _end;
+            private float _relativeWidth = 1f;
             public Vector2 End => _end;
 
             public Color Color => _color;
 
+            public float RelativeWidth
+            {
+                get => _relativeWidth;
+                set => _relativeWidth = value;
+            }
+
             private Color _color;
 
-            public Line(Vector2 start, Vector2 end, Color color)
+            public Line(Vector2 start, Vector2 end, Color color, float relativeWidthRatioo)
             {
                 _start = start;
                 _end = end;
                 _color = color;
+                _relativeWidth = relativeWidthRatioo;
+                Assert.IsTrue(_relativeWidth>=0, "Width ratio must be positive");
             }
 
             public IEnumerable<Vector2> Sample(int resolution)
@@ -81,9 +91,9 @@ namespace DefaultNamespace.Tools
             _lines = new List<Line>();
         }
 
-        public void AddLine(Vector2 start, Vector2 end, Color color)
+        public void AddLine(Vector2 start, Vector2 end, Color color, float relativeWidthRatio = 1f)
         {
-            _lines.Add(new Line(start, end, color));
+            _lines.Add(new Line(start, end, color, relativeWidthRatio));
         }
         public IEnumerable<Line> GetLines()
         {

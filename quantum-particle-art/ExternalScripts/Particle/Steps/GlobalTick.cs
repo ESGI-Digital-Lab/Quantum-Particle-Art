@@ -11,6 +11,7 @@ public class GlobalTick : ParticleStep
         _colorPicker = init.Init.Colors;
         await base.Init(init);
     }
+
     public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
         float t = 1f; //_useDeltaTime ? Time.deltaTime : _timeSteps;
@@ -20,8 +21,12 @@ public class GlobalTick : ParticleStep
             var particle = entry[index];
             foreach (var info in particle.Tick(t, entry.Ruleset[particle.Species].Friction))
             {
+                float speed = info.particle.Orientation.Speed;
+                if(false && speed > Orientation.MaxSpeed)
+                    Orientation.MaxSpeed = speed;
                 _world.Drawer.AddLine(info.fromNormalized, info.particle.NormalizedPosition,
-                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies));
+                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies),info.particle.Orientation.NormalizedSpeed);
+                //Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
             }
 
             if (delay > 0)
