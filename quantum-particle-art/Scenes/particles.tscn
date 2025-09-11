@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=13 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
+[ext_resource type="Texture2D" uid="uid://o0jwnf3tl1ky" path="res://Visuals/Init/lena.jpg" id="4_f56ef"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="4_yixwl"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
@@ -22,14 +23,16 @@ _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
+_strokeSize = 20
+_targetHeightOfBackgroundTexture = 4320
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
 _nbParticles = 250
 _gateSize = 0.02
+_duration = 4.0
 _backgroundTypes = Array[int]([2, 0, 0, 0, 2, 2, 2])
 _backgroundColorForCanva = PackedColorArray(1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1)
 _colorSchemeForCanva = Array[ColorPalette]([null, ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
-_realImage = Array[Texture2D]([ExtResource("10_8ns5o")])
-_duration = 4.0
+_realImage = Array[Texture2D]([ExtResource("10_8ns5o"), ExtResource("4_f56ef")])
 _nbSpecies = PackedInt32Array(12, 8, 10, 12, 12)
 _ruleType = Array[int]([1, 2, 1, 4, 5])
 
@@ -77,6 +80,7 @@ _python = NodePath("..")
 _display = NodePath("../TextureRect")
 
 [node name="TextureRect" type="TextureRect" parent="PythonRoot"]
+z_index = -2
 offset_left = -320.0
 offset_top = -180.0
 offset_right = 320.0
