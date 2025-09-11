@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 [Serializable]
 public class Orientation
 {
-	public static float MaxSpeed = 20f;
+	public static float MaxSpeed = 7f;
 	private float speed => _velocity.magnitude;
 	protected Orientation _teleportedFrom = null;
 	public bool IsTeleported => _teleportedFrom != null;

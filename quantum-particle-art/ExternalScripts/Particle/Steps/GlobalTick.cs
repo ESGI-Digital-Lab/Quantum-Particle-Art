@@ -6,6 +6,10 @@ public class GlobalTick : ParticleStep
 {
     private IColorPicker _colorPicker;
 
+    public record struct MovementData(Vector2 fromNormalized, Vector2 toNormalize, Color color, Orientation orientation);
+
+    public event System.Action<MovementData> onMovement;
+
     public override async Task Init(WorldInitializer init)
     {
         _colorPicker = init.Init.Colors;
@@ -21,12 +25,10 @@ public class GlobalTick : ParticleStep
             var particle = entry[index];
             foreach (var info in particle.Tick(t, entry.Ruleset[particle.Species].Friction))
             {
-                float speed = info.particle.Orientation.Speed;
-                if(false && speed > Orientation.MaxSpeed)
-                    Orientation.MaxSpeed = speed;
-                _world.Drawer.AddLine(info.fromNormalized, info.particle.NormalizedPosition,
-                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies),info.particle.Orientation.NormalizedSpeed);
-                //Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
+                var data = new MovementData(info.fromNormalized, info.particle.NormalizedPosition,
+                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies),
+                    info.particle.Orientation);
+                onMovement?.Invoke(data);
             }
 
             if (delay > 0)

@@ -23,15 +23,17 @@ public class WriteToTex : ParticleStep
     }
 
     private Saver _saver;
+    private LineCollection _lineCollection;
     private bool _circle;
 
-    public WriteToTex(Sprite2D renderer, float viewSize, int size = 0, Saver saver = null, bool circle = true)
+    public WriteToTex(Sprite2D renderer, float viewSize, int size, Saver saver, LineCollection lineCollection, bool circle = true)
     {
         _renderer = renderer;
         _saver = saver;
         _viewSize = viewSize;
         _lineRadius = size;
         _circle = circle;
+        _lineCollection = lineCollection;
     }
 
     private Sprite2D _renderer;
@@ -91,11 +93,11 @@ public class WriteToTex : ParticleStep
     {
         var width = _drawingImage.GetWidth();
         var height = _drawingImage.GetHeight();
-        foreach (var line in entry.Drawer.GetLines())
+        foreach (var line in _lineCollection.GetLines())
         {
             var start = ToPixelCoord(line.Start);
             var end = ToPixelCoord(line.End);
-            var points = Drawer.Line.GetPixels(start, end);
+            var points = LineCollection.Line.GetPixels(start, end);
             var finalWidth = (int)(line.RelativeWidth * this._lineRadius);
             foreach (var coords in points)
             {
@@ -127,8 +129,8 @@ public class WriteToTex : ParticleStep
                 }
             }
         }
-
-        entry.Drawer.Clear();
+        
+        _lineCollection.Clear();
         RefreshTex();
         return Task.CompletedTask;
     }

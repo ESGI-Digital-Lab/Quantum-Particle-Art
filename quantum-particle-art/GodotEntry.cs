@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
+using DefaultNamespace.Particle.Steps.TextureManipulation;
+using DefaultNamespace.Tools;
 using Godot;
 using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Simulation;
@@ -25,13 +27,20 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _zoom = 1f;
 
-	[ExportCategory("Common parameters for all iterations")] [ExportGroup("Drawing")] [Export]
+	[ExportCategory("Common parameters for all iterations")] 
+	[ExportGroup("World")] [Export] private float _worldSize = 600;
+	[ExportGroup("Drawing")] [Export]
 	private bool _saveLastFrame = true;
 
 	[Export(PropertyHint.Range, "0,100,1")]
-	private int _strokeSize = 10;
+	private int _maxStrokeSize = 10;
+	[Export] private bool _squareStrokeOverCircle = false;
 
-	[ExportGroup("World")] [Export] private float _worldSize = 600;
+	[Export] private bool _useSpeed;
+	[Export] private bool _dynamicMax;
+	[Export] private float _sineFrequency;
+
+
 
 
 	private enum BackgroundSource
@@ -41,9 +50,9 @@ public partial class GodotEntry : Node
 		RealImage = 2
 	}
 
-	[ExportGroup("Background")] [ExportSubgroup("Common settings, any background will try to fit this")] 
-	[Export]
+	[ExportGroup("Background")] [ExportSubgroup("Common settings, any background will try to fit this")] [Export]
 	private int _targetHeightOfBackgroundTexture;
+
 	[Export] private Vector2I _ratio = new(16, 9);
 
 
@@ -121,20 +130,29 @@ public partial class GodotEntry : Node
 		_monos = new();
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
+		LineCollection lineCollection = new();
+		ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
 		var tick = new GlobalTick();
+		tick.onMovement += data =>
+		{
+			lineCollection.AddLine(liner.CreateLine(data));
+			//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
+		};
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
 		psteps.Add(Influence);
-		var gates = new PointsIntersection(false);
+		var gates = new PointsIntersection(lineCollection, false);
 		psteps.Add(gates);
 		_camera.Zoom = Godot.Vector2.One * _zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
-		_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions[0].Ratio).y, _strokeSize,
-			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
+		_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions[0].Ratio).y, _maxStrokeSize,
+			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection,
+			!_squareStrokeOverCircle);
 		psteps.Add(_write);
 		prewarm.Add(view);
-		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm, _targetHeightOfBackgroundTexture);
+		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm,
+			_targetHeightOfBackgroundTexture);
 		looper.InitChange += OnInitChanged;
 		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea - _startAreaWidth / 2f,
 			_startAreaWidth);
@@ -195,7 +213,8 @@ public partial class GodotEntry : Node
 					canvasCount++;
 					var color = _backgroundColorForCanva[canvasCount % _backgroundColorForCanva.Length];
 					ratio = _ratio.X / (1f * _ratio.Y);
-					tex = new CanvasPixels(WorldSize(_targetHeightOfBackgroundTexture, ratio), color.A == 0f ? ColorPicker.Random() : color);
+					tex = new CanvasPixels(WorldSize(_targetHeightOfBackgroundTexture, ratio),
+						color.A == 0f ? ColorPicker.Random() : color);
 					var scheme = _colorSchemeForCanva[canvasCount % _colorSchemeForCanva.Length];
 					Assert.IsTrue(scheme == null || (scheme.Colors != null && scheme.Colors.Length >= nbSpecy),
 						"Color scheme has less colors than species, will fallback to a random scheme of the correct size.");
@@ -226,7 +245,8 @@ public partial class GodotEntry : Node
 		return initConditionsArray;
 	}
 
-	private void FromImage(Image image,int nbSpecy, float ratio, out IColorPicker colors, out ISpecyPicker specyPicker, out ATexProvider tex)
+	private void FromImage(Image image, int nbSpecy, float ratio, out IColorPicker colors, out ISpecyPicker specyPicker,
+		out ATexProvider tex)
 	{
 		var quantizedWebcam = new QuantizedImage(image, nbSpecy, WorldSize(_targetHeightOfBackgroundTexture, ratio));
 		tex = quantizedWebcam;

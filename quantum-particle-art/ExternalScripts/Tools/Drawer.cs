@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 
 namespace DefaultNamespace.Tools
 {
-    public class Drawer
+    public class LineCollection
     {
         public struct Line
         {
@@ -86,14 +86,18 @@ namespace DefaultNamespace.Tools
         private List<Line> _lines = new List<Line>();
         private IEnumerable<Line> Lines => _lines;
 
-        public Drawer()
+        public LineCollection()
         {
             _lines = new List<Line>();
         }
 
         public void AddLine(Vector2 start, Vector2 end, Color color, float relativeWidthRatio = 1f)
         {
-            _lines.Add(new Line(start, end, color, relativeWidthRatio));
+            AddLine(new Line(start, end, color, relativeWidthRatio));
+        }
+        public void AddLine(Line line)
+        {
+            _lines.Add(line);
         }
         public IEnumerable<Line> GetLines()
         {
