@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -12,11 +13,14 @@ using Debug = UnityEngine.Debug;
 
 public partial class PythonCaller : Node
 {
+    [ExportGroup("Python params")]
+    private int _fps = 30;
+
+    private bool _display = false;
     [Export, Range(1, 64 * 64 * 64)] private int _readBuffer;
-    [Header("Run settings"),
-     InfoBox("Overridden when init is called externaly, use them for direct call from editor")]
     [Export] private bool _killOnExit = true;
     [Export] private bool _showTerminal = false;
+    
 
     [InfoBox("Select the local correct interpretor/venv that has correct package installation")] [Export]
     protected string _pythonInterpreter = "python";
@@ -63,7 +67,8 @@ public partial class PythonCaller : Node
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-
+        var l = new List<Argument>();
+        l.Add(("-u", "")); //unbuffered
         CallPython(null, true, null);
     }
 
