@@ -21,14 +21,17 @@ public class WriteToTex : ParticleStep
         get => _viewSize;
         set => _viewSize = value;
     }
-    private Saver _saver;
 
-    public WriteToTex(Sprite2D renderer, float viewSize,int size = 0, Saver saver = null)
+    private Saver _saver;
+    private bool _circle;
+
+    public WriteToTex(Sprite2D renderer, float viewSize, int size = 0, Saver saver = null, bool circle = true)
     {
         _renderer = renderer;
         _saver = saver;
         _viewSize = viewSize;
         _lineRadius = size;
+        _circle = circle;
     }
 
     private Sprite2D _renderer;
@@ -60,13 +63,14 @@ public class WriteToTex : ParticleStep
         _drawingImage.Fill(Color.black);
         _toSave = ImageTexture.CreateFromImage(_toSaveImage);
         _drawing = ImageTexture.CreateFromImage(_drawingImage);
-        var stretch =  _viewSize / _drawingImage.GetHeight();
+        var stretch = _viewSize / _drawingImage.GetHeight();
         //We keep aspect ratio of image (defined in the texture and not the scale of the sprited2D) but we make sure it takes full space on height axis
         _renderer.Scale = new Vector2(stretch, stretch);
         if (_saver != null)
         {
             _saver.Init(_toSaveImage, _texProvider.Name + "_" + init.Init.Rules.Name);
         }
+
         RefreshTex();
         //Debug.Log($"WriteToTex initialized on {_toSave.GetWidth()}x{_toSave.GetHeight()} texture with stroke size {_lineRadius}");
     }
@@ -85,22 +89,42 @@ public class WriteToTex : ParticleStep
 
     private Task Draw(ParticleWorld entry)
     {
+        var width = _drawingImage.GetWidth();
+        var height = _drawingImage.GetHeight();
         foreach (var line in entry.Drawer.GetLines())
         {
             var start = ToPixelCoord(line.Start);
             var end = ToPixelCoord(line.End);
             var points = Drawer.Line.GetPixels(start, end);
+            var finalWidth = (int)(line.RelativeWidth * this._lineRadius);
             foreach (var coords in points)
             {
-                var rect = new Rect2I(coords.x - _lineRadius, coords.y - _lineRadius, _lineRadius * 2 + 1,
-                    _lineRadius * 2 + 1);
-                //This is raw results on a blank tex
-                //_drawingImage.SetPixel(coords.x, coords.y, line.Color);
-                
-                _drawingImage.FillRect(rect,line.Color);
-                //This is results overwriting the base texture
-                //_toSaveImage.SetPixel(coords.x, coords.y, line.Color);
-                _toSaveImage.FillRect(rect, line.Color);
+                if (_circle)
+                {
+                    for (int x = -finalWidth; x <= finalWidth; x++)
+                    for (int y = -finalWidth; y <= finalWidth; y++)
+                        if (x * x + y * y <= finalWidth * finalWidth)
+                            if (coords.x + x >= 0 && coords.x + x < width && coords.y + y >= 0 &&
+                                coords.y + y < height)
+                            {
+                                //This is raw results on a blank tex
+                                _drawingImage.SetPixel(coords.x + x, coords.y + y, line.Color);
+                                //This is results overwriting the base texture
+                                _toSaveImage.SetPixel(coords.x + x, coords.y + y, line.Color);
+                            }
+                }
+                else
+                {
+                    var rect = new Rect2I(coords.x - finalWidth, coords.y - finalWidth, finalWidth * 2 + 1,
+                        finalWidth * 2 + 1);
+                    //This is raw results on a blank tex
+                    //_drawingImage.SetPixel(coords.x, coords.y, line.Color);
+
+                    _drawingImage.FillRect(rect, line.Color);
+                    //This is results overwriting the base texture
+                    //_toSaveImage.SetPixel(coords.x, coords.y, line.Color);
+                    _toSaveImage.FillRect(rect, line.Color);
+                }
             }
         }
 
