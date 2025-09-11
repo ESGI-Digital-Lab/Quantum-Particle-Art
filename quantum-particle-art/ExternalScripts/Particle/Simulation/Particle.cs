@@ -61,7 +61,7 @@ public class Particle
     {
         if (_superposition == null)
         {
-            var half = _orientation.Radians / 2f;
+            float half = (float)Math.PI / 2f;//_orientation.Radians / 2f;
             var p1 = new Particle(this);
             p1.Orientation.Radians += -half;
             var p2 = new Particle(this);
