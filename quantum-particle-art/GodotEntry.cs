@@ -200,8 +200,8 @@ public partial class GodotEntry : Node
 		{
 			var rule = _ruleType[i % _ruleType.Count];
 			Assert.IsTrue(rule != RulesSaved.Defaults.Default);
-			int nbSpecy = _nbSpecies[i % _nbSpecies.Length];
-			var rules = new RulesSaved(nbSpecy, rule);
+			var rules = new RulesSaved(_nbSpecies[i % _nbSpecies.Length], rule);
+			int nbSpecy = rules.Rules.NbSpecies; //in case ruleset changed it
 			ATexProvider tex;
 			IColorPicker colors;
 			ISpecyPicker specyPicker;
