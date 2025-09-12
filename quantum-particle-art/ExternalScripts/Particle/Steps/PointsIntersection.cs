@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DefaultNamespace.Tools;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -11,10 +12,11 @@ public class PointsIntersection : ParticleStep
     private Dictionary<Area2D, HashSet<Particle>> _map = new();
     private (Area2D a, Particle p) _lastEntangle = (default, null);
     private (Area2D a, Particle p) _lastTeleport = (default, null);
-
-    public PointsIntersection(bool gatesShouldDraw)
+    private LineCollection _lineCollection;
+    public PointsIntersection(LineCollection lineCollection,bool gatesShouldDraw)
     {
         _gatesShouldDraw = gatesShouldDraw;
+        _lineCollection = lineCollection;
     }
 
     public override async Task HandleParticles(ParticleWorld entry, float delay)
@@ -67,7 +69,7 @@ public class PointsIntersection : ParticleStep
                                     var b = toBeTeleported.NormalizedPosition;
                                     toBeTeleported.Orientation.Teleport(particle.Orientation);
                                     if(_gatesShouldDraw)
-                                        _world.Drawer.AddLine(b, toBeTeleported.NormalizedPosition, ViewHelpers.TEL);
+                                        _lineCollection.AddLine(b, toBeTeleported.NormalizedPosition, ViewHelpers.TEL);
                                     _lastTeleport = (default, null);
                                 }
 
@@ -76,7 +78,7 @@ public class PointsIntersection : ParticleStep
                                 var before = particle.NormalizedPosition;
                                 particle.Collapse();
                                 if (_gatesShouldDraw)
-                                    _world.Drawer.AddLine(before, particle.NormalizedPosition, ViewHelpers.MEA);
+                                    _lineCollection.AddLine(before, particle.NormalizedPosition, ViewHelpers.MEA);
                                 break;
                             default:
                                 Assert.IsTrue(false, $"Unhandled point type: {point.Type}");

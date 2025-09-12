@@ -2,14 +2,22 @@ import socket
 import cv2
 import sys
 import time
+import argparse
 from constants import SERVER_IP, SERVER_PORT
+
+parser = argparse.ArgumentParser(description="Camera stream UDP sender")
+parser.add_argument("-d","--display", action="store_true", help="Show external opencv debug display")
+parser.add_argument("-f","--fps", type=int, default=15, help="Frames per second flushed to server")
+parser.add_argument("-i","--id", type=int, default=0, help="Camera ID, 0 for default camera first hardware camera of the computer")
+parser.add_argument("-r","--res", type=int, nargs = 2, help="Camera resized and output resolution width height, independent from the camera resolution itself", default=[1920,1080])
+args = parser.parse_args()
 
 text = False
 sendOnlyFrame = True
-display = True
-camera_id = 0
-size = (1920, 1080)
-fps = 30
+display = args.display
+camera_id = args.id
+size = (args.res[0], args.res[1])
+fps = args.fps
 chunks = 65000  # max UDP packet size is 65507 bytes
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 cap = cv2.VideoCapture(camera_id)

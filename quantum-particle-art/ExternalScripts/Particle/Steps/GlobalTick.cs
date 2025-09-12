@@ -6,11 +6,16 @@ public class GlobalTick : ParticleStep
 {
     private IColorPicker _colorPicker;
 
+    public record struct MovementData(Vector2 fromNormalized, Vector2 toNormalize, Color color, Orientation orientation);
+
+    public event System.Action<MovementData> onMovement;
+
     public override async Task Init(WorldInitializer init)
     {
         _colorPicker = init.Init.Colors;
         await base.Init(init);
     }
+
     public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
         float t = 1f; //_useDeltaTime ? Time.deltaTime : _timeSteps;
@@ -20,8 +25,10 @@ public class GlobalTick : ParticleStep
             var particle = entry[index];
             foreach (var info in particle.Tick(t, entry.Ruleset[particle.Species].Friction))
             {
-                _world.Drawer.AddLine(info.fromNormalized, info.particle.NormalizedPosition,
-                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies));
+                var data = new MovementData(info.fromNormalized, info.particle.NormalizedPosition,
+                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies),
+                    info.particle.Orientation);
+                onMovement?.Invoke(data);
             }
 
             if (delay > 0)

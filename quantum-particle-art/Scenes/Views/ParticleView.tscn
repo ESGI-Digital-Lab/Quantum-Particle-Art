@@ -8,11 +8,13 @@ _data = [Vector2(0, 1), 0.0, 0.0, 0, 0]
 point_count = 1
 metadata/_snap_enabled = true
 
-[node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite", "_line")]
+[node name="ParticleView" type="Node2D" node_paths=PackedStringArray("_scale", "_sprite", "_outline", "_line")]
 script = ExtResource("1_pgop8")
 _scale = NodePath("DynamicScale")
 _sprite = NodePath("DynamicScale/Node2D/Sprite2D")
+_outline = NodePath("DynamicScale/Node2D/Outline")
 _line = NodePath("Line2D")
+_stretchDependingOnSpeed = false
 
 [node name="DynamicScale" type="Node2D" parent="."]
 
@@ -23,6 +25,14 @@ scale = Vector2(0.002, 0.002)
 texture_filter = 2
 texture_repeat = 2
 scale = Vector2(0.004, 0.004)
+texture = ExtResource("2_pgop8")
+
+[node name="Outline" type="Sprite2D" parent="DynamicScale/Node2D"]
+self_modulate = Color(0, 0, 0, 1)
+z_index = -1
+texture_filter = 2
+texture_repeat = 2
+scale = Vector2(0.005, 0.005)
 texture = ExtResource("2_pgop8")
 
 [node name="Line2D" type="Line2D" parent="."]

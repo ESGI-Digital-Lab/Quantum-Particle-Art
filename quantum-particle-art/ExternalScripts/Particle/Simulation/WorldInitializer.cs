@@ -14,7 +14,7 @@ public class WorldInitializer
     private float _baseheight;
     [SerializeField] private InitConditions _init;
 
-    public WorldInitializer(float height,int nbParticles, Vector2 startArea, Vector2 areaSize)
+    public WorldInitializer(float height, int nbParticles, Vector2 startArea, Vector2 areaSize)
     {
         _baseheight = height;
         _nbParticles = nbParticles;
@@ -30,7 +30,7 @@ public class WorldInitializer
         set
         {
             _init = value;
-            _size = new(_init.Ratio * _baseheight,_baseheight);
+            _size = new(_init.Ratio * _baseheight, _baseheight);
         }
     }
 
@@ -66,7 +66,7 @@ public class WorldInitializer
             var normalizedPos = new Vector2(RandomRange(lb.x, ub.x), RandomRange(lb.y, ub.y));
             particles[i] = new Particle(
                 new Orientation(),
-                normalizedPos, _size,  _init.SpecyPicker.SpeciyIndex(normalizedPos)
+                normalizedPos, _size, _init.SpecyPicker.SpeciyIndex(normalizedPos)
             );
         }
 
@@ -76,6 +76,12 @@ public class WorldInitializer
     public IEnumerable<Area2D> Points()
     {
         var size = _init.GateSize * (_size.x + _size.y) / 2f;
-        return _init.Position.Select(v => new Area2D(v.pos * _size, size, v.type));
+        return _init.Position.Select(v =>
+        {
+            var pos = v.pos;
+            pos.x = Math.Clamp(v.pos.x, 2 * _init.GateSize, 1 - 2 * _init.GateSize);
+            pos.y = Math.Clamp(v.pos.y, 2 * _init.GateSize, 1 - 2 * _init.GateSize);
+            return new Area2D(pos * _size, size, v.type);
+        });
     }
 }

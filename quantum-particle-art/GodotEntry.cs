@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
+using DefaultNamespace.Particle.Steps.TextureManipulation;
+using DefaultNamespace.Tools;
 using Godot;
 using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Simulation;
@@ -25,11 +27,22 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _zoom = 1f;
 
-	[ExportCategory("Common parameters for all iterations")] [Export]
+	[ExportCategory("Common parameters for all iterations")] 
+	[ExportGroup("World")] [Export] private float _worldSize = 600;
+	[ExportGroup("Drawing")] [Export]
 	private bool _saveLastFrame = true;
 
-	[ExportGroup("World")] [Export(PropertyHint.Link)]
-	private float _worldSize = 600;
+	[ExportSubgroup("Stroke settings")]
+	[Export(PropertyHint.Range, "0,100,1")]
+	private int _maxStrokeSize = 10;
+	[Export] private float _sineFrequency;
+	[ExportSubgroup("Type of stroke")]
+	[Export] private bool _squareStrokeOverCircle = false;
+	[Export] private bool _useSpeed;
+	[Export] private bool _dynamicMax;
+
+
+
 
 	private enum BackgroundSource
 	{
@@ -38,12 +51,13 @@ public partial class GodotEntry : Node
 		RealImage = 2
 	}
 
-	[ExportGroup("Background")] [ExportSubgroup("Canvas common settings")] [Export]
-	private int _heightSize;
+	[ExportGroup("Background")] [ExportSubgroup("Common settings, any background will try to fit this")] [Export]
+	private int _targetHeightOfBackgroundTexture;
 
 	[Export] private Vector2I _ratio = new(16, 9);
 
-	[ExportSubgroup("Webcam (only) common settings")] [Export]
+
+	[ExportSubgroup("Webcam only settings")] [Export]
 	private CameraCSBindings _webcamFeed;
 
 	[Export] private Vector2I _webcamRatio = new(16, 9);
@@ -102,6 +116,7 @@ public partial class GodotEntry : Node
 	[Export] private Godot.Collections.Array<RulesSaved.Defaults> _ruleType;
 
 	#endregion
+
 	private WriteToTex _write;
 
 	private static Vector2 WorldSize(float height, float ratio) => new(height * ratio, height);
@@ -111,37 +126,54 @@ public partial class GodotEntry : Node
 	{
 		InitConditions[] conditions =
 			InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight);
-		float initialRatio = conditions[0].Ratio;//TODO generalize scaling for every step
+		float initialRatio = conditions[0].Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
+		LineCollection lineCollection = new();
+		ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
 		var tick = new GlobalTick();
+		tick.onMovement += data =>
+		{
+			lineCollection.AddLine(liner.CreateLine(data));
+			//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
+		};
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
 		psteps.Add(Influence);
-		var gates = new PointsIntersection(false);
+		var gates = new PointsIntersection(lineCollection, false);
 		psteps.Add(gates);
 		_camera.Zoom = Godot.Vector2.One * _zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 		psteps.Add(view);
-		_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow,conditions[0].Ratio).y,
-			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null);
+		_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions[0].Ratio).y, _maxStrokeSize,
+			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection,
+			!_squareStrokeOverCircle);
 		psteps.Add(_write);
 		prewarm.Add(view);
-		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm);
+		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm,
+			_targetHeightOfBackgroundTexture);
 		looper.InitChange += OnInitChanged;
 		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea - _startAreaWidth / 2f,
 			_startAreaWidth);
 		looper.BaseInitializer = world;
 		Add(looper);
-		_tasks = _monos.Select(m => m.Awake()).ToArray();
-		//Task.WaitAll(_tasks);
-		Debug.LogWarning("Entry mid initializing");
-		_tasks = _monos.Select(m => m.Start()).ToArray();
-		//Task.WaitAll(_tasks);
-		Debug.LogWarning("Entry finished initializing");
+		try
+		{
+			_tasks = _monos.Select(m => m.Awake()).ToArray();
+			//Task.WaitAll(_tasks);
+			Debug.LogWarning("Entry mid initializing");
+			_tasks = _monos.Select(m => m.Start()).ToArray();
+			//Task.WaitAll(_tasks);
+			Debug.LogWarning("Entry finished initializing");
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr("Exception during initialization: ", e);
+		}
 	}
+
 	private void OnInitChanged(InitConditions init)
 	{
 		var ratio = init.Ratio;
@@ -169,8 +201,8 @@ public partial class GodotEntry : Node
 		{
 			var rule = _ruleType[i % _ruleType.Count];
 			Assert.IsTrue(rule != RulesSaved.Defaults.Default);
-			int nbSpecy = _nbSpecies[i % _nbSpecies.Length];
-			var rules = new RulesSaved(nbSpecy, rule);
+			var rules = new RulesSaved(_nbSpecies[i % _nbSpecies.Length], rule);
+			int nbSpecy = rules.Rules.NbSpecies; //in case ruleset changed it
 			ATexProvider tex;
 			IColorPicker colors;
 			ISpecyPicker specyPicker;
@@ -182,7 +214,8 @@ public partial class GodotEntry : Node
 					canvasCount++;
 					var color = _backgroundColorForCanva[canvasCount % _backgroundColorForCanva.Length];
 					ratio = _ratio.X / (1f * _ratio.Y);
-					tex = new CanvasPixels(WorldSize(_heightSize, ratio), color.A == 0f ? ColorPicker.Random() : color);
+					tex = new CanvasPixels(WorldSize(_targetHeightOfBackgroundTexture, ratio),
+						color.A == 0f ? ColorPicker.Random() : color);
 					var scheme = _colorSchemeForCanva[canvasCount % _colorSchemeForCanva.Length];
 					Assert.IsTrue(scheme == null || (scheme.Colors != null && scheme.Colors.Length >= nbSpecy),
 						"Color scheme has less colors than species, will fallback to a random scheme of the correct size.");
@@ -194,19 +227,13 @@ public partial class GodotEntry : Node
 				case BackgroundSource.Webcam:
 					ratio = _webcamRatio.X / (1f * _webcamRatio.Y);
 					_webcamFeed.Start();
-					var quantizedWebcam = new QuantizedImage(_webcamFeed.Texture, nbSpecy);
-					tex = quantizedWebcam;
-					colors = quantizedWebcam;
-					specyPicker = quantizedWebcam;
+					FromImage(_webcamFeed.Texture, nbSpecy, ratio, out colors, out specyPicker, out tex);
 					break;
 				case BackgroundSource.RealImage:
 					imageCount++;
-					var img = _realImage[imageCount % _realImage.Count];
-					ratio = img.GetWidth() / (1f * img.GetHeight());
-					var quantizdBg = new QuantizedImage(img, nbSpecy);
-					tex = quantizdBg;
-					colors = quantizdBg;
-					specyPicker = quantizdBg;
+					var texture2 = _realImage[imageCount % _realImage.Count];
+					ratio = texture2.GetWidth() / (1f * texture2.GetHeight());
+					FromImage(texture2.GetImage(), nbSpecy, ratio, out colors, out specyPicker, out tex);
 					break;
 				default: throw new ArgumentOutOfRangeException();
 			}
@@ -219,11 +246,27 @@ public partial class GodotEntry : Node
 		return initConditionsArray;
 	}
 
+	private void FromImage(Image image, int nbSpecy, float ratio, out IColorPicker colors, out ISpecyPicker specyPicker,
+		out ATexProvider tex)
+	{
+		var quantizedWebcam = new QuantizedImage(image, nbSpecy, WorldSize(_targetHeightOfBackgroundTexture, ratio));
+		tex = quantizedWebcam;
+		colors = quantizedWebcam;
+		specyPicker = quantizedWebcam;
+	}
+
 	public override void _Process(double delta)
 	{
 		Time.time += (float)delta;
-		for (int i = 0; i < _tasks.Length; i++)
-			_tasks[i] = _monos[i].Update();
+		try
+		{
+			for (int i = 0; i < _tasks.Length; i++)
+				_tasks[i] = _monos[i].Update();
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr("Exception during update: ", e);
+		}
 		//Task.WaitAll(_tasks);²
 	}
 

@@ -24,15 +24,13 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 	private Godot.Image _image;
 	private Color32[] _colors;
 	private Dictionary<Color32, int> _mapBack;
+	private Vector2I _targetRes;
 
-	public QuantizedImage(Image image, int paletteSize)
+	public QuantizedImage(Image image, int paletteSize, Vector2I targetRes)
 	{
 		this._paletteSize = paletteSize;
 		this._image = image;
-	}
-	public QuantizedImage(Texture2D image, int paletteSize) : this(image.GetImage(), paletteSize)
-	{
-		
+		_targetRes = targetRes;
 	}
 
 
@@ -41,6 +39,7 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 	{
 		while (_image == null || _image.IsEmpty())
 			await Task.Delay(100);
+		_image.Resize(_targetRes.X, _targetRes.Y, Image.Interpolation.Trilinear);
 		var format = Image.Format.Rgb8;
 		_image.Convert(format);
 		var original = _image.GetData();

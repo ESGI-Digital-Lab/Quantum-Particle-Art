@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://o0jwnf3tl1ky"
-path="res://.godot/imported/lena.jpg-3accb97eb4f4c8f8c371d3704ec82701.ctex"
+uid="uid://dw5sy5vu72sov"
+path="res://.godot/imported/Lenna.png-a7e7c9dfd225dec531ac19df14bac05a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Visuals/Init/lena.jpg"
-dest_files=["res://.godot/imported/lena.jpg-3accb97eb4f4c8f8c371d3704ec82701.ctex"]
+source_file="res://Visuals/Init/Lenna.png"
+dest_files=["res://.godot/imported/Lenna.png-a7e7c9dfd225dec531ac19df14bac05a.ctex"]
 
 [params]
 

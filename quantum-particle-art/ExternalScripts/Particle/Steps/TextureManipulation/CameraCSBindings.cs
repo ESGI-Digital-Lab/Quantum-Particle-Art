@@ -39,7 +39,7 @@ public partial class CameraCSBindings : Node
 
     public override void _Ready()
     {
-        _display.SetVisible(false);
+        _display.SetVisible(peer!=null);
     }
     public void Start()
     {
@@ -58,6 +58,7 @@ public partial class CameraCSBindings : Node
         _cache = new Image();
         _head = 0;
         _accumulator = null;
+        _display.SetVisible(true);
     }
 
     public override void _Process(double delta)
@@ -75,7 +76,7 @@ public partial class CameraCSBindings : Node
         {
             while (peer.GetAvailablePacketCount() > 0)
             {
-                Debug.Log("Nb packets in queue : " + peer.GetAvailablePacketCount());
+                //Debug.Log("Nb packets in queue : " + peer.GetAvailablePacketCount());
                 //peer.Bind(port, adress);
                 var data = peer.GetPacket();
                 if (data != null && data.Length > 0)

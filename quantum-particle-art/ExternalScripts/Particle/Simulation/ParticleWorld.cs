@@ -198,8 +198,6 @@ public class ParticleWorld
     public int Count => _particles.Length;
     public Particle this[int index] => _particles[index];
     private Area2D[] _pointsOfInterest;
-    private Drawer _drawer;
-    public Drawer Drawer => _drawer;
 
     public IEnumerable<Area2D> PointsOfInterest => _pointsOfInterest;
 
@@ -209,7 +207,6 @@ public class ParticleWorld
         _pointsOfInterest = points.ToArray();
         _size = size;
         _ruleset = ruleset;
-        _drawer = new Drawer();
         //_drawer.AddLine(new Vector2(0,0), new Vector2(1,1), Color.red);
         //_drawer.AddLine(new Vector2(.5f,0), new Vector2(.5f,1), Color.blue);
         //_drawer.AddLine(new Vector2(0,1), new Vector2(1,0), Color.red);

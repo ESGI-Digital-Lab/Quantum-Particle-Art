@@ -10,12 +10,18 @@ using Vector2 = Godot.Vector2;
 
 public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 {
+	[ExportGroup("References")] [Export] private Node2D _scale;
+	[Export] private Sprite2D _sprite;
+	[Export] private Sprite2D _outline;
+	[Export] private Line2D _line;
+
+	[ExportGroup("Display settings")] [Export]
+	private bool _ignoreWorldAspect = true;
+
+	[Export] private bool _stretchDependingOnSpeed = true;
 	[Export] private bool _showOnlyChilds = false;
 	[Export] private bool _drawLines = false;
-	[Export] private bool _ignoreWorldAspect = true;
-	[Export] private Node2D _scale;
-	[Export] private Sprite2D _sprite;
-	[Export] private Line2D _line;
+	[Export] private bool _showOutline = false;
 	private Node2D _parent;
 	private Particle particle;
 	private static Dictionary<Orientation, Particle> mapBack;
@@ -27,6 +33,11 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		mapBack ??= new();
 		mapBack.TryAdd(info.Orientation, particle);
 		_sprite.Modulate = color;
+		if (color > Colors.Gray)
+			_outline.Modulate = Colors.Black;
+		else
+			_outline.Modulate = Colors.White;
+		_outline.Visible = _showOutline;
 		if (_parent == null)
 			_parent = this.GetParent() as Node2D;
 		if (!_drawLines)
@@ -103,11 +114,22 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		ApplyOrientation(Orientation);
 		//if (Orientation.NormalizedSpeed <= 0.0f)
 		//    _renderer.material.color = Color.gray;
-		if (_ignoreWorldAspect)
-			_scale.GlobalScale =
-				_parent.Scale.X * Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
+		if (_stretchDependingOnSpeed)
+		{
+			if (_ignoreWorldAspect)
+				_scale.GlobalScale =
+					_parent.Scale.X * Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
+			else
+			{
+				_scale.Scale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
+			}
+		}
 		else
-			_scale.Scale = Vector2.One.Lerp(new Vector2(1.8f, 0.1f), Orientation.NormalizedSpeed);
+		{
+			if(_ignoreWorldAspect)
+				_scale.GlobalScale = _parent.Scale.X * Vector2.One;
+		}
+
 		if (Orientation.IsEntangled)
 			LineTo(Orientation.Entanglement, ViewHelpers.ENT);
 		else if (Orientation.IsTeleported)
