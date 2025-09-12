@@ -13,10 +13,13 @@ public class PointsIntersection : ParticleStep
     private (Area2D a, Particle p) _lastEntangle = (default, null);
     private (Area2D a, Particle p) _lastTeleport = (default, null);
     private LineCollection _lineCollection;
-    public PointsIntersection(LineCollection lineCollection,bool gatesShouldDraw)
+    private bool _forceDifferentSpecy = false;
+
+    public PointsIntersection(LineCollection lineCollection, bool gatesShouldDraw, bool forceDifferentSpecy)
     {
         _gatesShouldDraw = gatesShouldDraw;
         _lineCollection = lineCollection;
+        this._forceDifferentSpecy = forceDifferentSpecy;
     }
 
     public override async Task HandleParticles(ParticleWorld entry, float delay)
@@ -42,11 +45,13 @@ public class PointsIntersection : ParticleStep
                                 particle.Superpose();
                                 break;
                             case Area2D.AreaType.Entangle:
-                                if (_lastEntangle.p == null)
+                                var toBeEntangled = _lastEntangle.p;
+                                if (toBeEntangled == null)
                                     _lastEntangle = (point, particle);
-                                else if (_lastEntangle.p != particle && !_lastEntangle.a.Equals(point))
+                                else if (toBeEntangled != particle && !_lastEntangle.a.Equals(point) && 
+                                         SpecyCondition(toBeEntangled, particle))
                                 {
-                                    _lastEntangle.p.Orientation.Entangle(particle.Orientation);
+                                    toBeEntangled.Orientation.Entangle(particle.Orientation);
                                     _lastEntangle = (default, null);
                                 }
 
@@ -55,7 +60,8 @@ public class PointsIntersection : ParticleStep
                                 var toBeTeleported = _lastTeleport.p;
                                 if (toBeTeleported == null)
                                     _lastTeleport = (point, particle);
-                                else if (toBeTeleported != particle && !_lastTeleport.a.Equals(point))
+                                else if (toBeTeleported != particle && !_lastTeleport.a.Equals(point) &&
+                                         SpecyCondition(toBeTeleported, particle))
                                 {
                                     if (particle.Orientation.Teleportation !=
                                         null) //Teleportation is about to be overriden
@@ -68,7 +74,7 @@ public class PointsIntersection : ParticleStep
 
                                     var b = toBeTeleported.NormalizedPosition;
                                     toBeTeleported.Orientation.Teleport(particle.Orientation);
-                                    if(_gatesShouldDraw)
+                                    if (_gatesShouldDraw)
                                         _lineCollection.AddLine(b, toBeTeleported.NormalizedPosition, ViewHelpers.TEL);
                                     _lastTeleport = (default, null);
                                 }
@@ -98,7 +104,12 @@ public class PointsIntersection : ParticleStep
             }
 
             if (delay > 0)
-                await Task.Delay((int)(delay*1000));
+                await Task.Delay((int)(delay * 1000));
         }
+    }
+
+    private bool SpecyCondition(Particle toBeTeleported, Particle particle)
+    {
+        return !_forceDifferentSpecy || toBeTeleported.Species != particle.Species;
     }
 }
