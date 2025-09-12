@@ -39,7 +39,7 @@ public partial class CameraCSBindings : Node
 
     public override void _Ready()
     {
-        _display.SetVisible(false);
+        _display.SetVisible(true);
     }
     public void Start()
     {
