@@ -18,13 +18,14 @@ using Color = Godot.Color;
 using Image = Godot.Image;
 using Vector2 = UnityEngine.Vector2;
 
-public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
+public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 {
 	private int _paletteSize;
 	private Godot.Image _image;
 	private Color32[] _colors;
 	private Dictionary<Color32, int> _mapBack;
 	private Vector2I _targetRes;
+	private IColorPicker _colorPickerImplementation;
 
 	public QuantizedImage(Image image, int paletteSize, Vector2I targetRes)
 	{
@@ -77,18 +78,15 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 
 		_image = Image.CreateFromData(_image.GetWidth(), _image.GetHeight(), false, format, original);
 		_colors = palette.ToArray();
+		_colorPickerImplementation = ColorPicker.FromScheme(ColorScheme);
 		_mapBack = palette.Select((v, i) => (v, i)).ToDictionary(x => x.v, x => x.i);
 	}
+
+	private Color[] ColorScheme => _colors.Select(c => new Color(c.R / 255f, c.G / 255f, c.B / 255f)).ToArray();
 
 	public override Godot.Image Texture => _image;
 
 	public override string Name => _image.ResourceName;
-
-	public Color GetColor(Particle particle, int totalNbSpecies)
-	{
-		var col32 = _colors[particle.Species];
-		return new Color(col32.R / 255f, col32.G / 255f, col32.B / 255f, col32.A / 255f);
-	}
 
 	public int SpeciyIndex(Vector2 position)
 	{
@@ -97,5 +95,10 @@ public class QuantizedImage : ATexProvider, IColorPicker, ISpecyPicker
 		if (_mapBack.TryGetValue(col32, out var idx))
 			return idx;
 		throw new KeyNotFoundException("Speciied color in image not found in palette");
+	}
+
+	public Color GetColor(Particle particle, int totalNbSpecies)
+	{
+		return _colorPickerImplementation.GetColor(particle, totalNbSpecies);
 	}
 }
