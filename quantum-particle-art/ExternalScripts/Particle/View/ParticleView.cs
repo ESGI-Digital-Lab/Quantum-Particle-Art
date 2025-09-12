@@ -127,8 +127,8 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 				_scale.GlobalScale = _parent.Scale.X * Vector2.One;
 		}
 
-		if (Orientation.IsEntangled)
-			LineTo(Orientation.Entanglement, ViewHelpers.ENT);
+		if (Orientation.IsControlled)
+			LineTo(Orientation.Controller, ViewHelpers.ENT);
 		else if (Orientation.IsTeleported)
 			LineTo(Orientation.Teleportation, ViewHelpers.TEL);
 		else

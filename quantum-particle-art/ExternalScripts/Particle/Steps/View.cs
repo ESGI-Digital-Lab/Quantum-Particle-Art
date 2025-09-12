@@ -48,7 +48,7 @@ public class View : ParticleStep, IInit<ParticleWorld>
             case Area2D.AreaType.Superpose:
                 color = ViewHelpers.SUP;
                 break;
-            case Area2D.AreaType.Entangle:
+            case Area2D.AreaType.Control:
                 color = ViewHelpers.ENT;
                 break;
             case Area2D.AreaType.Teleport:
