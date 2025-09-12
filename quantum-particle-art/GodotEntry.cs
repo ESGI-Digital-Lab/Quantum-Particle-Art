@@ -79,7 +79,7 @@ public partial class GodotEntry : Node
 	private float _gateSize = .05f;
 
 	[ExportSubgroup("Gates weights")] [Export(PropertyHint.Range, "0,10,0.1")]
-	private float _entangleWeight = 1f;
+	private float _controlWeight = 1f;
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _measureWeight = 1f;
@@ -127,7 +127,7 @@ public partial class GodotEntry : Node
 	public override void _Ready()
 	{
 		InitConditions[] conditions =
-			InitConditionsArray(_entangleWeight, _measureWeight, _superposeWeight, _teleportWeight);
+			InitConditionsArray(_controlWeight, _measureWeight, _superposeWeight, _teleportWeight);
 		float initialRatio = conditions[0].Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
@@ -190,7 +190,7 @@ public partial class GodotEntry : Node
 		var gatesWeights = new DictionaryFromList<Area2D.AreaType, float>(
 			new()
 			{
-				{ Area2D.AreaType.Entangle, ent },
+				{ Area2D.AreaType.Control, ent },
 				{ Area2D.AreaType.Measure, mea },
 				{ Area2D.AreaType.Superpose, sup },
 				{ Area2D.AreaType.Teleport, tel }
