@@ -73,6 +73,8 @@ texture = ExtResource("4_yixwl")
 
 [node name="PythonRoot" type="Node" parent="."]
 script = ExtResource("8_sph3f")
+_fps = 12
+_resolution = Vector2i(3840, 2160)
 _pythonInterpreter = ".venv\\Scripts\\python.exe"
 folder = "ExternalScripts\\trflorian\\godot-python-comm\\python"
 _filename = "camera_stream"
