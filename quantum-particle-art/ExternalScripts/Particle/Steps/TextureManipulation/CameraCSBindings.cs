@@ -39,7 +39,7 @@ public partial class CameraCSBindings : Node
 
     public override void _Ready()
     {
-        _display.SetVisible(true);
+        _display.SetVisible(peer!=null);
     }
     public void Start()
     {
@@ -58,6 +58,7 @@ public partial class CameraCSBindings : Node
         _cache = new Image();
         _head = 0;
         _accumulator = null;
+        _display.SetVisible(true);
     }
 
     public override void _Process(double delta)
