@@ -13,14 +13,17 @@ using Debug = UnityEngine.Debug;
 
 public partial class PythonCaller : Node
 {
-    [ExportGroup("Python params")]
+    [ExportGroup("Python params")] 
+    [Export] private int _cameraID = 0;
+    [Export]
     private int _fps = 30;
-
-    private bool _display = false;
+    [Export(PropertyHint.Link)] private Vector2I _resolution = new (1920, 1080);
+    [Export] private bool _display = false;
+    [ExportGroup("Caller params")]
     [Export, Range(1, 64 * 64 * 64)] private int _readBuffer;
     [Export] private bool _killOnExit = true;
     [Export] private bool _showTerminal = false;
-    
+
 
     [InfoBox("Select the local correct interpretor/venv that has correct package installation")] [Export]
     protected string _pythonInterpreter = "python";
@@ -68,7 +71,12 @@ public partial class PythonCaller : Node
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
         var l = new List<Argument>();
-        l.Add(("-u", "")); //unbuffered
+        l.Add(("f", _fps.ToString()));
+        l.Add(("r", _resolution.X.ToString() +" "+ _resolution.Y.ToString()));
+        l.Add(("i", _cameraID.ToString()));
+        if (_display)
+            l.Add(("d", ""));
+        _args = l.ToArray();
         CallPython(null, true, null);
     }
 
@@ -137,7 +145,8 @@ public partial class PythonCaller : Node
         _process.PriorityClass = ProcessPriorityClass.High;
         _cancel = new CancellationTokenSource();
         Func<bool> endCondition = () => _process != null && _process.HasExited;
-        _running1 = ReadOutput(_process.StandardError, _cancel, endCondition, s=> Debug.LogWarning("Fomr stderror: "+s), onEnd);
+        _running1 = ReadOutput(_process.StandardError, _cancel, endCondition,
+            s => Debug.LogWarning("Fomr stderror: " + s), onEnd);
         _running2 = ReadOutput(_process.StandardOutput, _cancel, endCondition, onOutput, onEnd);
     }
 
