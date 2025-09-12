@@ -73,6 +73,8 @@ public partial class GodotEntry : Node
 
 	[ExportGroup("Gates")] [Export] private int _nbGates = 20;
 
+	[Export]
+	private bool _allowSameSpeciesInteraction = false;
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
 
@@ -142,7 +144,7 @@ public partial class GodotEntry : Node
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
 		psteps.Add(Influence);
-		var gates = new PointsIntersection(lineCollection, false);
+		var gates = new PointsIntersection(lineCollection, false,!_allowSameSpeciesInteraction);
 		psteps.Add(gates);
 		_camera.Zoom = Godot.Vector2.One * _zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
@@ -249,10 +251,10 @@ public partial class GodotEntry : Node
 	private void FromImage(Image image, int nbSpecy, float ratio, out IColorPicker colors, out ISpecyPicker specyPicker,
 		out ATexProvider tex)
 	{
-		var quantizedWebcam = new QuantizedImage(image, nbSpecy, WorldSize(_targetHeightOfBackgroundTexture, ratio));
-		tex = quantizedWebcam;
-		colors = quantizedWebcam;
-		specyPicker = quantizedWebcam;
+		var quantized = new QuantizedImage(image, nbSpecy, WorldSize(_targetHeightOfBackgroundTexture, ratio));
+		tex = quantized;
+		colors = quantized;
+		specyPicker = quantized;
 	}
 
 	public override void _Process(double delta)
