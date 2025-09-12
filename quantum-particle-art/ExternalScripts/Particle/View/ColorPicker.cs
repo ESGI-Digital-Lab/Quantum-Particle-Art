@@ -36,13 +36,30 @@ public class ColorPicker : ScriptableObject, IColorPicker
 
     private Godot.Color[] _scheme;
 
-
     public Color GetColor(Particle particle, int totalNbSpecies)
     {
+        return GetColorRecursieve(particle, totalNbSpecies);
+    }
+
+
+    public Color GetColorRecursieve(Particle particle, int totalNbSpecies)
+    {
+        int loopSafe = 0;
+        Orientation root = particle.Orientation;
+        //Flattened recursion until we reached a "leaf" i.e a self piloted particle or the cycle safe
+        while (loopSafe < 100 && (root.IsEntangled || root.IsTeleported))
+        {
+            loopSafe++;
+            if (root.IsEntangled)
+                root = root.Entanglement;
+            else if (root.IsTeleported)
+                root = root.Teleportation;
+        }
+
         Assert.IsTrue(_scheme.Length >= totalNbSpecies,
             "Current color scheme length does not match total number of species.");
-        var color = _scheme[particle.Species];
-        return color;
+
+        return _scheme[ParticleView.MapBack(root).Species];
     }
 
     [Header("Generation helpers")] [SerializeField]

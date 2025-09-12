@@ -65,7 +65,6 @@ public class WorldInitializer
         {
             var normalizedPos = new Vector2(RandomRange(lb.x, ub.x), RandomRange(lb.y, ub.y));
             particles[i] = new Particle(
-                new Orientation(),
                 normalizedPos, _size, _init.SpecyPicker.SpeciyIndex(normalizedPos)
             );
         }

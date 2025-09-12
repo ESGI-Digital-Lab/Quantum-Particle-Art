@@ -7,6 +7,7 @@ using UnityEngine.Serialization;
 [Serializable]
 public class Orientation
 {
+	private Particle _owner;
 	public static float MaxSpeed = 7f;
 	private float speed => _velocity.magnitude;
 	protected Orientation _teleportedFrom = null;
@@ -24,12 +25,13 @@ public class Orientation
 	[SerializeField] protected Vector2 _velocity;
 	public Vector2 Velocity => _velocity;
 
-	public Orientation()
+	public Orientation(Particle owner)
 	{
 		_velocity = Vector2.zero;
+		this._owner = owner;
 	}
 
-	public Orientation(Orientation other)
+	public Orientation(Orientation other,Particle owner) : this(owner)
 	{
 		this._velocity = other._velocity;
 	}
@@ -51,6 +53,8 @@ public class Orientation
 		get => Mathf.Repeat(Radians * Mathf.Rad2Deg, 360f);
 		set => Radians = Mathf.Deg2Rad * value;
 	}
+
+	public Particle Owner => _owner;
 
 
 	/// <summary>

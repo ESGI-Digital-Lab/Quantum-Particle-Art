@@ -21,9 +21,9 @@ public class Particle
     }
 
 
-    public Particle(Orientation orientation, Vector2 normalizedPos, Vector2 bounds, int species)
+    public Particle(Vector2 normalizedPos, Vector2 bounds, int species)
     {
-        _orientation = orientation;
+        _orientation = new Orientation(this);
         _bounds = bounds;
         _position = normalizedPos * bounds;
         _species = species;
@@ -32,7 +32,7 @@ public class Particle
 
     public Particle(Particle particle)
     {
-        _orientation = new Orientation(particle._orientation);
+        _orientation = new Orientation(particle._orientation,this);
         _position = particle._position;
         _species = particle._species;
         _bounds = particle._bounds;
@@ -56,6 +56,8 @@ public class Particle
     private float speed => _orientation.Speed;
 
     public bool IsSuperposed => _superposition != null;
+    public bool IsEntangled => _orientation.IsEntangled;
+    public bool IsTeleported => _orientation.IsTeleported;
 
     public virtual void Superpose()
     {
