@@ -12,10 +12,10 @@ public class Orientation
 	private float speed => _velocity.magnitude;
 	protected Orientation _teleportedFrom = null;
 	public bool IsTeleported => _teleportedFrom != null;
-	public bool IsEntangled => _entangledBy != null;
+	public bool IsControlled => _controlledBy != null;
 	public Orientation Teleportation => _teleportedFrom;
-	public Orientation Entanglement => _entangledBy;
-	protected Orientation _entangledBy = null;
+	public Orientation Controller => _controlledBy;
+	protected Orientation _controlledBy = null;
 
 	public float NormalizedSpeed
 	{
@@ -80,15 +80,15 @@ public class Orientation
 	}
 
 
-	public void Entangle(Orientation entangler)
+	public void Control(Orientation controller)
 	{
-		_entangledBy = entangler;
+		_controlledBy = controller;
 	}
 
 	public bool ExternalInfluence()
 	{
-		if (_entangledBy != null)
-			EntangledInfluence();
+		if (_controlledBy != null)
+			ControlledInfluence();
 		else if (_teleportedFrom != null)
 		{
 			TeleportedInfluence();
@@ -102,9 +102,9 @@ public class Orientation
 		return true;
 	}
 
-	private void EntangledInfluence()
+	private void ControlledInfluence()
 	{
-		_velocity = _entangledBy._velocity;
+		_velocity = _controlledBy._velocity;
 	}
 
 	private void TeleportedInfluence()

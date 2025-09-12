@@ -10,7 +10,7 @@ public class PointsIntersection : ParticleStep
 {
     [SerializeField] private bool _gatesShouldDraw = false;
     private Dictionary<Area2D, HashSet<Particle>> _map = new();
-    private (Area2D a, Particle p) _lastEntangle = (default, null);
+    private (Area2D a, Particle p) _lastControl = (default, null);
     private (Area2D a, Particle p) _lastTeleport = (default, null);
     private LineCollection _lineCollection;
     private bool _forceDifferentSpecy = false;
@@ -44,15 +44,15 @@ public class PointsIntersection : ParticleStep
                             case Area2D.AreaType.Superpose:
                                 particle.Superpose();
                                 break;
-                            case Area2D.AreaType.Entangle:
-                                var toBeEntangled = _lastEntangle.p;
-                                if (toBeEntangled == null)
-                                    _lastEntangle = (point, particle);
-                                else if (toBeEntangled != particle && !_lastEntangle.a.Equals(point) && 
-                                         SpecyCondition(toBeEntangled, particle))
+                            case Area2D.AreaType.Control:
+                                var toBecontrolled = _lastControl.p;
+                                if (toBecontrolled == null)
+                                    _lastControl = (point, particle);
+                                else if (toBecontrolled != particle && !_lastControl.a.Equals(point) && 
+                                         SpecyCondition(toBecontrolled, particle))
                                 {
-                                    toBeEntangled.Orientation.Entangle(particle.Orientation);
-                                    _lastEntangle = (default, null);
+                                    toBecontrolled.Orientation.Control(particle.Orientation);
+                                    _lastControl = (default, null);
                                 }
 
                                 break;

@@ -47,11 +47,11 @@ public class ColorPicker : ScriptableObject, IColorPicker
         int loopSafe = 0;
         Orientation root = particle.Orientation;
         //Flattened recursion until we reached a "leaf" i.e a self piloted particle or the cycle safe
-        while (loopSafe < 100 && (root.IsEntangled || root.IsTeleported))
+        while (loopSafe < 100 && (root.IsControlled || root.IsTeleported))
         {
             loopSafe++;
-            if (root.IsEntangled)
-                root = root.Entanglement;
+            if (root.IsControlled)
+                root = root.Controller;
             else if (root.IsTeleported)
                 root = root.Teleportation;
         }

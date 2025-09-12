@@ -13,7 +13,7 @@ public struct Area2D : IEquatable<Area2D>
     {
         None = 0,
         Superpose = 1,
-        Entangle = 2,
+        Control = 2,
         Teleport = 3,
         Measure = 4,
     }

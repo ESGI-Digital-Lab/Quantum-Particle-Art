@@ -56,8 +56,6 @@ public class Particle
     private float speed => _orientation.Speed;
 
     public bool IsSuperposed => _superposition != null;
-    public bool IsEntangled => _orientation.IsEntangled;
-    public bool IsTeleported => _orientation.IsTeleported;
 
     public virtual void Superpose()
     {
