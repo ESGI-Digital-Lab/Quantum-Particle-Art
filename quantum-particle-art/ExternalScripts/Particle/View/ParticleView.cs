@@ -24,14 +24,12 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	[Export] private bool _showOutline = false;
 	private Node2D _parent;
 	private Particle particle;
-	private static Dictionary<Orientation, Particle> mapBack;
+	public static Particle MapBack(Orientation orientation) => orientation.Owner;
 	private Tuple<ParticleView, ParticleView> _childs;
 
 	public void InitView(Particle info, ParticleWorld world, Color color)
 	{
 		this.particle = info;
-		mapBack ??= new();
-		mapBack.TryAdd(info.Orientation, particle);
 		_sprite.Modulate = color;
 		if (color > Colors.Gray)
 			_outline.Modulate = Colors.Black;
@@ -90,7 +88,6 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 
 	public void Cleanup()
 	{
-		mapBack = null;
 		if (_childs != null)
 		{
 			_childs.Item1.Cleanup();
@@ -126,7 +123,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		}
 		else
 		{
-			if(_ignoreWorldAspect)
+			if (_ignoreWorldAspect)
 				_scale.GlobalScale = _parent.Scale.X * Vector2.One;
 		}
 
@@ -155,15 +152,13 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	{
 		if (!_drawLines)
 			return;
-		if (mapBack.TryGetValue(to, out var target))
-		{
-			_line.Points =
-			[
-				this.ToLocal(ViewHelpers.Pos(from.NormalizedPosition, _parent)),
-				this.ToLocal(ViewHelpers.Pos(target.NormalizedPosition, _parent))
-			];
-			_line.DefaultColor = color;
-		}
+		var target = MapBack(to);
+		_line.Points =
+		[
+			this.ToLocal(ViewHelpers.Pos(from.NormalizedPosition, _parent)),
+			this.ToLocal(ViewHelpers.Pos(target.NormalizedPosition, _parent))
+		];
+		_line.DefaultColor = color;
 	}
 
 	private void ApplyOrientation(Orientation or)
