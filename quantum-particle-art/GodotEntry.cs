@@ -63,13 +63,9 @@ public partial class GodotEntry : Node
 	[Export] private Vector2I _webcamRatio = new(16, 9);
 
 	#region Particles&Gates
-
-	[ExportGroup("Particles")] [Export] private int _nbParticles;
-
-	[ExportSubgroup("Spawn area")] [Export(PropertyHint.Link)]
-	private Godot.Vector2 _startArea = new(0.5f, 0.5f);
-
-	[Export(PropertyHint.Link)] private Godot.Vector2 _startAreaWidth = new(1, 1);
+	[ExportGroup("Particles")] 
+	[ExportSubgroup("Spawn area")]
+	[Export] private Godot.Collections.Array<SpawnConfiguration> _spawns = new();
 
 	[ExportGroup("Gates")] [Export] private int _nbGates = 20;
 
@@ -157,8 +153,7 @@ public partial class GodotEntry : Node
 		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm,
 			_targetHeightOfBackgroundTexture);
 		looper.InitChange += OnInitChanged;
-		var world = new WorldInitializer(_worldSize, _nbParticles, _startArea - _startAreaWidth / 2f,
-			_startAreaWidth);
+		var world = new WorldInitializer(_worldSize, _spawns.ToArray());
 		looper.BaseInitializer = world;
 		Add(looper);
 		try
@@ -187,6 +182,7 @@ public partial class GodotEntry : Node
 
 	private InitConditions[] InitConditionsArray(float ent = 1f, float mea = 1f, float sup = 1f, float tel = 1f)
 	{
+		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
 		var gatesWeights = new DictionaryFromList<Area2D.AreaType, float>(
 			new()
 			{
