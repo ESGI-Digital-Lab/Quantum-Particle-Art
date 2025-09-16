@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SpawnConfiguration" load_steps=2 format=3 uid="uid://ba31fecs6ayld"]
+
+[ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Simulation/SpawnConfiguration.cs" id="1_oxa6t"]
+
+[resource]
+script = ExtResource("1_oxa6t")
+_skip = true
+_nbParticles = 250
+_specyIndex = -1
+_center = Vector2(0.5, 0.5)
+_size = Vector2(1, 1)
+_linSpaceOverRandom = false
+metadata/_custom_type_script = "uid://du5t3gslnr3np"
