@@ -57,9 +57,9 @@ public class RandomGates : IGates
 
 public class FixedGates : IGates
 {
-	[Header("Fixed")] [SerializeField] private DictionaryFromList<Area2D.AreaType, Vector2[]> _gatesRelativePosition;
+	[Header("Fixed")] [SerializeField] private DictionaryFromList<Area2D.AreaType, Godot.Vector2[]> _gatesRelativePosition;
 
-	public FixedGates(DictionaryFromList<Area2D.AreaType, Vector2[]> gatesRelativePosition)
+	public FixedGates(DictionaryFromList<Area2D.AreaType, Godot.Vector2[]> gatesRelativePosition)
 	{
 		_gatesRelativePosition = gatesRelativePosition;
 	}
@@ -69,7 +69,7 @@ public class FixedGates : IGates
 		get
 		{
 			return _gatesRelativePosition.Dictionary.SelectMany(kvp =>
-				kvp.Value.Select(v => (kvp.Key,v))
+				kvp.Value.Select(v => (kvp.Key,new Vector2(v.X,v.Y)))
 			);
 		}
 	}

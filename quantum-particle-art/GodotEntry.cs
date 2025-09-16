@@ -67,14 +67,16 @@ public partial class GodotEntry : Node
 	[ExportSubgroup("Spawn area")]
 	[Export] private Godot.Collections.Array<SpawnConfiguration> _spawns = new();
 
-	[ExportGroup("Gates")] [Export] private int _nbGates = 20;
+	[ExportGroup("Gates")] 
 
 	[Export]
 	private bool _allowSameSpeciesInteraction = false;
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
-
-	[ExportSubgroup("Gates weights")] [Export(PropertyHint.Range, "0,10,0.1")]
+	[Export] private bool _randomGates = true;
+	[ExportSubgroup("Random gates")] 
+	[Export] private int _nbGates = 20;
+	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _controlWeight = 1f;
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
@@ -85,7 +87,11 @@ public partial class GodotEntry : Node
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _teleportWeight = 1f;
-
+	[ExportSubgroup("Fixed gates")]
+	[Export] private Godot.Collections.Array<Godot.Vector2> _control = new();
+	[Export] private Godot.Collections.Array<Godot.Vector2> _measure = new();
+	[Export] private Godot.Collections.Array<Godot.Vector2> _superpose = new();
+	[Export] private Godot.Collections.Array<Godot.Vector2> _teleport = new();
 	#endregion
 
 	#region Loop
@@ -122,8 +128,7 @@ public partial class GodotEntry : Node
 
 	public override void _Ready()
 	{
-		InitConditions[] conditions =
-			InitConditionsArray(_controlWeight, _measureWeight, _superposeWeight, _teleportWeight);
+		InitConditions[] conditions = InitConditionsArray();
 		float initialRatio = conditions[0].Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
@@ -180,16 +185,24 @@ public partial class GodotEntry : Node
 	}
 
 
-	private InitConditions[] InitConditionsArray(float ent = 1f, float mea = 1f, float sup = 1f, float tel = 1f)
+	private InitConditions[] InitConditionsArray()
 	{
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
 		var gatesWeights = new DictionaryFromList<Area2D.AreaType, float>(
 			new()
 			{
-				{ Area2D.AreaType.Control, ent },
-				{ Area2D.AreaType.Measure, mea },
-				{ Area2D.AreaType.Superpose, sup },
-				{ Area2D.AreaType.Teleport, tel }
+				{ Area2D.AreaType.Control, _controlWeight },
+				{ Area2D.AreaType.Measure, _measureWeight },
+				{ Area2D.AreaType.Superpose, _superposeWeight },
+				{ Area2D.AreaType.Teleport, _teleportWeight }
+			});
+		var gatesPosition = new DictionaryFromList<Area2D.AreaType, Godot.Vector2[]>(
+			new ()
+			{
+				{ Area2D.AreaType.Control, _control.ToArray()},
+				{ Area2D.AreaType.Measure, _measure.ToArray()},
+				{ Area2D.AreaType.Superpose, _superpose.ToArray()},
+				{ Area2D.AreaType.Teleport, _teleport.ToArray()}
 			});
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
@@ -237,7 +250,7 @@ public partial class GodotEntry : Node
 			}
 
 			initConditionsArray[i] = new InitConditions(ratio, tex, rules, colors,
-				new Gates(_gateSize, new RandomGates(_nbGates, gatesWeights)), specyPicker);
+				new Gates(_gateSize, _randomGates ? new RandomGates(_nbGates, gatesWeights) : new FixedGates(gatesPosition)), specyPicker);
 		}
 
 
