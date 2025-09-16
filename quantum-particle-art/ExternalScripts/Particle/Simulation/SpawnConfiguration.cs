@@ -7,12 +7,11 @@ using UnityEngine.ExternalScripts.Particle.Simulation;
 public partial class SpawnConfiguration : Resource
 {
     [Export] private bool _skip = false;
-    [ExportGroup("Particles")]
-    [Export] private int _nbParticles = 1;
+    [ExportGroup("Particles")] [Export] private int _nbParticles = 1;
     [Export] private int _specyIndex = -1;
+    [ExportGroup("Speed")] [Export] private float _velocityScale = 1f;
     [Export(PropertyHint.Link)] private Vector2 _baseVelocity;
-    [ExportGroup("Positions")]
-    [Export] private Vector2 _center;
+    [ExportGroup("Positions")] [Export] private Vector2 _center;
     [Export(PropertyHint.Link)] private Vector2 _size;
 
     private Vector2 _posMin => _center - (_size / 2f);
@@ -61,5 +60,5 @@ public partial class SpawnConfiguration : Resource
         return _specyIndex >= 0 ? _specyIndex : backup.SpeciyIndex(pos);
     }
 
-    public UnityEngine.Vector2 Velocity() => _baseVelocity;
+    public UnityEngine.Vector2 Velocity() => _baseVelocity * _velocityScale;
 }
