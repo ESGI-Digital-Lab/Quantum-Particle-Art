@@ -1,9 +1,11 @@
-[gd_scene load_steps=13 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=17 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
+[ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Simulation/SpawnConfiguration.cs" id="2_cr50e"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
+[ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="4_yixwl"]
@@ -12,6 +14,26 @@
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
+
+[sub_resource type="Resource" id="Resource_nrk6x"]
+script = ExtResource("2_cr50e")
+_skip = false
+_nbParticles = 1
+_specyIndex = 0
+_center = Vector2(0.6, 0.25)
+_size = Vector2(0, 0)
+_linSpaceOverRandom = true
+metadata/_custom_type_script = "uid://du5t3gslnr3np"
+
+[sub_resource type="Resource" id="Resource_xqktt"]
+script = ExtResource("2_cr50e")
+_skip = false
+_nbParticles = 1
+_specyIndex = 1
+_center = Vector2(0.5, 0.75)
+_size = Vector2(0, 0)
+_linSpaceOverRandom = true
+metadata/_custom_type_script = "uid://du5t3gslnr3np"
 
 [node name="Particles" type="Node3D"]
 
@@ -23,12 +45,10 @@ _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
-_maxStrokeSize = 12
-_sineFrequency = 1.0
-_useSpeed = true
-_targetHeightOfBackgroundTexture = 4320
+_worldSize = 100.0
+_targetHeightOfBackgroundTexture = 4096
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_nbParticles = 250
+_spawns = Array[ExtResource("2_cr50e")]([ExtResource("3_nrk6x"), SubResource("Resource_nrk6x"), SubResource("Resource_xqktt")])
 _nbGates = 50
 _gateSize = 0.02
 _measureWeight = 0.0
@@ -62,6 +82,7 @@ position = Vector2(-0.5, -0.5)
 
 [node name="ParticleView" parent="Simulation/Space/Editor" instance=ExtResource("2_fv5ml")]
 visible = false
+_stretchDependingOnSpeed = true
 
 [node name="Gate" parent="Simulation/Space/Editor" node_paths=PackedStringArray("_sprites") instance=ExtResource("3_yixwl")]
 visible = false
@@ -73,10 +94,10 @@ z_index = -4096
 scale = Vector2(200, 200)
 texture = ExtResource("4_yixwl")
 
+[node name="Data" type="Node" parent="Simulation"]
+
 [node name="PythonRoot" type="Node" parent="."]
 script = ExtResource("8_sph3f")
-_fps = 12
-_resolution = Vector2i(3840, 2160)
 _pythonInterpreter = ".venv\\Scripts\\python.exe"
 folder = "ExternalScripts\\trflorian\\godot-python-comm\\python"
 _filename = "camera_stream"
