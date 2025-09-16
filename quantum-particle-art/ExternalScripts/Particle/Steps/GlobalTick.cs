@@ -26,7 +26,7 @@ public class GlobalTick : ParticleStep
             foreach (var info in particle.Tick(t, entry.Ruleset[particle.Species].Friction))
             {
                 var data = new MovementData(info.fromNormalized, info.particle.NormalizedPosition,
-                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies),
+                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies)/(info.depth+1),
                     info.particle.Orientation);
                 onMovement?.Invoke(data);
             }

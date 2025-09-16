@@ -40,18 +40,18 @@ public class Particle
         _forces = new Vector2[particle._forces.Length];
     }
 
-    public IEnumerable<Particle> Pivots(bool mainParticleOnly = false, bool mainParticleAlso = false)
+    public IEnumerable<(Particle p, int depth)> Pivots(bool mainParticleOnly = false, bool mainParticleAlso = false, int depth = 0)
     {
         if (!mainParticleOnly && IsSuperposed)
         {
-            foreach (var sub in _superposition.Item1.Pivots(false, mainParticleAlso))
+            foreach (var sub in _superposition.Item1.Pivots(false, mainParticleAlso,depth+1))
                 yield return sub;
-            foreach (var sub in _superposition.Item2.Pivots(false, mainParticleAlso))
+            foreach (var sub in _superposition.Item2.Pivots(false, mainParticleAlso,depth+1))
                 yield return sub;
         }
 
         if (mainParticleAlso || !IsSuperposed)
-            yield return this;
+            yield return (this,depth);
     }
 
     private float speed => _orientation.Speed;
@@ -62,7 +62,7 @@ public class Particle
     {
         if (_superposition == null)
         {
-            float half = (float)Math.PI / 2f;//_orientation.Radians / 2f;
+            float half = (float)Math.PI / 4f;//_orientation.Radians / 2f;
             var p1 = new Particle(this);
             p1.Orientation.Radians += -half;
             var p2 = new Particle(this);
@@ -92,6 +92,8 @@ public class Particle
         {
             CopyAndErase(_superposition.Item2);
         }
+
+        _superposition = null;
     }
 
     public void CopyAndErase(Particle other)
@@ -104,14 +106,14 @@ public class Particle
         this._forces = other._forces;
     }
 
-    public IEnumerable<(Particle particle, Vector2 fromNormalized)> Tick(float deltaTime, float friction)
+    public IEnumerable<(Particle particle, Vector2 fromNormalized, int depth)> Tick(float deltaTime, float friction)
     {
-        foreach (var pivot in Pivots(false, true))
+        foreach (var pivot in Pivots(false, true, 0))
         {
-            var before = pivot.NormalizedPosition;
-            Tick(pivot, deltaTime, friction, _bounds, out bool x, out bool y);
+            var before = pivot.p.NormalizedPosition;
+            Tick(pivot.p, deltaTime, friction, _bounds, out bool x, out bool y);
             //If it wrapped we just return the final position, ignore the wrapping for now
-            yield return (pivot, x || y ? pivot.NormalizedPosition : before);
+            yield return (pivot.p, x || y ? pivot.p.NormalizedPosition : before, pivot.depth);
         }
     }
 
@@ -123,8 +125,8 @@ public class Particle
         //This particle and all recursive superpositions get the same force applied
         foreach (var pivot in Pivots(false, true))
         {
-            if (!pivot.Orientation.ExternalInfluence())
-                pivot.Orientation.AddForce(this._forces[0]);
+            if (!pivot.p.Orientation.ExternalInfluence())
+                pivot.p.Orientation.AddForce(this._forces[0]);
         }
     }
 
@@ -146,5 +148,10 @@ public class Particle
     public void AddForce(Vector2 force)
     {
         _orientation.AddForce(force);
+    }
+
+    public void CopySpecy(Orientation teleportedFrom)
+    {
+        this._species = teleportedFrom.Owner.Species;
     }
 }
