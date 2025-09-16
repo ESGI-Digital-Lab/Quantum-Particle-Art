@@ -13,13 +13,12 @@ public class WorldInitializer
     [SerializeField] private Vector2 _size;
     private float _baseheight;
     [SerializeField] private InitConditions _init;
+    private SpawnConfiguration[] _spawns;
 
-    public WorldInitializer(float height, int nbParticles, Vector2 startArea, Vector2 areaSize)
+    public WorldInitializer(float height, params SpawnConfiguration[] spawns)
     {
         _baseheight = height;
-        _nbParticles = nbParticles;
-        _startArea = startArea;
-        _areaSize = areaSize;
+        this._spawns = spawns;
     }
 
     public ATexProvider Texture => _init.Texture;
@@ -38,37 +37,18 @@ public class WorldInitializer
 
     private System.Random random;
 
-    [Header("Particles")] [SerializeField, Range(1, 1000)]
-    private int _nbParticles = 1000;
+    
 
-    [SerializeField] private Vector2 _startArea;
-    [SerializeField] private Vector2 _areaSize;
-
-
-    private float RandomRange(Vector2 range)
-    {
-        return RandomRange(range.x, range.y);
-    }
-
-    private float RandomRange(float min, float max)
-    {
-        return ((float)random.NextDouble() * (max - min)) + min;
-    }
-
-    public Particle[] RandomCollection()
+    public IEnumerable<Particle> RandomCollection()
     {
         random = new System.Random(DateTime.Now.Ticks.GetHashCode());
-        var particles = new Particle[_nbParticles];
-        var lb = _startArea;
-        var ub = _startArea + _areaSize;
-        for (int i = 0; i < _nbParticles; i++)
-        {
-            var normalizedPos = new Vector2(RandomRange(lb.x, ub.x), RandomRange(lb.y, ub.y));
-            particles[i] = new Particle(
-                normalizedPos, _size, _init.SpecyPicker.SpeciyIndex(normalizedPos)
-            );
-        }
-
+        var particles = new List<Particle>();
+        random = new System.Random(DateTime.Now.Ticks.GetHashCode());
+        foreach (var spawn in _spawns)
+            particles.AddRange(
+                spawn.Particles(random).Select<Vector2,Particle>(v => 
+                    new Particle(v, _size, spawn.GetSpecy(v,_init.SpecyPicker)
+            )));
         return particles;
     }
 
