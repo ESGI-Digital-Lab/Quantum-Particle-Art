@@ -12,6 +12,7 @@ public class Orientation
 	private float speed => _velocity.magnitude;
 	protected Orientation _teleportedFrom = null;
 	public bool IsTeleported => _teleportedFrom != null;
+	private bool _isTeleportationWaiting = false;
 	public bool IsControlled => _controlledBy != null;
 	public Orientation Teleportation => _teleportedFrom;
 	public Orientation Controller => _controlledBy;
@@ -44,7 +45,7 @@ public class Orientation
 		set
 		{
 			var magnitude = _velocity.magnitude;
-			_velocity = new Vector2(Mathf.Cos(value), Mathf.Sin(value)) * magnitude;
+			_velocity = new Vector2(Mathf.Sin(value), Mathf.Cos(value)) * magnitude;
 		}
 	}
 
@@ -77,6 +78,7 @@ public class Orientation
 	public virtual void Teleport(Orientation to)
 	{
 		to._teleportedFrom = this;
+		to._isTeleportationWaiting = true;
 	}
 
 
@@ -89,10 +91,12 @@ public class Orientation
 	{
 		if (_controlledBy != null)
 			ControlledInfluence();
-		else if (_teleportedFrom != null)
+		else if (_teleportedFrom != null && _isTeleportationWaiting)
 		{
 			TeleportedInfluence();
-			_teleportedFrom = null; // Clear the reference to avoid further influence
+			//this._owner.CopySpecy(_teleportedFrom);
+			//_teleportedFrom = null; // Clear the reference to avoid further influence
+			_isTeleportationWaiting = false;
 		}
 		else
 		{
