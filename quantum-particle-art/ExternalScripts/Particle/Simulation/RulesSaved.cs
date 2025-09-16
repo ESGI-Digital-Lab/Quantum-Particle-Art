@@ -32,7 +32,8 @@ public class RulesSaved : ScriptableObject
         Alliances = 2,
         Ships = 3,
         Purple = 4,
-        Simplify = 5
+        Simplify = 5,
+        NoFriction = 6
     }
 
     [HorizontalLine(10)] [Range(2, 100)] [SerializeField] [Header("Pre built rules")]
@@ -107,6 +108,8 @@ public class RulesSaved : ScriptableObject
                 return CreatePurple();
             case Defaults.Simplify:
                 return CreateSimplify();
+            case Defaults.NoFriction:
+                return NoInteractionNorFriction();
             default:
                 throw new ArgumentOutOfRangeException(nameof(target), target, null);
         }
@@ -288,5 +291,19 @@ public class RulesSaved : ScriptableObject
             new(interactions, 0, false, 0.02f, 0.2f)
         };
         return new Ruleset(species, "Default");
+    }
+
+    private Ruleset NoInteractionNorFriction()
+    {
+        var def = new Ruleset.Species.InteractionFactor(0, 0, 0, 0, false);
+        var species = new Ruleset.Species[_nbSpecies];
+        for (int i = 0; i < _nbSpecies; i++)
+        {
+            var interactions = new Ruleset.Species.InteractionFactor[_nbSpecies];
+            for (int j = 0; j < _nbSpecies; j++)
+                interactions[j] = def;
+            species[i] = new Ruleset.Species(interactions, 0, false, 0f, 0f);
+        }
+        return new Ruleset(species, "NoInteractionNorFriction_" + _nbSpecies);
     }
 }
