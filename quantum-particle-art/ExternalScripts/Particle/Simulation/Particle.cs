@@ -21,13 +21,14 @@ public class Particle
     }
 
 
-    public Particle(Vector2 normalizedPos, Vector2 bounds, int species)
+    public Particle(Vector2 normalizedPos, Vector2 bounds, int species, Vector2 baseVelocity = default)
     {
         _orientation = new Orientation(this);
         _bounds = bounds;
         _position = normalizedPos * bounds;
         _species = species;
         _forces = new Vector2[Ruleset.MaxSteps];
+        _orientation.AddForce(baseVelocity);
     }
 
     public Particle(Particle particle)

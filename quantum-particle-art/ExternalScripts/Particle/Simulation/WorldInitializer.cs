@@ -47,7 +47,7 @@ public class WorldInitializer
         foreach (var spawn in _spawns)
             particles.AddRange(
                 spawn.Particles(random).Select<Vector2,Particle>(v => 
-                    new Particle(v, _size, spawn.GetSpecy(v,_init.SpecyPicker)
+                    new Particle(v, _size, spawn.GetSpecy(v,_init.SpecyPicker), spawn.Velocity()
             )));
         return particles;
     }
