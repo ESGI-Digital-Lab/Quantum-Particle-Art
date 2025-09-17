@@ -4,9 +4,11 @@
 
 [resource]
 script = ExtResource("1_oxa6t")
-_skip = true
+_skip = false
 _nbParticles = 250
 _specyIndex = -1
+_velocityScale = 1.0
+_baseVelocity = Vector2(0, 0)
 _center = Vector2(0.5, 0.5)
 _size = Vector2(1, 1)
 _linSpaceOverRandom = false
