@@ -115,7 +115,11 @@ public struct Ruleset
             [SerializeField] private float _socialRadius;
             [SerializeField] private bool _socialRamp;
 
-            public float SocialRadius => _socialRadius;
+            public float SocialRadius
+            {
+                get => _socialRadius;
+                set => _socialRadius = value;
+            }
 
             public float SocialForce
             {

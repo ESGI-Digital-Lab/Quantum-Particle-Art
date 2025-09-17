@@ -20,6 +20,7 @@ public class RulesSaved : ScriptableObject
         Assert.IsTrue(type != Defaults.Default, "Default rules are purely internal and don't do nothing");
         _rules = Load(type);
     }
+
     public void ReplaceRules(Ruleset rules)
     {
         _rules = rules;
@@ -33,12 +34,14 @@ public class RulesSaved : ScriptableObject
         Ships = 3,
         Purple = 4,
         Simplify = 5,
-        NoFriction = 6
+        NoFriction = 6,
+        Field = 7,
+        Menace = 8
     }
 
     [HorizontalLine(10)] [Range(2, 100)] [SerializeField] [Header("Pre built rules")]
     private int _nbSpecies = 12;
-    
+
     [Button]
     public void LoadRandom() => LoadDefault(Defaults.Random, true);
 
@@ -58,8 +61,7 @@ public class RulesSaved : ScriptableObject
     [Button]
     public void LoadSimplify() => LoadDefault(Defaults.Simplify);
 
-    [SerializeField,ReadOnly]
-    private bool _locked = false;
+    [SerializeField, ReadOnly] private bool _locked = false;
 
     [Button, ShowIf(nameof(_locked))]
     public void Unlock() => _locked = false;
@@ -84,12 +86,11 @@ public class RulesSaved : ScriptableObject
 
         ReplaceRules(Load(_typeOfRuleset));
 #if UNITY_EDITOR
-
         if (autoStart)
             EditorApplication.EnterPlaymode();
         else
 #endif
-            _locked = true;
+        _locked = true;
     }
 
     private Ruleset Load(Defaults target)
@@ -110,9 +111,54 @@ public class RulesSaved : ScriptableObject
                 return CreateSimplify();
             case Defaults.NoFriction:
                 return NoInteractionNorFriction();
+            case Defaults.Field:
+                return CreateField();
+            case Defaults.Menace:
+                return CreateMenace();
             default:
                 throw new ArgumentOutOfRangeException(nameof(target), target, null);
         }
+    }
+
+    private Ruleset CreateField()
+    {
+        _nbSpecies = 2;
+        var nb = _nbSpecies;
+        var species = new Ruleset.Species[nb];
+        var inter0 = new Ruleset.Species.InteractionFactor[]
+        {
+            new Ruleset.Species.InteractionFactor(
+                0.2f,
+                20f,
+                0.06f,
+                30f
+            ),
+            new Ruleset.Species.InteractionFactor(
+                0.2f,
+                20f,
+                0.2f,
+                30f
+            )
+        };
+        species[0] = new Ruleset.Species(inter0, 0, false, 0.02f, 0.02f);
+
+        var inter1 = new Ruleset.Species.InteractionFactor[]
+        {
+            new Ruleset.Species.InteractionFactor(
+                0.2f,
+                20f,
+                0.2f,
+                30f
+            ),
+            new Ruleset.Species.InteractionFactor(
+                0.2f,
+                20f,
+                -.4f,
+                30f
+            )
+        };
+        species[1] = new Ruleset.Species(inter1, 0, false, 0.02f, 0.01f);
+        return new Ruleset(species, "Field");
     }
 
     private Ruleset CreateSimplify()
@@ -156,7 +202,7 @@ public class RulesSaved : ScriptableObject
             species[i] = new Ruleset.Species(interactions, 0);
         }
 
-        return new Ruleset(species, "Simplify_"+nb);
+        return new Ruleset(species, "Simplify_" + nb);
     }
 
     private Ruleset CreatePurple()
@@ -197,12 +243,48 @@ public class RulesSaved : ScriptableObject
             )
         };
         species[1] = new Ruleset.Species(inter1, 2);
-        return new Ruleset(species,"Stigmergy");
+        return new Ruleset(species, "Stigmergy");
     }
 
     private Ruleset CreateShips()
     {
         throw new NotImplementedException();
+    }
+
+    private Ruleset CreateMenace()
+    {
+        var nb = _nbSpecies;
+        var interactions = new Ruleset.Species.InteractionFactor[nb][];
+        var defaultInter = new Ruleset.Species.InteractionFactor(1.0f, 8.64f, 4 * .1f, 81.0f * .2f);
+        for (int i = 0; i < nb; i++)
+        {
+            interactions[i] = new Ruleset.Species.InteractionFactor[nb];
+            for (int j = 0; j < nb; j++)
+                interactions[i][j] = defaultInter;
+        }
+
+        var fear = 4 * -1f;
+        var love = 4 * 1.2f;
+
+        var fearRadius = 81 * .5f;
+        var loveRadius = 81 * .9f;
+        int menaces = 1;
+        for (int i = menaces; i < nb; i++)
+        {
+            interactions[0][i].SocialForce = love;
+            interactions[0][i].SocialRadius = loveRadius;
+
+            interactions[i][0].SocialForce = fear;
+            interactions[i][0].SocialRadius = fearRadius * (i * 1f / nb);
+        }
+
+        var species = new Ruleset.Species[nb];
+        for (int i = 0; i < nb; i++)
+        {
+            species[i] = new Ruleset.Species(interactions[i]);
+        }
+
+        return new Ruleset(species, "Alliances_" + nb);
     }
 
     private Ruleset CreateAlliances()
@@ -272,7 +354,7 @@ public class RulesSaved : ScriptableObject
             );
         }
 
-        return new Ruleset(species, "Random_" + nb +"_"+ string.Join('_',species.Select(s=> s.Steps.ToString())));
+        return new Ruleset(species, "Random_" + nb + "_" + string.Join('_', species.Select(s => s.Steps.ToString())));
     }
 
     private float RandomRange(System.Random random, float min, float max)
@@ -304,6 +386,7 @@ public class RulesSaved : ScriptableObject
                 interactions[j] = def;
             species[i] = new Ruleset.Species(interactions, 0, false, 0f, 0f);
         }
+
         return new Ruleset(species, "NoInteractionNorFriction_" + _nbSpecies);
     }
 }
