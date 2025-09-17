@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=20 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -11,50 +11,14 @@
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
 [ext_resource type="Texture2D" uid="uid://dkp6c5y27g1m" path="res://Visuals/Init/white.png" id="4_yixwl"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
+[ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
-[ext_resource type="Texture2D" uid="uid://d2bpta77tssw5" path="res://Visuals/Init/portrait1.jpg" id="8_v64fi"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
 [ext_resource type="Texture2D" uid="uid://8qrqg50drga" path="res://Visuals/Init/pexels-pixabay.jpg" id="10_n2aaa"]
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
-
-[sub_resource type="Resource" id="Resource_xqktt"]
-script = ExtResource("2_cr50e")
-_skip = true
-_nbParticles = 1
-_specyIndex = 0
-_velocityScale = 10.0
-_baseVelocity = Vector2(1, 0)
-_center = Vector2(0.45, 0.25)
-_size = Vector2(0, 0)
-_linSpaceOverRandom = true
-metadata/_custom_type_script = "uid://du5t3gslnr3np"
-
-[sub_resource type="Resource" id="Resource_v64fi"]
-script = ExtResource("2_cr50e")
-_skip = true
-_nbParticles = 1
-_specyIndex = 1
-_velocityScale = 10.0
-_baseVelocity = Vector2(-1, 1)
-_center = Vector2(0.75, 0.5)
-_size = Vector2(0, 0)
-_linSpaceOverRandom = true
-metadata/_custom_type_script = "uid://du5t3gslnr3np"
-
-[sub_resource type="Resource" id="Resource_hcmhk"]
-script = ExtResource("2_cr50e")
-_skip = true
-_nbParticles = 1
-_specyIndex = 0
-_velocityScale = 10.0
-_baseVelocity = Vector2(1, 0)
-_center = Vector2(0.1, 0.5)
-_size = Vector2(0, 0)
-_linSpaceOverRandom = true
-metadata/_custom_type_script = "uid://du5t3gslnr3np"
 
 [node name="Particles" type="Node3D"]
 
@@ -71,19 +35,18 @@ _useSpeed = true
 _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = Array[ExtResource("2_cr50e")]([ExtResource("3_nrk6x"), SubResource("Resource_xqktt"), SubResource("Resource_v64fi"), SubResource("Resource_hcmhk")])
+_spawns = Array[ExtResource("2_cr50e")]([ExtResource("3_nrk6x")])
 _gateSize = 0.02
 _nbGates = 50
 _measureWeight = 0.0
 _superposeWeight = 0.0
-_superpose = Array[Vector2]([Vector2(0.25, 0.5), Vector2(0.5, 0.75)])
 _duration = 500.0
-_backgroundTypes = Array[int]([2, 2, 2, 2, 0, 2, 2])
+_backgroundTypes = Array[int]([2, 2, 2, 2, 2, 2, 2])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
 _colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
-_realImage = Array[Texture2D]([ExtResource("8_v64fi"), ExtResource("9_hcmhk"), ExtResource("10_n2aaa"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
-_nbSpecies = PackedInt32Array(12, 8, 10, 12, 12)
-_ruleType = Array[int]([8, 4, 5, 1, 2])
+_realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
+_nbSpecies = PackedInt32Array(2, 2, 2, 2, 2)
+_ruleType = Array[int]([1, 1, 1, 1, 1])
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true
