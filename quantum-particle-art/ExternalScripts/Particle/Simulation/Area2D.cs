@@ -75,7 +75,7 @@ public struct Area2D : IEquatable<Area2D>
         {
             if (_gate.Precondition(_inside))
             {
-                if (_inside.TryAdd(particle))
+                if (_inside.Add(particle))
                 {
                     var modified = _gate.Resolve(particle);
                     if(modified)
