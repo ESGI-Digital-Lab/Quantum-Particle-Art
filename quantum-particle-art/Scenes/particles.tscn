@@ -10,9 +10,9 @@
 [ext_resource type="Script" uid="uid://h6cdmkj0jr7m" path="res://ExternalScripts/Particle/Steps/Gates/GateConfiguration.cs" id="4_n2aaa"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
-[ext_resource type="Script" uid="uid://7ihombro8omr" path="res://ExternalScripts/Particle/Steps/Gates/Superpose.cs" id="5_bv6uv"]
+[ext_resource type="Script" uid="uid://beu5qhh4at4lj" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/ControlX.cs" id="5_bv6uv"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
-[ext_resource type="Script" uid="uid://beu5qhh4at4lj" path="res://ExternalScripts/Particle/Steps/Gates/ControlX.cs" id="6_w33ia"]
+[ext_resource type="Script" uid="uid://7ihombro8omr" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/Superpose.cs" id="6_w33ia"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
@@ -36,7 +36,8 @@ metadata/_custom_type_script = "uid://du5t3gslnr3np"
 
 [sub_resource type="Resource" id="Resource_1mke2"]
 script = ExtResource("5_bv6uv")
-metadata/_custom_type_script = "uid://7ihombro8omr"
+_forceDifferentSpecy = false
+metadata/_custom_type_script = "uid://beu5qhh4at4lj"
 
 [sub_resource type="Resource" id="Resource_2d2wn"]
 script = ExtResource("4_n2aaa")
@@ -46,8 +47,7 @@ metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
 
 [sub_resource type="Resource" id="Resource_mum02"]
 script = ExtResource("6_w33ia")
-_forceDifferentSpecy = false
-metadata/_custom_type_script = "uid://beu5qhh4at4lj"
+metadata/_custom_type_script = "uid://7ihombro8omr"
 
 [sub_resource type="Resource" id="Resource_cuf3k"]
 script = ExtResource("4_n2aaa")
