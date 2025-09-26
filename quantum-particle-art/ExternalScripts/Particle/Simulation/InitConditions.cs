@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Simulation;
 using Random = System.Random;
+using Vector2 = UnityEngine.Vector2;
 
 public interface IGates
 {
