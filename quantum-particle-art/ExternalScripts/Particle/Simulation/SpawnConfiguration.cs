@@ -40,7 +40,7 @@ public partial class SpawnConfiguration : Resource
         {
             for (int i = 0; i < _nbParticles; i++)
             {
-                float t = _nbParticles == 1 ? 0.5f : (float)i / (_nbParticles - 1);
+                float t = (float)(i+1) / (_nbParticles + 1);
                 Vector2 normalizedPos = new Vector2(Mathf.Lerp(lb.X, ub.X, t), Mathf.Lerp(lb.Y, ub.Y, t));
                 yield return normalizedPos;
             }

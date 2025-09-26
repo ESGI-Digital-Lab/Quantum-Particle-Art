@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_oxa6t")
-_skip = false
+_skip = true
 _nbParticles = 250
 _specyIndex = -1
 _velocityScale = 1.0
