@@ -10,21 +10,21 @@ using Random = System.Random;
 
 public interface IGates
 {
-	public IEnumerable<(Area2D.AreaType type, Vector2 pos)> Positions { get; }
+	public IEnumerable<(AGate type, Vector2 pos)> Positions { get; }
 }
 
 public class RandomGates : IGates
 {
 	private int _nbPoints;
-	private DictionaryFromList<Area2D.AreaType, float> _weights;
+	private DictionaryFromList<AGate, float> _weights;
 
-	public RandomGates(int nbPoints, DictionaryFromList<Area2D.AreaType, float> weights)
+	public RandomGates(int nbPoints, DictionaryFromList<AGate, float> weights)
 	{
 		_nbPoints = nbPoints;
 		_weights = weights;
 	}
 
-	public IEnumerable<(Area2D.AreaType type, Vector2 pos)> Positions
+	public IEnumerable<(AGate type, Vector2 pos)> Positions
 	{
 		get
 		{
@@ -57,19 +57,19 @@ public class RandomGates : IGates
 
 public class FixedGates : IGates
 {
-	[Header("Fixed")] [SerializeField] private DictionaryFromList<Area2D.AreaType, Godot.Vector2[]> _gatesRelativePosition;
+	[Header("Fixed")] [SerializeField] private DictionaryFromList<AGate, Godot.Vector2[]> _gatesRelativePosition;
 
-	public FixedGates(DictionaryFromList<Area2D.AreaType, Godot.Vector2[]> gatesRelativePosition)
+	public FixedGates(DictionaryFromList<AGate, Godot.Vector2[]> gatesRelativePosition)
 	{
 		_gatesRelativePosition = gatesRelativePosition;
 	}
 
-	public IEnumerable<(Area2D.AreaType type, Vector2 pos)> Positions
+	public IEnumerable<(AGate type, Vector2 pos)> Positions
 	{
 		get
 		{
 			return _gatesRelativePosition.Dictionary.SelectMany(kvp =>
-				kvp.Value.Select(v => (kvp.Key,new Vector2(v.X,v.Y)))
+				kvp.Value.Select(v => (kvp.Key.Copy(),new Vector2(v.X,v.Y)))
 			);
 		}
 	}
@@ -87,7 +87,7 @@ public struct Gates
 		_gates = gates;
 	}
 
-	public IEnumerable<(Area2D.AreaType type, Vector2 pos)> Positions => _gates.Positions;
+	public IEnumerable<(AGate type, Vector2 pos)> Positions => _gates.Positions;
 
 	public float Size => _size;
 }
@@ -117,7 +117,7 @@ public struct InitConditions
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
 
-	public IEnumerable<(Area2D.AreaType type, Vector2 pos)> Position => _gates.Positions;
+	public IEnumerable<(AGate type, Vector2 pos)> Position => _gates.Positions;
 
 	public float GateSize => _gates.Size;
 

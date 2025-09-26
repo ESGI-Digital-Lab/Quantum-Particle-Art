@@ -44,7 +44,7 @@ public class WorldInitializer
         random = new System.Random(DateTime.Now.Ticks.GetHashCode());
         var particles = new List<Particle>();
         random = new System.Random(DateTime.Now.Ticks.GetHashCode());
-        foreach (var spawn in _spawns)
+        foreach (var spawn in _spawns.Where(s => s != null))
             particles.AddRange(
                 spawn.Particles(random).Select<Vector2,Particle>(v => 
                     new Particle(v, _size, spawn.GetSpecy(v,_init.SpecyPicker), spawn.Velocity()

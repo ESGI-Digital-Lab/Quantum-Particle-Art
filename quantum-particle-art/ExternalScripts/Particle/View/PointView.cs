@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Godot;
 using UnityEngine.Assertions;
 using Color = UnityEngine.Color;
@@ -17,25 +20,34 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 		bounds = w.Size;
 		foreach (var r in _sprites)
 		{
-			if(_overrideColor)
+			if (_overrideColor)
 				r.Modulate = color;
 			r.Visible = _showSprite;
 		}
+
 		this.GlobalPosition = ViewHelpers.Pos(info.Center / bounds, this.GetParent() as Node2D);
-		this.Scale *= new Godot.Vector2(info.Radius / bounds.x/2f, info.Radius / bounds.y/2f);
-		_label.Text = "[center]"+ToShort(info.Type)+"[/center]";
+		this.Scale *= new Godot.Vector2(info.Radius / bounds.x / 2f, info.Radius / bounds.y / 2f);
+		_label.Text = "[center]" + ToShort(info.Gate) + "[/center]";
 	}
-	private string ToShort(Area2D.AreaType type)
-	{
-		return type switch
+
+	private static Dictionary<Type, string> _gateNames =
+		new()
 		{
-			Area2D.AreaType.Control => "Cx",
-			Area2D.AreaType.Measure => "M",
-			Area2D.AreaType.Superpose => "H",
-			Area2D.AreaType.Teleport => "W",
-			_ => "?"
+			{ typeof(Measure), "Cx" },
+			{ typeof(ControlX), "M" },
+			{ typeof(Teleport), "H" },
+			{ typeof(Superpose), "W" },
 		};
+
+	private string ToShort(AGate type)
+	{
+		if(_gateNames.TryGetValue(type.GetType(), out string gateName))
+			return gateName;
+		UnityEngine.Debug.Log("No gate name defined for gate of type, backing up to type first 3 letters " + type?.GetType());
+		string str = type.GetType().Name;
+		return str.Substring(0, Math.Min(3, str.Length));
 	}
+
 	public void UpdateView(Area2D info)
 	{
 		//_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);
