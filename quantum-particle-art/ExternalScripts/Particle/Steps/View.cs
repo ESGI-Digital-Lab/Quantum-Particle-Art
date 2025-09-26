@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
@@ -32,35 +34,27 @@ public class View : ParticleStep, IInit<ParticleWorld>
         _particleViewCollection = ViewCollection<Particle, ParticleView>.Create(_worldRoot, _viewPrefab, init,
             w => w.Particles,
             p => _colorPicker.GetColor(p, init.Ruleset.NbSpecies));
-        _pointViewCollection = ViewCollection<Area2D, PointView>.Create(_worldRoot, _pointPrefab, init, w => w.PointsOfInterest,
-                AreaColor);
+        _pointViewCollection = ViewCollection<Area2D, PointView>.Create(_worldRoot, _pointPrefab, init,
+            w => w.PointsOfInterest,
+            a => AreaColor(a.Gate));
         return Task.CompletedTask;
     }
 
-    private static Color AreaColor(Area2D p)
+    private static Dictionary<Type, Color> _gateColors =
+    new()
+    {
+        {typeof(Measure),  ViewHelpers.MEA},
+        {typeof(ControlX),  ViewHelpers.CTR},
+        {typeof(Teleport), ViewHelpers.TEL},
+        {typeof(Superpose),ViewHelpers.SUP},
+    };
+    private static Color AreaColor(AGate p)
     {
         var color = Color.black;
-        switch (p.Type)
-        {
-            case Area2D.AreaType.None:
-                color = Color.gray;
-                break;
-            case Area2D.AreaType.Superpose:
-                color = ViewHelpers.SUP;
-                break;
-            case Area2D.AreaType.Control:
-                color = ViewHelpers.ENT;
-                break;
-            case Area2D.AreaType.Teleport:
-                color = ViewHelpers.TEL;
-                break;
-            case Area2D.AreaType.Measure:
-                color = ViewHelpers.MEA;
-                break;
-            default:
-                Assert.IsTrue(false, $"Unhandled point type: {p.Type}");
-                break;
-        }
+        if (p != null && _gateColors.TryGetValue(p.GetType(), out var c))
+            color = c;
+        else
+            Assert.IsFalse(true, "No color defined for gate of type " + p?.GetType());
 
         return color;
     }

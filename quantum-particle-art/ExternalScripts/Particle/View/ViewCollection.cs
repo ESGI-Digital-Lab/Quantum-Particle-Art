@@ -15,7 +15,7 @@ public static class ViewHelpers
 {
     public static readonly Color SUP = Color.red;
     public static readonly Color MEA = new Color(0.5f, 0, 0);
-    public static readonly Color ENT = Color.green;
+    public static readonly Color CTR = Color.green;
     public static readonly Color TEL = Color.blue;
 
     public static Vector2 Pos(UnityEngine.Vector2 normalized, Node2D root)

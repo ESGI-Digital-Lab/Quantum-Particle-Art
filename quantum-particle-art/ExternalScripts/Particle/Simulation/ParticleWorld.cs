@@ -7,65 +7,6 @@ using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public struct Area2D : IEquatable<Area2D>
-{
-    public enum AreaType
-    {
-        None = 0,
-        Superpose = 1,
-        Control = 2,
-        Teleport = 3,
-        Measure = 4,
-    }
-
-    private readonly Vector2 _position;
-    private readonly float _radius;
-    private readonly AreaType _type;
-
-    public Area2D(Vector2 position, float radius, AreaType type)
-    {
-        this._position = position;
-        this._radius = radius;
-        this._type = type;
-    }
-
-    public AreaType Type => _type;
-
-    public float Radius => _radius;
-
-    public Vector2 Center => _position;
-
-    public bool Contains(Vector2 point)
-    {
-        return Vector2.Distance(_position, point) <= _radius;
-    }
-
-    public bool Contains(Particle particle)
-    {
-        return Contains(particle.Position);
-    }
-
-    public bool Contains(Area2D other)
-    {
-        return Contains(other._position);
-    }
-
-    public bool Equals(Area2D other)
-    {
-        return _position.Equals(other._position) && _radius.Equals(other._radius) && _type == other._type;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is Area2D other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(_position, _radius, (int)_type);
-    }
-}
-
 [Serializable]
 public struct Ruleset
 {

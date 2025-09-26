@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -11,6 +12,11 @@ public class DictionaryFromList<K, V>
     {
         public K Key;
         public V Value;
+        public KV(K key, V value)
+        {
+            Key = key;
+            Value = value;
+        }
     }
 
     [SerializeField] private KV[] values;
@@ -19,6 +25,12 @@ public class DictionaryFromList<K, V>
     public DictionaryFromList(Dictionary<K, V> dictionary)
     {
         _dictionary = dictionary;
+    }
+
+    public DictionaryFromList(IEnumerable<(K,V)> list)
+    {
+        values = list.Select(kv=>new KV(kv.Item1,kv.Item2)).ToArray();
+        _dictionary = null;
     }
 
     public V this[K key]

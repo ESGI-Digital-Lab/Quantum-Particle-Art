@@ -128,7 +128,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		}
 
 		if (Orientation.IsControlled)
-			LineTo(Orientation.Controller, ViewHelpers.ENT);
+			LineTo(Orientation.Controller, ViewHelpers.CTR);
 		else if (Orientation.IsTeleported)
 			LineTo(Orientation.Teleportation, ViewHelpers.TEL);
 		else

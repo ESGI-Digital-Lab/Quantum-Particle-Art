@@ -154,4 +154,9 @@ public class Particle
     {
         this._species = teleportedFrom.Owner.Species;
     }
+
+    public void Warp(Vector2 position)
+    {
+        this._position = position;
+    }
 }
