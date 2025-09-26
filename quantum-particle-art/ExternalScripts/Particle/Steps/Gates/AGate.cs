@@ -9,6 +9,7 @@ public abstract partial class AGate : Godot.Resource
     public abstract AGate Copy();
     public abstract Color Color { get; }
     public abstract string ShortName { get; }
+    public virtual bool DynamicName => false;
 }
 public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedTypeID : DualInputAGate<SharedTypeID>
 {

@@ -27,23 +27,19 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 
 		this.GlobalPosition = ViewHelpers.Pos(info.Center / bounds, this.GetParent() as Node2D);
 		this.Scale *= new Godot.Vector2(info.Radius / bounds.x / 2f, info.Radius / bounds.y / 2f);
-		_label.Text = "[center]" + ToShort(info.Gate) + "[/center]";
+		UpdateLabel(info);
 	}
 
-	private string ToShort(AGate type)
+	private void UpdateLabel(Area2D info)
 	{
-		var tmp = type.ShortName;
-		if (!string.IsNullOrEmpty(tmp))
-		{
-			string str = type.GetType().Name;
-			return str.Substring(0, Math.Min(3, str.Length));
-		}
-
-		return tmp;
+		_label.Text = "[center]" + info.Gate.ShortName + "[/center]";
 	}
 
 	public void UpdateView(Area2D info)
 	{
+		if (info.Gate.DynamicName)
+			UpdateLabel(info);
+
 		//_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);
 		//_scale.localScale = new Vector3(info.Radius / bounds.x, 0.1f, info.Radius / bounds.y);
 	}
