@@ -21,7 +21,7 @@ public partial class Count : AGate
     }
 
     public override Color Color => Colors.LightGray;
-    public override string ShortName => (_countAsName ? _count.ToString() : "Cnt") + _nameAppendix;
+    public override string ShortName => (_countAsName && _count>0 ? _count.ToString() : "Cnt") + _nameAppendix;
 
-    public override bool DynamicName => base.DynamicName || _countAsName;
+    public override bool DynamicName => base.DynamicName || (_countAsName && _count>0);
 }
