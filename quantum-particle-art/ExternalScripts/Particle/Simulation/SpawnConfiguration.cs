@@ -38,9 +38,10 @@ public partial class SpawnConfiguration : Resource
         var ub = _posMax;
         if (_linSpaceOverRandom)
         {
+            float prop = _nbParticles > 0 ? 1f / (_nbParticles) : 1f;
             for (int i = 0; i < _nbParticles; i++)
             {
-                float t = (float)(i+1) / (_nbParticles + 1);
+                float t = (i + .5f) * (prop);
                 Vector2 normalizedPos = new Vector2(Mathf.Lerp(lb.X, ub.X, t), Mathf.Lerp(lb.Y, ub.Y, t));
                 yield return normalizedPos;
             }
