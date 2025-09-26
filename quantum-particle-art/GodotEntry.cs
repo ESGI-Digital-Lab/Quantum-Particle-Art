@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
-using DefaultNamespace.Particle.Steps.Gates;
 using DefaultNamespace.Particle.Steps.TextureManipulation;
 using DefaultNamespace.Tools;
 using Godot;
@@ -88,8 +87,9 @@ public partial class GodotEntry : Node
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _teleportWeight = 1f;
-	[ExportSubgroup("Fixed gates")]
-	[Export] private Godot.Collections.Array<GateConfiguration> _gates = new();
+
+	[ExportSubgroup("Fixed gates")] [Export]
+	private GridGates _gridGates;
 	#endregion
 
 	#region Loop
@@ -193,7 +193,8 @@ public partial class GodotEntry : Node
 		//		{ Area2D.AreaType.Measure, _measureWeight },
 		//		{ Area2D.AreaType.Teleport, _teleportWeight }
 		//	});
-		var gatesPosition = new DictionaryFromList<AGate, Godot.Vector2[]>(_gates.Select(g => (g.Gate,g.Positions.ToArray())));
+		IGates iGates = _gridGates;
+			//_gates.Select(g => (g.Gate,g.Positions.ToArray()));
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		int canvasCount = -1;
@@ -240,7 +241,7 @@ public partial class GodotEntry : Node
 			}
 
 			initConditionsArray[i] = new InitConditions(ratio, tex, rules, colors,
-				new Gates(_gateSize, _randomGates ? null : new FixedGates(gatesPosition)), specyPicker);
+				new Gates(_gateSize, iGates), specyPicker);
 		}
 
 
