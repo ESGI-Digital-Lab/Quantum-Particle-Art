@@ -6,8 +6,9 @@ public abstract partial class AGate : Godot.Resource
 {
     public virtual bool Precondition(HashSet<Particle> setInside) => true;
     public abstract bool Resolve(Particle particle);
-
     public abstract AGate Copy();
+    public abstract Color Color { get; }
+    public abstract string ShortName { get; }
 }
 public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedTypeID : DualInputAGate<SharedTypeID>
 {

@@ -40,23 +40,9 @@ public class View : ParticleStep, IInit<ParticleWorld>
         return Task.CompletedTask;
     }
 
-    private static Dictionary<Type, Color> _gateColors =
-    new()
-    {
-        {typeof(Measure),  ViewHelpers.MEA},
-        {typeof(ControlX),  ViewHelpers.CTR},
-        {typeof(Teleport), ViewHelpers.TEL},
-        {typeof(Superpose),ViewHelpers.SUP},
-    };
     private static Color AreaColor(AGate p)
     {
-        var color = Color.black;
-        if (p != null && _gateColors.TryGetValue(p.GetType(), out var c))
-            color = c;
-        else
-            Assert.IsFalse(true, "No color defined for gate of type " + p?.GetType());
-
-        return color;
+        return p.Color;
     }
 
     public override async Task HandleParticles(ParticleWorld entry, float delay)

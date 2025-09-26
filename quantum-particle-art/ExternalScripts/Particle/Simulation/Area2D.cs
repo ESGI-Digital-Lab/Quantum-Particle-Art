@@ -20,7 +20,7 @@ public struct Area2D : IEquatable<Area2D>
     private HashSet<Particle> _inside = new();
 
 
-    public void Snap(Particle particle)
+    private void Snap(Particle particle)
     {
         particle.Warp(_position);
     }
@@ -77,7 +77,9 @@ public struct Area2D : IEquatable<Area2D>
             {
                 if (_inside.TryAdd(particle))
                 {
-                    _gate.Resolve(particle);
+                    var modified = _gate.Resolve(particle);
+                    if(modified)
+                        this.Snap(particle);
                 }
                 else
                 {
@@ -90,5 +92,6 @@ public struct Area2D : IEquatable<Area2D>
             if (_inside.Contains(particle))
                 _inside.Remove(particle);
         }
+
     }
 }
