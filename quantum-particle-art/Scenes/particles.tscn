@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=32 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="6_1mke2"]
 [ext_resource type="Script" uid="uid://d15ag3q6u2o2p" path="res://ExternalScripts/Particle/Steps/Gates/GridGates.cs" id="6_w33ia"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
+[ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="8_2d2wn"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
@@ -49,13 +50,24 @@ _gate = SubResource("Resource_cuf3k")
 _positions = Array[Vector2i]([Vector2i(0, -1), Vector2i(0, 0), Vector2i(0, 1)])
 metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
 
+[sub_resource type="Resource" id="Resource_gvqa1"]
+script = ExtResource("8_2d2wn")
+_safe = true
+metadata/_custom_type_script = "uid://lohey3ijudrc"
+
+[sub_resource type="Resource" id="Resource_yi0l3"]
+script = ExtResource("4_n2aaa")
+_gate = SubResource("Resource_gvqa1")
+_positions = Array[Vector2i]([Vector2i(0, 3), Vector2i(0, -3)])
+metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
+
 [sub_resource type="Resource" id="Resource_fcssu"]
 script = ExtResource("6_w33ia")
 _wrap = true
 _centerd = true
 _size = Vector2i(7, 7)
 _originOffset = Vector2i(6, 3)
-_gatesConfig = Array[Object]([SubResource("Resource_2d2wn"), SubResource("Resource_mum02")])
+_gatesConfig = Array[Object]([SubResource("Resource_2d2wn"), SubResource("Resource_mum02"), SubResource("Resource_yi0l3")])
 metadata/_custom_type_script = "uid://d15ag3q6u2o2p"
 
 [node name="Particles" type="Node3D"]
