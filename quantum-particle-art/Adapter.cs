@@ -227,7 +227,7 @@ namespace UnityEngine
 		}
 	}
 
-	public struct Vector2
+	public struct Vector2 : IEquatable<Vector2>
 	{
 		private Godot.Vector2 _vector;
 		public float magnitude => _vector.Length();
@@ -314,6 +314,21 @@ namespace UnityEngine
 		public static Vector2 zero = new Vector2(0, 0);
 		public static Vector2 one = new Vector2(1, 1);
 		public override string ToString() => $"({x}, {y})";
+
+		public bool Equals(Vector2 other)
+		{
+			return _vector.Equals(other._vector);
+		}
+
+		public override bool Equals(object obj)
+		{
+			return obj is Vector2 other && Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			return _vector.GetHashCode();
+		}
 	}
 
 	public struct Vector3
