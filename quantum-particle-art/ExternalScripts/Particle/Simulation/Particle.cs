@@ -13,6 +13,7 @@ public class Particle
     [SerializeField] private Vector2 _position;
     [SerializeField] private Vector2 _bounds;
     [SerializeField] private Vector2[] _forces;
+    private bool _alive;
 
 
     public void SetForce(int step, Vector2 force)
@@ -29,6 +30,7 @@ public class Particle
         _species = species;
         _forces = new Vector2[Ruleset.MaxSteps];
         _orientation.AddForce(baseVelocity);
+        _alive = true;
     }
 
     public Particle(Particle particle)
@@ -38,6 +40,7 @@ public class Particle
         _species = particle._species;
         _bounds = particle._bounds;
         _forces = new Vector2[particle._forces.Length];
+        _alive = particle._alive;
     }
 
     public IEnumerable<(Particle p, int depth)> Pivots(bool mainParticleOnly = false, bool mainParticleAlso = false, int depth = 0)
@@ -108,6 +111,8 @@ public class Particle
 
     public IEnumerable<(Particle particle, Vector2 fromNormalized, int depth)> Tick(float deltaTime, float friction)
     {
+        if (!this._alive)
+            yield break;
         foreach (var pivot in Pivots(false, true, 0))
         {
             var before = pivot.p.NormalizedPosition;
@@ -158,5 +163,10 @@ public class Particle
     public void Warp(Vector2 position)
     {
         this._position = position;
+    }
+
+    public void MarkDead()
+    {
+        _alive = false;
     }
 }
