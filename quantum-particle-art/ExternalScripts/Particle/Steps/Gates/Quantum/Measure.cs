@@ -13,4 +13,8 @@ public partial class Measure : AGate
     {
         return new Measure();
     }
+
+    public override Color Color => ViewHelpers.MEA;
+
+    public override string ShortName => "M";
 }

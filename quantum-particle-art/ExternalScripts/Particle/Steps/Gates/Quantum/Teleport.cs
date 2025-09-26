@@ -13,4 +13,8 @@ public partial class Teleport : DualInputAGate<Teleport>
     {
         return new Teleport();
     }
+
+    public override Color Color => ViewHelpers.TEL;
+
+    public override string ShortName => throw new System.NotImplementedException();
 }

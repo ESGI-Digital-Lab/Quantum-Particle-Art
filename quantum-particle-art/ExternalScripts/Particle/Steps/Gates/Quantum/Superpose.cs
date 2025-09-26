@@ -18,4 +18,8 @@ public partial class Superpose : AGate
     {
         return new Superpose();
     }
+
+    public override Color Color => ViewHelpers.SUP;
+
+    public override string ShortName => "H";
 }

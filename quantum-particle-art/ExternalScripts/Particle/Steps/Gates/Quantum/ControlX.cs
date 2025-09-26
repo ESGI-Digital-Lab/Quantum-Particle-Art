@@ -13,4 +13,8 @@ public partial class ControlX : DualInputAGate<ControlX>
     {
         return new ControlX();
     }
+
+    public override Color Color => ViewHelpers.CTR;
+
+    public override string ShortName => "Cx";
 }
