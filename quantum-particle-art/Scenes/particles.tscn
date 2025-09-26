@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=32 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -7,13 +7,16 @@
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
 [ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
+[ext_resource type="Resource" uid="uid://de8v8thcu0nlp" path="res://Data/starting_blocks.tres" id="4_1mke2"]
+[ext_resource type="Script" uid="uid://cyv5hjss13b5g" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Rotate.cs" id="4_bv6uv"]
 [ext_resource type="Script" uid="uid://h6cdmkj0jr7m" path="res://ExternalScripts/Particle/Steps/Gates/GateConfiguration.cs" id="4_n2aaa"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
-[ext_resource type="Script" uid="uid://beu5qhh4at4lj" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/ControlX.cs" id="5_bv6uv"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
-[ext_resource type="Script" uid="uid://7ihombro8omr" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/Superpose.cs" id="6_w33ia"]
+[ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="6_1mke2"]
+[ext_resource type="Script" uid="uid://d15ag3q6u2o2p" path="res://ExternalScripts/Particle/Steps/Gates/GridGates.cs" id="6_w33ia"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
+[ext_resource type="Script" uid="uid://cpgs8d0skavv3" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/Measure.cs" id="8_2d2wn"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
@@ -22,38 +25,49 @@
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
 
-[sub_resource type="Resource" id="Resource_rgdax"]
-script = ExtResource("2_cr50e")
-_skip = false
-_nbParticles = 1
-_specyIndex = -1
-_velocityScale = 1.0
-_baseVelocity = Vector2(0, 0)
-_center = Vector2(0, 0)
-_size = Vector2(0, 0)
-_linSpaceOverRandom = false
-metadata/_custom_type_script = "uid://du5t3gslnr3np"
-
 [sub_resource type="Resource" id="Resource_1mke2"]
-script = ExtResource("5_bv6uv")
-_forceDifferentSpecy = false
-metadata/_custom_type_script = "uid://beu5qhh4at4lj"
+script = ExtResource("4_bv6uv")
+_degrees = 45.0
+_degInName = false
+metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [sub_resource type="Resource" id="Resource_2d2wn"]
 script = ExtResource("4_n2aaa")
 _gate = SubResource("Resource_1mke2")
-_positions = Array[Vector2]([Vector2(0.5, 0.5), Vector2(0, 0)])
+_positions = Array[Vector2i]([Vector2i(3, -1), Vector2i(3, 0), Vector2i(3, 1)])
 metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
-
-[sub_resource type="Resource" id="Resource_mum02"]
-script = ExtResource("6_w33ia")
-metadata/_custom_type_script = "uid://7ihombro8omr"
 
 [sub_resource type="Resource" id="Resource_cuf3k"]
+script = ExtResource("6_1mke2")
+_countAsName = true
+_nameAppendix = ""
+_count = 0
+metadata/_custom_type_script = "uid://coqmrloclwhuy"
+
+[sub_resource type="Resource" id="Resource_mum02"]
 script = ExtResource("4_n2aaa")
-_gate = SubResource("Resource_mum02")
-_positions = Array[Vector2]([Vector2(0.1, 0.1), Vector2(0.9, 0.9)])
+_gate = SubResource("Resource_cuf3k")
+_positions = Array[Vector2i]([Vector2i(0, -1), Vector2i(0, 0), Vector2i(0, 1)])
 metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
+
+[sub_resource type="Resource" id="Resource_gvqa1"]
+script = ExtResource("8_2d2wn")
+metadata/_custom_type_script = "uid://cpgs8d0skavv3"
+
+[sub_resource type="Resource" id="Resource_yi0l3"]
+script = ExtResource("4_n2aaa")
+_gate = SubResource("Resource_gvqa1")
+_positions = Array[Vector2i]([Vector2i(-6, -3), Vector2i(0, -3), Vector2i(0, 3), Vector2i(-6, 3), Vector2i(-3, -3), Vector2i(-3, -2), Vector2i(-3, -1), Vector2i(-3, 0), Vector2i(-3, 1), Vector2i(-3, 2), Vector2i(-3, 3)])
+metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
+
+[sub_resource type="Resource" id="Resource_fcssu"]
+script = ExtResource("6_w33ia")
+_wrap = true
+_centerd = true
+_size = Vector2i(7, 7)
+_originOffset = Vector2i(6, 3)
+_gatesConfig = Array[Object]([SubResource("Resource_2d2wn"), SubResource("Resource_mum02"), SubResource("Resource_yi0l3")])
+metadata/_custom_type_script = "uid://d15ag3q6u2o2p"
 
 [node name="Particles" type="Node3D"]
 
@@ -66,24 +80,27 @@ _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
 _worldSize = 300.0
+_saveLastFrame = false
+_maxStrokeSize = 5
 _useSpeed = true
 _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
+_ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = Array[ExtResource("2_cr50e")]([ExtResource("3_nrk6x"), SubResource("Resource_rgdax"), null])
+_spawns = Array[ExtResource("2_cr50e")]([ExtResource("3_nrk6x"), ExtResource("4_1mke2"), null])
 _gateSize = 0.02
 _randomGates = false
 _nbGates = 50
 _measureWeight = 0.0
 _superposeWeight = 0.0
-_gates = Array[ExtResource("4_n2aaa")]([SubResource("Resource_2d2wn"), SubResource("Resource_cuf3k")])
+_gridGates = SubResource("Resource_fcssu")
 _duration = 500.0
 _backgroundTypes = Array[int]([0, 2, 2, 2, 2, 2, 2])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
 _colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
 _nbSpecies = PackedInt32Array(12, 2, 2, 2, 2)
-_ruleType = Array[int]([1, 1, 1, 1, 1])
+_ruleType = Array[int]([6, 1, 1, 1, 1])
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true
