@@ -29,6 +29,7 @@ public partial class GodotEntry : Node
 
 	[ExportCategory("Common parameters for all iterations")] 
 	[ExportGroup("World")] [Export] private float _worldSize = 600;
+	[Export] private float _timeSteps = 0.02f;
 	[ExportGroup("Drawing")] [Export]
 	private bool _saveLastFrame = true;
 
@@ -134,7 +135,7 @@ public partial class GodotEntry : Node
 		List<IInit<ParticleWorld>> prewarm = new();
 		LineCollection lineCollection = new();
 		ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
-		var tick = new GlobalTick();
+		var tick = new GlobalTick(_timeSteps);
 		tick.onMovement += data =>
 		{
 			lineCollection.AddLine(liner.CreateLine(data));

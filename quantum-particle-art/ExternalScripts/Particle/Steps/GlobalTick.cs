@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class GlobalTick : ParticleStep
 {
+    private float _timeSteps;
     private IColorPicker _colorPicker;
-
+    public GlobalTick(float timeSteps){
+        _timeSteps = timeSteps;
+    }
     public record struct MovementData(Vector2 fromNormalized, Vector2 toNormalize, Color color, Orientation orientation);
 
     public event System.Action<MovementData> onMovement;
@@ -18,7 +21,7 @@ public class GlobalTick : ParticleStep
 
     public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
-        float t = 1f; //_useDeltaTime ? Time.deltaTime : _timeSteps;
+        float t = _timeSteps; //_useDeltaTime ? Time.deltaTime : _timeSteps;
 
         for (var index = 0; index < entry.Count; index++)
         {
