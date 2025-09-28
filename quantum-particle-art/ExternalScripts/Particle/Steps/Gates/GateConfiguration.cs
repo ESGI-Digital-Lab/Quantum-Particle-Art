@@ -10,6 +10,12 @@ public partial class GateConfiguration : Godot.Resource
     [Export] private AGate _gate;
     [Export] private Godot.Collections.Array<Vector2I> _positions;
 
+    public GateConfiguration(AGate gate, IEnumerable<Vector2I> positions)
+    {
+        this._gate = gate;
+        _positions = new(positions);
+    }
+
     public AGate Gate => _gate;
 
     public Array<Vector2I> Positions => _positions;
