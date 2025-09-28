@@ -1,15 +1,17 @@
-[gd_resource type="Resource" script_class="SpawnConfiguration" load_steps=2 format=3 uid="uid://de8v8thcu0nlp"]
+[gd_resource type="Resource" script_class="SpawnConfiguration" load_steps=3 format=3 uid="uid://de8v8thcu0nlp"]
 
-[ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Simulation/SpawnConfiguration.cs" id="1_12y30"]
+[ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Steps/Initialisation/SpawnConfiguration.cs" id="1_12y30"]
+[ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="1_ab6nj"]
 
 [resource]
 script = ExtResource("1_12y30")
-_skip = false
-_nbParticles = 7
-_specyIndex = -1
-_velocityScale = 10.0
 _baseVelocity = Vector2(1, 0)
 _center = Vector2(0, 0.5)
 _size = Vector2(0, 1)
 _linSpaceOverRandom = true
+_gates = ExtResource("1_ab6nj")
+_skip = true
+_nbParticles = 8
+_specyIndex = -1
+_velocityScale = 10.0
 metadata/_custom_type_script = "uid://du5t3gslnr3np"
