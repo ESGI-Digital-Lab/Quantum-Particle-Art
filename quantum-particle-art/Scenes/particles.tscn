@@ -1,7 +1,8 @@
-[gd_scene load_steps=22 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=27 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
+[ext_resource type="Script" uid="uid://2rsf41vn63o1" path="res://ExternalScripts/Particle/Steps/Initialisation/ASpawnConfiguration.cs" id="2_bv6uv"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
 [ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
@@ -9,8 +10,10 @@
 [ext_resource type="Resource" uid="uid://de8v8thcu0nlp" path="res://Data/starting_blocks.tres" id="4_1mke2"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
+[ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="5_1mke2"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
 [ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="5_yi0l3"]
+[ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="6_2d2wn"]
 [ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="6_bv6uv"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
@@ -21,8 +24,22 @@
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
 
+[sub_resource type="Resource" id="Resource_mum02"]
+script = ExtResource("5_1mke2")
+_countAsName = true
+_nameAppendix = ""
+_count = 0
+metadata/_custom_type_script = "uid://coqmrloclwhuy"
+
+[sub_resource type="Resource" id="Resource_cuf3k"]
+script = ExtResource("6_2d2wn")
+_safe = false
+metadata/_custom_type_script = "uid://lohey3ijudrc"
+
 [sub_resource type="Resource" id="Resource_n2aaa"]
 script = ExtResource("5_yi0l3")
+_countTemplate = SubResource("Resource_mum02")
+_killTemplate = SubResource("Resource_cuf3k")
 _encoded = 79
 _skip = false
 _nbParticles = 8
@@ -41,13 +58,14 @@ _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
 _worldSize = 300.0
+_timeSteps = 0.5
 _saveLastFrame = false
 _maxStrokeSize = 5
 _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = [ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")]
+_spawns = Array[ExtResource("2_bv6uv")]([ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")])
 _gateSize = 0.04
 _backupGates = ExtResource("6_bv6uv")
 _duration = 500.0
