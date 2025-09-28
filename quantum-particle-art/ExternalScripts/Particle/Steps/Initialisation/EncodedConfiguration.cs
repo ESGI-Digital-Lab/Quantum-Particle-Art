@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Godot.Collections;
+using UnityEngine;
 using UnityEngine.Assertions;
+using Mathf = Godot.Mathf;
+using Random = System.Random;
 
 [GlobalClass]
 public partial class EncodedConfiguration : ASpawnConfiguration
@@ -11,23 +13,31 @@ public partial class EncodedConfiguration : ASpawnConfiguration
     [Export] private Count _countTemplate;
     [Export] private Kill _killTemplate;
     [Export] private int _encoded;
-    private GridGates _last;
-    public override IGates Gates => _last ??= GenerateGates();
+    private GridGates _grid;
+    public override IGates Gates => _grid ??= GenerateGates();
+
+    public void UpdateEncoded(int encoded)
+    {
+        //Debug.Log("Updating encoded to " + encoded + (_last==null?" no last":" has last") + (_grid==null?" no grid":" has grid"));
+        _encoded = encoded;
+        _grid.SetDynamicGates(Enumerable.Range(1, _nbParticles-2)
+            .Select<int, GateConfiguration>(i => new(new Rotate(45), [new(i, Random.Shared.Next(_nbParticles))])));
+    }
 
     private GridGates GenerateGates()
     {
-        GridGates gates = new GridGates(new(_nbParticles, _nbParticles), new(_nbParticles - 1, 0), [
+        _grid = new GridGates(new(_nbParticles, _nbParticles), new(_nbParticles - 1, 0), [
             new(_killTemplate, Enumerable.Range(0, _nbParticles).Select(i => new Vector2I(0, i))),
             new(_countTemplate, Enumerable.Range(0, _nbParticles).Select(i => new Vector2I(-1, i))),
             //new(new Rotate(45), [new(-3,0)])
         ]);
-        _last = gates;
-        return gates;
+        return _grid;
     }
 
     public int Result()
     {
-        var copies = _last.Copies(_countTemplate).ToArray();
+        Debug.Log("Asking for result with last grid " + (_grid != null));
+        var copies = _grid.Copies(_countTemplate).ToArray();
         Assert.IsTrue(copies.Length == _nbParticles,
             $"Count gate copies {copies.Length} does not match number of particles {_nbParticles}");
         int acc = 0;
