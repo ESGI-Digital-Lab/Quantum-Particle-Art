@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Godot;
-using UnityEngine.ExternalScripts.Particle.Simulation;
 
 [GlobalClass]
-public partial class SpawnConfiguration : Resource
+public partial class SpawnConfiguration : ASpawnConfiguration
 {
-    [Export] private bool _skip = false;
-    [ExportGroup("Particles")] [Export] private int _nbParticles = 1;
-    [Export] private int _specyIndex = -1;
-    [ExportGroup("Speed")] [Export] private float _velocityScale = 1f;
     [Export(PropertyHint.Link)] private Vector2 _baseVelocity;
     [ExportGroup("Positions")] [Export] private Vector2 _center;
     [Export(PropertyHint.Link)] private Vector2 _size;
@@ -29,22 +24,14 @@ public partial class SpawnConfiguration : Resource
         return ((float)_random.NextDouble() * (max - min)) + min;
     }
 
-    public IEnumerable<UnityEngine.Vector2> Particles(System.Random random)
+    public override IEnumerable<UnityEngine.Vector2> Particles(System.Random random)
     {
-        if (_skip)
-            yield break;
         this._random = random;
         var lb = _posMin;
         var ub = _posMax;
         if (_linSpaceOverRandom)
         {
-            float prop = _nbParticles > 0 ? 1f / (_nbParticles) : 1f;
-            for (int i = 0; i < _nbParticles; i++)
-            {
-                float t = (i + .5f) * (prop);
-                Vector2 normalizedPos = new Vector2(Mathf.Lerp(lb.X, ub.X, t), Mathf.Lerp(lb.Y, ub.Y, t));
-                yield return normalizedPos;
-            }
+            foreach (var vector2 in LinearReparition(lb, ub, _nbParticles)) yield return vector2;
         }
         else
         {
@@ -56,10 +43,5 @@ public partial class SpawnConfiguration : Resource
         }
     }
 
-    public int GetSpecy(Vector2 pos, ISpecyPicker backup)
-    {
-        return _specyIndex >= 0 ? _specyIndex : backup.SpeciyIndex(pos);
-    }
-
-    public UnityEngine.Vector2 Velocity() => _baseVelocity * _velocityScale;
+    protected override UnityEngine.Vector2 BaseVelocity() => _baseVelocity;
 }
