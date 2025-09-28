@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="GateConfiguration" load_steps=4 format=3 uid="uid://d3eiy67yyo1ua"]
+
+[ext_resource type="Script" uid="uid://c7a0omk2q4qs0" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Speed.cs" id="1_ptay7"]
+[ext_resource type="Script" uid="uid://h6cdmkj0jr7m" path="res://ExternalScripts/Particle/Steps/Gates/GateConfiguration.cs" id="2_7h8x3"]
+
+[sub_resource type="Resource" id="Resource_mbg80"]
+script = ExtResource("1_ptay7")
+_rawSetOverMult = false
+_value = 1.5
+metadata/_custom_type_script = "uid://c7a0omk2q4qs0"
+
+[resource]
+script = ExtResource("2_7h8x3")
+_gate = SubResource("Resource_mbg80")
+_positions = Array[Vector2i]([Vector2i(4, 1)])
+metadata/_custom_type_script = "uid://h6cdmkj0jr7m"

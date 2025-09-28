@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="GateConfiguration" load_steps=4 format=3 uid="uid://dhyopq47r1qq2"]
+
+[ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="1_k8t1a"]
+[ext_resource type="Script" uid="uid://h6cdmkj0jr7m" path="res://ExternalScripts/Particle/Steps/Gates/GateConfiguration.cs" id="2_e1b61"]
+
+[sub_resource type="Resource" id="Resource_cuf3k"]
+script = ExtResource("1_k8t1a")
+_countAsName = true
+_nameAppendix = ""
+_count = 0
+metadata/_custom_type_script = "uid://coqmrloclwhuy"
+
+[resource]
+script = ExtResource("2_e1b61")
+_gate = SubResource("Resource_cuf3k")
+_positions = Array[Vector2i]([Vector2i(0, -1), Vector2i(0, 0), Vector2i(0, 1)])
+metadata/_custom_type_script = "uid://h6cdmkj0jr7m"

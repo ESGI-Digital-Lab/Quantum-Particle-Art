@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GateConfiguration" load_steps=4 format=3 uid="uid://dmsxhrbfej04l"]
+
+[ext_resource type="Script" uid="uid://dur585ckuh5yv" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/PauliFlip.cs" id="1_oqbu3"]
+[ext_resource type="Script" uid="uid://h6cdmkj0jr7m" path="res://ExternalScripts/Particle/Steps/Gates/GateConfiguration.cs" id="2_81hvc"]
+
+[sub_resource type="Resource" id="Resource_176xe"]
+script = ExtResource("1_oqbu3")
+_axis = 0
+metadata/_custom_type_script = "uid://dur585ckuh5yv"
+
+[resource]
+script = ExtResource("2_81hvc")
+_gate = SubResource("Resource_176xe")
+_positions = Array[Vector2i]([Vector2i(1, -3), Vector2i(1, 4)])
+metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
