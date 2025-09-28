@@ -8,6 +8,7 @@
 [node name="Gate" type="Node2D" node_paths=PackedStringArray("_secondaryLabel", "_sprites", "_label")]
 scale = Vector2(0.05, 0.05)
 script = ExtResource("1_pm10d")
+_overrideColor = true
 _secondaryLabel = NodePath("Control/RichTextLabel2")
 _sprites = [NodePath("Control/RichTextLabel/TextureRect")]
 _label = NodePath("Control/RichTextLabel")
