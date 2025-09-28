@@ -66,7 +66,7 @@ public partial class GodotEntry : Node
 	#region Particles&Gates
 	[ExportGroup("Particles")] 
 	[ExportSubgroup("Spawn area")]
-	[Export] private Godot.Collections.Array<SpawnConfiguration> _spawns = new();
+	[Export] private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
 
 	[ExportGroup("Gates")] 
 
@@ -74,23 +74,9 @@ public partial class GodotEntry : Node
 	private bool _allowSameSpeciesInteraction = false;
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
-	[Export] private bool _randomGates = true;
-	[ExportSubgroup("Random gates")] 
-	[Export] private int _nbGates = 20;
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _controlWeight = 1f;
 
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _measureWeight = 1f;
-
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _superposeWeight = 1f;
-
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _teleportWeight = 1f;
-
-	[ExportSubgroup("Fixed gates")] [Export]
-	private GridGates _gridGates;
+	[Export]
+	private GridGates _backupGates;
 	#endregion
 
 	#region Loop
@@ -187,15 +173,7 @@ public partial class GodotEntry : Node
 	private InitConditions[] InitConditionsArray()
 	{
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
-		//var gatesWeights = new DictionaryFromList<Type, float>(
-		//	new()
-		//	{
-		//		{ Area2D.AreaType.Control, _controlWeight },
-		//		{ Area2D.AreaType.Measure, _measureWeight },
-		//		{ Area2D.AreaType.Teleport, _teleportWeight }
-		//	});
-		IGates iGates = _gridGates;
-			//_gates.Select(g => (g.Gate,g.Positions.ToArray()));
+		IGates iGates =  _spawns.FirstOrDefault(s=>!s.Skip && s.Gates!=null)?.Gates ?? _backupGates;//In case none is unskipped with not null gates
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		int canvasCount = -1;
