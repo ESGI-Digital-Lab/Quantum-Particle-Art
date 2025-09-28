@@ -20,7 +20,7 @@ public partial class Rotate : AGate
         return ret;
     }
 
-    public override Color Color => Colors.AliceBlue;
+    public override Color Color => Colors.SteelBlue;
 
     public override string ShortName => "Rz" + (_degInName ? Mathf.RoundToInt(_degrees).ToString() : "");
 }

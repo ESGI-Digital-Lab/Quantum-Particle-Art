@@ -22,7 +22,7 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 		foreach (var r in _sprites)
 		{
 			if (_overrideColor)
-				r.Modulate = color;
+				r.SelfModulate = color;
 			r.Visible = _showSprite;
 		}
 

@@ -20,7 +20,7 @@ public partial class Kill : AGate
         return k;
     }
 
-    public override Color Color => Colors.DarkGray;
+    public override Color Color => Colors.DarkRed;
 
     public override string ShortName => "X";
 }

@@ -44,7 +44,7 @@ public partial class Union : AGate
         return new Union(); //We don't need to copy "live" references
     }
 
-    public override Color Color => Colors.Beige;
+    public override Color Color => Colors.SpringGreen;
 
     public override string ShortName => "U";
 }
