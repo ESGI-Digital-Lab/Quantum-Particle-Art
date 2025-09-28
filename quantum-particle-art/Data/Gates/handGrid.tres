@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="GridGates" load_steps=9 format=3 uid="uid://dnq5k07uehyqj"]
+
+[ext_resource type="Resource" uid="uid://sc8ue35w4827" path="res://Data/Gates/rotNeg.tres" id="1_jahyh"]
+[ext_resource type="Resource" uid="uid://dhyopq47r1qq2" path="res://Data/Gates/count.tres" id="2_fx70v"]
+[ext_resource type="Resource" uid="uid://b0xalnscn5rh8" path="res://Data/Gates/kill.tres" id="3_3et1p"]
+[ext_resource type="Resource" uid="uid://dmsxhrbfej04l" path="res://Data/Gates/pauli.tres" id="4_ux3bl"]
+[ext_resource type="Resource" uid="uid://cjx1yr6ruj3f5" path="res://Data/Gates/union.tres" id="5_um1uo"]
+[ext_resource type="Resource" uid="uid://d4giuokyev34s" path="res://Data/Gates/rotPos.tres" id="6_mt0lk"]
+[ext_resource type="Resource" uid="uid://d3eiy67yyo1ua" path="res://Data/Gates/speed.tres" id="7_o13a3"]
+[ext_resource type="Script" uid="uid://d15ag3q6u2o2p" path="res://ExternalScripts/Particle/Steps/Gates/GridGates.cs" id="8_qsoso"]
+
+[resource]
+script = ExtResource("8_qsoso")
+_wrap = true
+_centered = true
+_size = Vector2i(8, 8)
+_originOffset = Vector2i(7, 3)
+_useGlobalOffset = false
+_globalOffset = Vector2(0, 0)
+_gatesConfig = Array[Object]([ExtResource("1_jahyh"), ExtResource("2_fx70v"), ExtResource("3_3et1p"), ExtResource("4_ux3bl"), ExtResource("5_um1uo"), ExtResource("6_mt0lk"), ExtResource("7_o13a3")])
+metadata/_custom_type_script = "uid://d15ag3q6u2o2p"

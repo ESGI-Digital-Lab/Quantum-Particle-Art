@@ -11,6 +11,7 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 	[Export] private bool _showSprite = true;
 	[Export] private bool _overrideColor = false;
 	[Export] private bool _showText = true;
+	[Export] private RichTextLabel _secondaryLabel;
 	[Export] private TextureRect[] _sprites;
 	[Export] private RichTextLabel _label;
 	private Vector2 bounds;
@@ -21,35 +22,30 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 		foreach (var r in _sprites)
 		{
 			if (_overrideColor)
-				r.Modulate = color;
+				r.SelfModulate = color;
 			r.Visible = _showSprite;
 		}
 
 		this.GlobalPosition = ViewHelpers.Pos(info.Center / bounds, this.GetParent() as Node2D);
 		this.Scale *= new Godot.Vector2(info.Radius / bounds.x / 2f, info.Radius / bounds.y / 2f);
-		_label.Text = "[center]" + ToShort(info.Gate) + "[/center]";
+		UpdateLabel(info);
+		this.Name = $"Point View {info.Gate.ShortName}";
+		_secondaryLabel.Visible = false;
 	}
 
-	private static Dictionary<Type, string> _gateNames =
-		new()
-		{
-			{ typeof(Measure), "Cx" },
-			{ typeof(ControlX), "M" },
-			{ typeof(Teleport), "H" },
-			{ typeof(Superpose), "W" },
-		};
-
-	private string ToShort(AGate type)
+	private void UpdateLabel(Area2D info)
 	{
-		if(_gateNames.TryGetValue(type.GetType(), out string gateName))
-			return gateName;
-		UnityEngine.Debug.Log("No gate name defined for gate of type, backing up to type first 3 letters " + type?.GetType());
-		string str = type.GetType().Name;
-		return str.Substring(0, Math.Min(3, str.Length));
+		_label.Text = info.Gate.ShortName;
 	}
 
 	public void UpdateView(Area2D info)
 	{
+		if (info.Gate.DynamicName)
+		{
+			_secondaryLabel.Visible = true;
+			_secondaryLabel.Text = info.Gate.ShortName;
+		}
+
 		//_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);
 		//_scale.localScale = new Vector3(info.Radius / bounds.x, 0.1f, info.Radius / bounds.y);
 	}

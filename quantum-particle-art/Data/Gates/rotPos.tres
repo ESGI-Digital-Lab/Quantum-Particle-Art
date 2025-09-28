@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="GateConfiguration" load_steps=4 format=3 uid="uid://d4giuokyev34s"]
+
+[ext_resource type="Script" uid="uid://cyv5hjss13b5g" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Rotate.cs" id="1_yrwmj"]
+[ext_resource type="Script" uid="uid://h6cdmkj0jr7m" path="res://ExternalScripts/Particle/Steps/Gates/GateConfiguration.cs" id="2_mehfl"]
+
+[sub_resource type="Resource" id="Resource_1td8w"]
+script = ExtResource("1_yrwmj")
+_degrees = 45.0
+_degInName = false
+metadata/_custom_type_script = "uid://cyv5hjss13b5g"
+
+[resource]
+script = ExtResource("2_mehfl")
+_gate = SubResource("Resource_1td8w")
+_positions = Array[Vector2i]([Vector2i(3, -1), Vector2i(3, 0)])
+metadata/_custom_type_script = "uid://h6cdmkj0jr7m"

@@ -27,21 +27,22 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _zoom = 1f;
 
-	[ExportCategory("Common parameters for all iterations")] 
-	[ExportGroup("World")] [Export] private float _worldSize = 600;
-	[ExportGroup("Drawing")] [Export]
-	private bool _saveLastFrame = true;
+	[ExportCategory("Common parameters for all iterations")] [ExportGroup("World")] [Export]
+	private float _worldSize = 600;
 
-	[ExportSubgroup("Stroke settings")]
-	[Export(PropertyHint.Range, "0,100,1")]
+	[Export] private float _timeSteps = 0.02f;
+	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
+
+	[ExportSubgroup("Stroke settings")] [Export(PropertyHint.Range, "0,100,1")]
 	private int _maxStrokeSize = 10;
+
 	[Export] private float _sineFrequency;
-	[ExportSubgroup("Type of stroke")]
-	[Export] private bool _squareStrokeOverCircle = false;
+
+	[ExportSubgroup("Type of stroke")] [Export]
+	private bool _squareStrokeOverCircle = false;
+
 	[Export] private bool _useSpeed;
 	[Export] private bool _dynamicMax;
-
-
 
 
 	private enum BackgroundSource
@@ -63,35 +64,17 @@ public partial class GodotEntry : Node
 	[Export] private Vector2I _webcamRatio = new(16, 9);
 
 	#region Particles&Gates
-	[ExportGroup("Particles")] 
-	[ExportSubgroup("Spawn area")]
-	[Export] private Godot.Collections.Array<SpawnConfiguration> _spawns = new();
 
-	[ExportGroup("Gates")] 
+	[ExportGroup("Particles")] [ExportSubgroup("Spawn area")] [Export]
+	private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
 
-	[Export]
-	private bool _allowSameSpeciesInteraction = false;
+	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
+
 	[Export(PropertyHint.Range, "0,1,0.01")]
 	private float _gateSize = .05f;
-	[Export] private bool _randomGates = true;
-	[ExportSubgroup("Random gates")] 
-	[Export] private int _nbGates = 20;
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _controlWeight = 1f;
 
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _measureWeight = 1f;
+	[Export] private GridGates _backupGates;
 
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _superposeWeight = 1f;
-
-	[Export(PropertyHint.Range, "0,10,0.1")]
-	private float _teleportWeight = 1f;
-	[ExportSubgroup("Fixed gates")]
-	[Export] private Godot.Collections.Array<Godot.Vector2> _control = new();
-	[Export] private Godot.Collections.Array<Godot.Vector2> _measure = new();
-	[Export] private Godot.Collections.Array<Godot.Vector2> _superpose = new();
-	[Export] private Godot.Collections.Array<Godot.Vector2> _teleport = new();
 	#endregion
 
 	#region Loop
@@ -136,7 +119,15 @@ public partial class GodotEntry : Node
 		List<IInit<ParticleWorld>> prewarm = new();
 		LineCollection lineCollection = new();
 		ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
-		var tick = new GlobalTick();
+		var tick = new GlobalTick(_timeSteps);
+		tick.onAllDead += () =>
+		{
+			var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s=>s!=null);
+			if (code != null)
+			{
+				Debug.LogWarning("Encoding result : " + code.Result());
+			}
+		};
 		tick.onMovement += data =>
 		{
 			lineCollection.AddLine(liner.CreateLine(data));
@@ -145,7 +136,7 @@ public partial class GodotEntry : Node
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
 		psteps.Add(Influence);
-		var gates = new PointsIntersection(lineCollection, false,!_allowSameSpeciesInteraction);
+		var gates = new PointsIntersection(lineCollection, false, !_allowSameSpeciesInteraction);
 		psteps.Add(gates);
 		_camera.Zoom = Godot.Vector2.One * _zoom;
 		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
@@ -188,22 +179,8 @@ public partial class GodotEntry : Node
 	private InitConditions[] InitConditionsArray()
 	{
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
-		var gatesWeights = new DictionaryFromList<Area2D.AreaType, float>(
-			new()
-			{
-				{ Area2D.AreaType.Control, _controlWeight },
-				{ Area2D.AreaType.Measure, _measureWeight },
-				{ Area2D.AreaType.Superpose, _superposeWeight },
-				{ Area2D.AreaType.Teleport, _teleportWeight }
-			});
-		var gatesPosition = new DictionaryFromList<Area2D.AreaType, Godot.Vector2[]>(
-			new ()
-			{
-				{ Area2D.AreaType.Control, _control.ToArray()},
-				{ Area2D.AreaType.Measure, _measure.ToArray()},
-				{ Area2D.AreaType.Superpose, _superpose.ToArray()},
-				{ Area2D.AreaType.Teleport, _teleport.ToArray()}
-			});
+		IGates iGates = _spawns.FirstOrDefault(s => !s.Skip && s.Gates != null)?.Gates ??
+						_backupGates; //In case none is unskipped with not null gates
 		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		int canvasCount = -1;
@@ -250,7 +227,7 @@ public partial class GodotEntry : Node
 			}
 
 			initConditionsArray[i] = new InitConditions(ratio, tex, rules, colors,
-				new Gates(_gateSize, _randomGates ? new RandomGates(_nbGates, gatesWeights) : new FixedGates(gatesPosition)), specyPicker);
+				new Gates(_gateSize, iGates), specyPicker);
 		}
 
 
@@ -287,6 +264,7 @@ public partial class GodotEntry : Node
 		{
 			_monos.ForEach(m => m.Dispose());
 		}
+
 
 		base._Notification(what);
 	}
