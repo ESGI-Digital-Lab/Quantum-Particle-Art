@@ -1,8 +1,7 @@
-[gd_scene load_steps=29 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=22 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
-[ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Simulation/SpawnConfiguration.cs" id="2_cr50e"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
 [ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
@@ -10,34 +9,26 @@
 [ext_resource type="Resource" uid="uid://de8v8thcu0nlp" path="res://Data/starting_blocks.tres" id="4_1mke2"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
-[ext_resource type="Resource" uid="uid://sc8ue35w4827" path="res://Data/Gates/rotNeg.tres" id="5_gvqa1"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
-[ext_resource type="Script" uid="uid://d15ag3q6u2o2p" path="res://ExternalScripts/Particle/Steps/Gates/GridGates.cs" id="6_w33ia"]
-[ext_resource type="Resource" uid="uid://dhyopq47r1qq2" path="res://Data/Gates/count.tres" id="7_gvqa1"]
+[ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="5_yi0l3"]
+[ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="6_bv6uv"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
-[ext_resource type="Resource" uid="uid://b0xalnscn5rh8" path="res://Data/Gates/kill.tres" id="8_yi0l3"]
-[ext_resource type="Resource" uid="uid://dmsxhrbfej04l" path="res://Data/Gates/pauli.tres" id="9_gvqa1"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
-[ext_resource type="Resource" uid="uid://d4giuokyev34s" path="res://Data/Gates/rotPos.tres" id="10_176xe"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
 [ext_resource type="Texture2D" uid="uid://8qrqg50drga" path="res://Visuals/Init/pexels-pixabay.jpg" id="10_n2aaa"]
-[ext_resource type="Resource" uid="uid://cjx1yr6ruj3f5" path="res://Data/Gates/union.tres" id="10_yi0l3"]
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
-[ext_resource type="Resource" uid="uid://d3eiy67yyo1ua" path="res://Data/Gates/speed.tres" id="11_utk7t"]
 
-[sub_resource type="Resource" id="Resource_fcssu"]
-script = ExtResource("6_w33ia")
-_wrap = true
-_centered = true
-_size = Vector2i(8, 8)
-_originOffset = Vector2i(7, 3)
-_useGlobalOffset = false
-_globalOffset = Vector2(0, 0)
-_gatesConfig = Array[Object]([ExtResource("5_gvqa1"), ExtResource("7_gvqa1"), ExtResource("8_yi0l3"), ExtResource("9_gvqa1"), ExtResource("10_yi0l3"), ExtResource("10_176xe"), ExtResource("11_utk7t")])
-metadata/_custom_type_script = "uid://d15ag3q6u2o2p"
+[sub_resource type="Resource" id="Resource_n2aaa"]
+script = ExtResource("5_yi0l3")
+_encoded = 79
+_skip = false
+_nbParticles = 8
+_specyIndex = -1
+_velocityScale = 10.0
+metadata/_custom_type_script = "uid://cn3bgbpha7dm3"
 
 [node name="Particles" type="Node3D"]
 
@@ -52,18 +43,13 @@ _zoom = 2.0
 _worldSize = 300.0
 _saveLastFrame = false
 _maxStrokeSize = 5
-_useSpeed = true
 _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = Array[ExtResource("2_cr50e")]([ExtResource("3_nrk6x"), ExtResource("4_1mke2"), null])
+_spawns = [ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")]
 _gateSize = 0.04
-_randomGates = false
-_nbGates = 50
-_measureWeight = 0.0
-_superposeWeight = 0.0
-_gridGates = SubResource("Resource_fcssu")
+_backupGates = ExtResource("6_bv6uv")
 _duration = 500.0
 _backgroundTypes = Array[int]([0, 2, 2, 2, 2, 2, 2])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
