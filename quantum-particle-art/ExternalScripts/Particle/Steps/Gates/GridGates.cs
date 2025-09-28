@@ -43,7 +43,7 @@ public partial class GridGates : Resource, IGates
                     final *= (Vector2.One - _globalOffset); //Rescale and global offset
                     final += _globalOffset;
                 }
-
+                final.Y = 1-final.Y; //Invert Y axis so we are effectively bottom left 0,0
                 UnityEngine.Debug.Log(
                     $"Adding gate {gateConfig.Gate.ShortName} from {pos} with {centered} and index {index} => {final}");
                 tmp.Add((gateConfig.Gate.Copy(), final));
