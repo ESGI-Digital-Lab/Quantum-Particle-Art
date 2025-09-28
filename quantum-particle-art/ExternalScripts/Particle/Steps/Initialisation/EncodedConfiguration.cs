@@ -11,8 +11,8 @@ public partial class EncodedConfiguration : ASpawnConfiguration
     [Export] private Count _countTemplate;
     [Export] private Kill _killTemplate;
     [Export] private int _encoded;
-    private GridGates _gates;
-    public override IGates Gates => _gates ??= GenerateGates();
+    private GridGates _last;
+    public override IGates Gates => _last ??= GenerateGates();
 
     private GridGates GenerateGates()
     {
@@ -21,20 +21,23 @@ public partial class EncodedConfiguration : ASpawnConfiguration
             new(_countTemplate, Enumerable.Range(0, _nbParticles).Select(i => new Vector2I(-1, i))),
             //new(new Rotate(45), [new(-3,0)])
         ]);
+        _last = gates;
         return gates;
     }
 
     public int Result()
     {
-        var copies = _gates.Copies(_countTemplate).ToArray();
-        Assert.IsTrue(copies.Length == _nbParticles, $"Count gate copies {copies.Length} does not match number of particles {_nbParticles}");
+        var copies = _last.Copies(_countTemplate).ToArray();
+        Assert.IsTrue(copies.Length == _nbParticles,
+            $"Count gate copies {copies.Length} does not match number of particles {_nbParticles}");
         int acc = 0;
         int i = 0;
         foreach (var copy in copies)
         {
-            acc += copy.Value * (int) Mathf.Pow(2, i);
+            acc += copy.Value * (int)Mathf.Pow(2, i);
             i++;
         }
+
         return acc;
     }
 
@@ -44,7 +47,7 @@ public partial class EncodedConfiguration : ASpawnConfiguration
         bool[] bits = new bool[_nbParticles];
         for (int i = 0; i < _nbParticles; i++)
         {
-            bits[_nbParticles-(i+1)] = (_encoded & 1) == 1; //Check last bit is 1
+            bits[_nbParticles - (i + 1)] = (_encoded & 1) == 1; //Check last bit is 1
             _encoded >>= 1; //Bit shift
         }
 

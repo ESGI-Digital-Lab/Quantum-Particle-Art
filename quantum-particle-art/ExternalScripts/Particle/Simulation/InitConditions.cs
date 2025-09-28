@@ -11,6 +11,7 @@ using Vector2 = UnityEngine.Vector2;
 
 public interface IGates
 {
+	public void Reset();
 	public IEnumerable<(AGate type, Vector2 pos)> Positions { get; }
 }
 
@@ -23,6 +24,11 @@ public class RandomGates : IGates
 	{
 		_nbPoints = nbPoints;
 		_weights = weights;
+	}
+
+	public void Reset()
+	{
+		
 	}
 
 	public IEnumerable<(AGate type, Vector2 pos)> Positions
@@ -65,6 +71,11 @@ public class FixedGates : IGates
 		_gatesRelativePosition = gatesRelativePosition;
 	}
 
+	public void Reset()
+	{
+		
+	}
+
 	public IEnumerable<(AGate type, Vector2 pos)> Positions
 	{
 		get
@@ -86,11 +97,13 @@ public struct Gates
 	{
 		_size = size;
 		_gates = gates;
+		_gates.Reset();
 	}
 
-	public IEnumerable<(AGate type, Vector2 pos)> Positions => _gates.Positions;
 
 	public float Size => _size;
+
+	public IGates IGates => _gates;
 }
 [Serializable]
 public struct InitConditions
@@ -117,8 +130,7 @@ public struct InitConditions
 
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
-
-	public IEnumerable<(AGate type, Vector2 pos)> Position => _gates.Positions;
+	public IGates IGates => _gates.IGates;
 
 	public float GateSize => _gates.Size;
 
