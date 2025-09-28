@@ -24,4 +24,6 @@ public partial class Count : AGate
     public override string ShortName => (_countAsName && _count>0 ? _count.ToString() : "Cnt") + _nameAppendix;
 
     public override bool DynamicName => base.DynamicName || (_countAsName && _count>0);
+
+    public int Value => _count;
 }
