@@ -97,7 +97,6 @@ public struct Gates
 	{
 		_size = size;
 		_gates = gates;
-		_gates.Reset();
 	}
 
 
