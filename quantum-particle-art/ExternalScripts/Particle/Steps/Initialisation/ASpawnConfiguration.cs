@@ -9,6 +9,7 @@ public abstract partial class ASpawnConfiguration : Resource
     [ExportGroup("Particles")] [Export] protected int _nbParticles = 1;
     [Export] private int _specyIndex = -1;
     [ExportGroup("Speed")] [Export] private float _velocityScale = 1f;
+    public abstract IGates Gates { get; }
 
 
     public abstract IEnumerable<UnityEngine.Vector2> Particles(System.Random random);
