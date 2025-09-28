@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Godot;
 using Godot.Collections;
+using UnityEngine.Assertions;
 using Debug = UnityEngine.Debug;
 
 [GlobalClass]
@@ -17,9 +18,17 @@ public partial class GridGates : Resource, IGates
     [Export] private bool _useGlobalOffset;
     [Export] private Vector2 _globalOffset;
     [Export] private Array<GateConfiguration> _gatesConfig;
-    public GridGates() : this(new Vector2I(10,10))
+    private readonly System.Collections.Generic.Dictionary<AGate, List<AGate>> _copies = new();
+
+    public IEnumerable<T> Copies<T>(T source) where T : AGate
+    {
+        return _copies.TryGetValue(source, out var list) ? list.Cast<T>() : [];
+    }
+
+    public GridGates() : this(new Vector2I(10, 10))
     {
     }
+
     public GridGates(Vector2I size, Vector2I originOffset = default,
         IEnumerable<GateConfiguration> gatesConfig = null,
         bool wrap = true,
@@ -65,9 +74,15 @@ public partial class GridGates : Resource, IGates
                 }
 
                 final.Y = 1 - final.Y; //Invert Y axis so we are effectively bottom left 0,0
+                Assert.IsNotNull(gateConfig.Gate, "Gate cannot be null in configuration");
                 UnityEngine.Debug.Log(
                     $"Adding gate {gateConfig.Gate.ShortName} from {pos} with {centered} and index {index} => {final}");
-                tmp.Add((gateConfig.Gate.Copy(), final));
+                var copy = gateConfig.Gate.Copy();
+                if (_copies.TryGetValue(gateConfig.Gate, out var list))
+                    list.Add(copy);
+                else
+                    _copies.Add(gateConfig.Gate, [copy]);
+                tmp.Add((copy, final));
             }
         }
 
