@@ -18,6 +18,12 @@ public partial class GridGates : Resource, IGates
     [Export] private bool _useGlobalOffset;
     [Export] private Vector2 _globalOffset;
     [Export] private Array<GateConfiguration> _gatesConfig;
+    private GateConfiguration[] _dynamicGates;
+    public void SetDynamicGates(IEnumerable<GateConfiguration> gates)
+    {
+        _dynamicGates = gates?.ToArray() ?? [];
+        Reset();
+    }
     private System.Collections.Generic.Dictionary<AGate, List<AGate>> _copies;
 
     public IEnumerable<T> Copies<T>(T source) where T : AGate
@@ -46,15 +52,15 @@ public partial class GridGates : Resource, IGates
 
     public void Reset()
     {
+        _copies = new();
         this._gatesList = BuildList(); //Rebuild
     }
 
     private List<(AGate, UnityEngine.Vector2)> BuildList()
     {
-        _copies = new();
         List<(AGate, UnityEngine.Vector2)> tmp = new();
         var size = _size;
-        foreach (var gateConfig in _gatesConfig)
+        foreach (var gateConfig in _gatesConfig.Concat(_dynamicGates))
         {
             foreach (var pos in gateConfig.Positions)
             {
