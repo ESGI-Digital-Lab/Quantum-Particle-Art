@@ -4,9 +4,16 @@
 [GlobalClass]
 public partial class Rotate : AGate
 {
-    [Export] private float _degrees = 45f;
+    [Export] private float _degrees;
     [Export] private bool _degInName;
-
+    public Rotate() : this(45f)
+    {
+    }
+    public Rotate(float degrees, bool degInName = false)
+    {
+        _degrees = degrees;
+        _degInName = degInName;
+    }
     public override bool Resolve(Particle particle)
     {
         particle.Orientation.Degrees += _degrees;
