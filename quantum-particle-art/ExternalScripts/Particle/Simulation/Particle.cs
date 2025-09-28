@@ -35,7 +35,7 @@ public class Particle
 
     public Particle(Particle particle)
     {
-        _orientation = new Orientation(particle._orientation,this);
+        _orientation = new Orientation(particle._orientation, this);
         _position = particle._position;
         _species = particle._species;
         _bounds = particle._bounds;
@@ -43,18 +43,19 @@ public class Particle
         _alive = particle._alive;
     }
 
-    public IEnumerable<(Particle p, int depth)> Pivots(bool mainParticleOnly = false, bool mainParticleAlso = false, int depth = 0)
+    public IEnumerable<(Particle p, int depth)> Pivots(bool mainParticleOnly = false, bool mainParticleAlso = false,
+        int depth = 0)
     {
         if (!mainParticleOnly && IsSuperposed)
         {
-            foreach (var sub in _superposition.Item1.Pivots(false, mainParticleAlso,depth+1))
+            foreach (var sub in _superposition.Item1.Pivots(false, mainParticleAlso, depth + 1))
                 yield return sub;
-            foreach (var sub in _superposition.Item2.Pivots(false, mainParticleAlso,depth+1))
+            foreach (var sub in _superposition.Item2.Pivots(false, mainParticleAlso, depth + 1))
                 yield return sub;
         }
 
         if (mainParticleAlso || !IsSuperposed)
-            yield return (this,depth);
+            yield return (this, depth);
     }
 
     private float speed => _orientation.Speed;
@@ -65,7 +66,7 @@ public class Particle
     {
         if (_superposition == null)
         {
-            float half = (float)Math.PI / 4f;//_orientation.Radians / 2f;
+            float half = (float)Math.PI / 4f; //_orientation.Radians / 2f;
             var p1 = new Particle(this);
             p1.Orientation.Radians += -half;
             var p2 = new Particle(this);
@@ -145,7 +146,7 @@ public class Particle
         if (wrappedX)
             particle._position.x = Mathf.Repeat(particle._position.x, bounds.x);
         wrappedY = particle._position.y < 0 || particle._position.y >= bounds.y;
-        
+
         if (wrappedY)
             particle._position.y = Mathf.Repeat(particle._position.y, bounds.y);
     }
@@ -162,11 +163,23 @@ public class Particle
 
     public void Warp(Vector2 position)
     {
-        this._position = position;
+        foreach (var piv in Pivots(false, true))
+        {
+            piv.p._position = position;
+        }
     }
 
     public void MarkDead()
     {
         _alive = false;
+    }
+
+    public void FlipX()
+    {
+        _orientation.AddForce(new(-_orientation.Velocity.x * 2, 0));
+    }
+    public void FlipY()
+    {
+        _orientation.AddForce(new(0, -_orientation.Velocity.y * 2));
     }
 }
