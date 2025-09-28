@@ -84,6 +84,8 @@ public partial class GodotEntry : Node
 	[Export]
 	private float _duration;
 
+	[Export] private int _nbMinLoops = 10;
+
 	[ExportGroup(
 		"Backgrounds, any time a canvas or image is used it will progress on it's relative list, webcam settings are constant any time it's used")]
 	[Export]
@@ -120,14 +122,6 @@ public partial class GodotEntry : Node
 		LineCollection lineCollection = new();
 		ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
 		var tick = new GlobalTick(_timeSteps);
-		tick.onAllDead += () =>
-		{
-			var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s=>s!=null);
-			if (code != null)
-			{
-				Debug.LogWarning("Encoding result : " + code.Result());
-			}
-		};
 		tick.onMovement += data =>
 		{
 			lineCollection.AddLine(liner.CreateLine(data));
@@ -146,9 +140,17 @@ public partial class GodotEntry : Node
 			!_squareStrokeOverCircle);
 		psteps.Add(_write);
 		prewarm.Add(view);
-		MultipleImagesLooper looper = new(_duration, conditions, psteps, psteps, prewarm,
+		var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
+		if (code == null)
+		{
+			Debug.LogError("No encoding spawn found, looper won't work properly");
+		}
+
+		var looper = new GeneticLooper(_duration, _nbMinLoops, conditions[0], code, psteps, psteps, prewarm,
 			_targetHeightOfBackgroundTexture);
-		looper.InitChange += OnInitChanged;
+		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
+		//looper.InitChange += OnInitChanged;
+		tick.onAllDead += () => { looper.ExternalRestart(); };
 		var world = new WorldInitializer(_worldSize, _spawns.ToArray());
 		looper.BaseInitializer = world;
 		Add(looper);
@@ -181,7 +183,7 @@ public partial class GodotEntry : Node
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
 		IGates iGates = _spawns.FirstOrDefault(s => !s.Skip && s.Gates != null)?.Gates ??
 						_backupGates; //In case none is unskipped with not null gates
-		var amt = Math.Max(_nbSpecies.Length, Math.Max(_backgroundTypes.Count, _ruleType.Count));
+		var amt = Math.Max(Math.Max(_nbMinLoops, _nbSpecies.Length), Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		int canvasCount = -1;
 		int imageCount = -1;

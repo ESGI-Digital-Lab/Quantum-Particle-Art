@@ -43,7 +43,7 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 		if (info.Gate.DynamicName)
 		{
 			_secondaryLabel.Visible = true;
-			_secondaryLabel.Text = info.Gate.ShortName;
+			_secondaryLabel.Text = info.Gate.Label;
 		}
 
 		//_root.position = ViewHelpers.WorldPosition(info.Center / bounds, _root);

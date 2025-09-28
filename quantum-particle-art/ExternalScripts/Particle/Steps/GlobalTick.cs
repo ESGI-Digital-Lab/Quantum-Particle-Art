@@ -47,7 +47,6 @@ public class GlobalTick : ParticleStep
         if (!moved)
         {
             onAllDead?.Invoke();
-            onAllDead = null;
         }
     }
 

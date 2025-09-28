@@ -18,7 +18,13 @@ public partial class GridGates : Resource, IGates
     [Export] private bool _useGlobalOffset;
     [Export] private Vector2 _globalOffset;
     [Export] private Array<GateConfiguration> _gatesConfig;
-    private readonly System.Collections.Generic.Dictionary<AGate, List<AGate>> _copies = new();
+    private GateConfiguration[] _dynamicGates;
+    public void SetDynamicGates(IEnumerable<GateConfiguration> gates)
+    {
+        _dynamicGates = gates?.ToArray() ?? [];
+        Reset();
+    }
+    private System.Collections.Generic.Dictionary<AGate, List<AGate>> _copies;
 
     public IEnumerable<T> Copies<T>(T source) where T : AGate
     {
@@ -42,6 +48,11 @@ public partial class GridGates : Resource, IGates
         this._useGlobalOffset = useGlobalOffset;
         this._globalOffset = globalOffset;
         this._gatesConfig = new Array<GateConfiguration>(gatesConfig ?? []);
+    }
+
+    public void Reset()
+    {
+        _copies = new();
         this._gatesList = BuildList(); //Rebuild
     }
 
@@ -49,7 +60,7 @@ public partial class GridGates : Resource, IGates
     {
         List<(AGate, UnityEngine.Vector2)> tmp = new();
         var size = _size;
-        foreach (var gateConfig in _gatesConfig)
+        foreach (var gateConfig in _gatesConfig.Concat(_dynamicGates))
         {
             foreach (var pos in gateConfig.Positions)
             {
@@ -75,8 +86,7 @@ public partial class GridGates : Resource, IGates
 
                 final.Y = 1 - final.Y; //Invert Y axis so we are effectively bottom left 0,0
                 Assert.IsNotNull(gateConfig.Gate, "Gate cannot be null in configuration");
-                UnityEngine.Debug.Log(
-                    $"Adding gate {gateConfig.Gate.ShortName} from {pos} with {centered} and index {index} => {final}");
+                //UnityEngine.Debug.Log($"Adding gate {gateConfig.Gate.ShortName} from {pos} with {centered} and index {index} => {final}");
                 var copy = gateConfig.Gate.Copy();
                 if (_copies.TryGetValue(gateConfig.Gate, out var list))
                     list.Add(copy);
@@ -89,5 +99,5 @@ public partial class GridGates : Resource, IGates
         return tmp;
     }
 
-    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions => _gatesList ??= BuildList();
+    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions => BuildList();
 }

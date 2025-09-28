@@ -23,7 +23,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         set { _baseInitializer = value; }
     }
 
-    private bool _shouldRestart;
+    protected bool _shouldRestart;
 
     Func<Task> timer;
 
