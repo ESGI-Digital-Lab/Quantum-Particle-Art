@@ -9,7 +9,12 @@ public class Orientation
 {
 	private Particle _owner;
 	public static float MaxSpeed = 7f;
-	private float speed => _velocity.magnitude;
+	public float Speed
+	{
+		get => _velocity.magnitude;
+		set => _velocity = _velocity.normalized * value;
+	}
+
 	protected Orientation _teleportedFrom = null;
 	public bool IsTeleported => _teleportedFrom != null;
 	private bool _isTeleportationWaiting = false;
@@ -20,7 +25,7 @@ public class Orientation
 
 	public float NormalizedSpeed
 	{
-		get => speed / MaxSpeed;
+		get => Speed / MaxSpeed;
 	}
 
 	[SerializeField] protected Vector2 _velocity;
@@ -37,7 +42,6 @@ public class Orientation
 		this._velocity = other._velocity;
 	}
 
-	public float Speed => speed;
 
 	public virtual float Radians
 	{
