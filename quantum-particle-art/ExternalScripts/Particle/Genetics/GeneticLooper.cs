@@ -11,7 +11,6 @@ using Vector2 = Godot.Vector2;
 public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation>
 {
     private InitConditions _init;
-    private Genetics _genetics;
 
     private IInit<WorldInitializer>[] _inits;
     private IStep<ParticleWorld>[] _steps;
@@ -23,6 +22,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private bool running => _current != null;
     private static int _finishedCount = 0;
 
+    private static Genetics _genetics;
     private static readonly object _lock = new object();
     private static int _totalIndex = 0;
     private int _currentIndex = -1;
