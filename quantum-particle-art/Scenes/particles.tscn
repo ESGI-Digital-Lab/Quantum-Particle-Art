@@ -58,7 +58,7 @@ _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
 _worldSize = 300.0
-_timeSteps = 0.1
+_timeSteps = 1.0
 _saveLastFrame = false
 _maxStrokeSize = 5
 _dynamicMax = true
@@ -69,12 +69,14 @@ _spawns = Array[ExtResource("2_bv6uv")]([ExtResource("3_nrk6x"), ExtResource("4_
 _gateSize = 0.04
 _backupGates = ExtResource("6_bv6uv")
 _duration = 100000.0
+_nbMinLoops = 1
 _backgroundTypes = Array[int]([0, 2, 2, 2, 2, 2, 2])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
 _colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
 _nbSpecies = PackedInt32Array(12, 2, 2, 2, 2)
 _ruleType = Array[int]([6, 1, 1, 1, 1])
+_nbInstances = 3
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true
