@@ -34,11 +34,11 @@ public partial class SpawnConfiguration : ASpawnConfiguration
 		var ub = _posMax;
 		if (_linSpaceOverRandom)
 		{
-			foreach (var vector2 in LinearReparition(lb, ub, _nbParticles)) yield return vector2;
+			foreach (var vector2 in LinearReparition(lb, ub, NbParticles)) yield return vector2;
 		}
 		else
 		{
-			for (int i = 0; i < _nbParticles; i++)
+			for (int i = 0; i < NbParticles; i++)
 			{
 				Vector2 normalizedPos = new Vector2(RandomRange(lb.X, ub.X), RandomRange(lb.Y, ub.Y));
 				yield return normalizedPos;
