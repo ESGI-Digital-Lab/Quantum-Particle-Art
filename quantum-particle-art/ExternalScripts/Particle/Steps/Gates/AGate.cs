@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 [GlobalClass]
@@ -6,7 +7,20 @@ public abstract partial class AGate : Godot.Resource
 {
     public virtual bool Precondition(HashSet<Particle> setInside) => true;
     public abstract bool Resolve(Particle particle);
-    public abstract AGate Copy();
+    private readonly List<AGate> _copies = new();
+    /// <summary>
+    /// An enumerable containing a reference to any direct copy made from this gate
+    /// </summary>
+    public IEnumerable<AGate> Copies => _copies;
+    public IEnumerable<T> CastedCopies<T>() where T : AGate => _copies.Cast<T>(); 
+    public AGate Copy()
+    {
+        var temp = CopyA();
+        _copies.Add(temp);
+        return temp;
+    }
+
+    protected abstract AGate CopyA();
     public abstract Color Color { get; }
     public abstract string ShortName { get; }
     public virtual string Label => null;
@@ -43,7 +57,8 @@ public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedT
         return !_forceDifferentSpecy || toBeTeleported.Species != particle.Species;
     }
     protected abstract DualInputAGate<SharedTypeID> Copy(SharedTypeID source);
-    public override AGate Copy()
+
+    protected override AGate CopyA()
     {
         var temp = this.Copy(ID);
         temp._forceDifferentSpecy = ID._forceDifferentSpecy;

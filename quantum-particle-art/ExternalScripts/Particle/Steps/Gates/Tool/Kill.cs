@@ -13,7 +13,7 @@ public partial class Kill : AGate
         return true;
     }
 
-    public override AGate Copy()
+    protected override AGate CopyA()
     { 
         var k =new Kill();
         k._safe = _safe;

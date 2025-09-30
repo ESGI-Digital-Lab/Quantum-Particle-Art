@@ -14,7 +14,8 @@ public partial class Superpose : AGate
         particle.Superpose();
         return true;
     }
-    public override AGate Copy()
+
+    protected override AGate CopyA()
     {
         return new Superpose();
     }

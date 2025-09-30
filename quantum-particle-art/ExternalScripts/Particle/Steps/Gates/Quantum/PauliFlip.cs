@@ -18,7 +18,7 @@ public partial class PauliFlip : AGate
         return true;
     }
 
-    public override AGate Copy()
+    protected override AGate CopyA()
     {
         var ret = new PauliFlip();
         ret._axis = _axis;

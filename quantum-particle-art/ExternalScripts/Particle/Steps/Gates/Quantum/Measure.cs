@@ -9,7 +9,7 @@ public partial class Measure : AGate
         return true;
     }
 
-    public override AGate Copy()
+    protected override AGate CopyA()
     {
         return new Measure();
     }

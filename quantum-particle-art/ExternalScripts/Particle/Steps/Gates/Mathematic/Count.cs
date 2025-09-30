@@ -10,10 +10,11 @@ public partial class Count : AGate
     public override bool Resolve(Particle particle)
     {
         _count++;
+        particle.MarkDead();
         return true;
     }
 
-    public override AGate Copy()
+    protected override AGate CopyA()
     {
         var cnt = new Count();
         cnt._count = _count;

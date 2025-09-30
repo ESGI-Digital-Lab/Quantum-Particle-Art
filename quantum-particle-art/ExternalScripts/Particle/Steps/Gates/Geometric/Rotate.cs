@@ -20,7 +20,7 @@ public partial class Rotate : AGate
         return true;
     }
 
-    public override AGate Copy()
+    protected override AGate CopyA()
     {
         var ret = new Rotate();
         ret._degrees = _degrees;
