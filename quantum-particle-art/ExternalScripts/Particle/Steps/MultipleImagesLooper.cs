@@ -35,7 +35,6 @@ namespace DefaultNamespace.Particle.Steps
         }
 
         public InitConditions[] Textures => _textures;
-        protected override int Loops => _textures.Length;
 
         protected override async Task UpdateInitializer(WorldInitializer init, int loop)
         {

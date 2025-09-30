@@ -14,7 +14,6 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     protected float _duration;
 
     [SerializeField] private TInit _baseInitializer;
-    [SerializeField] protected abstract int Loops { get; }
     private TPipe pipeline;
 
     public TInit BaseInitializer
