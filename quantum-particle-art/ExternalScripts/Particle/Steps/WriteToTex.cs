@@ -26,7 +26,8 @@ public class WriteToTex : ParticleStep
     private LineCollection _lineCollection;
     private bool _circle;
 
-    public WriteToTex(Sprite2D renderer, float viewSize, int size, Saver saver, LineCollection lineCollection, bool circle = true)
+    public WriteToTex(Sprite2D renderer, float viewSize, int size, Saver saver, LineCollection lineCollection,
+        bool circle = true)
     {
         _renderer = renderer;
         _saver = saver;
@@ -67,13 +68,16 @@ public class WriteToTex : ParticleStep
         _drawing = ImageTexture.CreateFromImage(_drawingImage);
         var stretch = _viewSize / _drawingImage.GetHeight();
         //We keep aspect ratio of image (defined in the texture and not the scale of the sprited2D) but we make sure it takes full space on height axis
-        _renderer.Scale = new Vector2(stretch, stretch);
         if (_saver != null)
         {
             _saver.Init(_toSaveImage, _texProvider.Name + "_" + init.Init.Rules.Name);
         }
 
-        RefreshTex();
+        View.CallDeferred(() =>
+        {
+            _renderer.Scale = new Vector2(stretch, stretch);
+            RefreshTex();
+        });
         //Debug.Log($"WriteToTex initialized on {_toSave.GetWidth()}x{_toSave.GetHeight()} texture with stroke size {_lineRadius}");
     }
 
@@ -129,9 +133,9 @@ public class WriteToTex : ParticleStep
                 }
             }
         }
-        
+
         _lineCollection.Clear();
-        RefreshTex();
+        View.CallDeferred(RefreshTex);
         return Task.CompletedTask;
     }
 

@@ -16,6 +16,7 @@ public class View : ParticleStep, IInit<ParticleWorld>
     private ViewCollection<Area2D, PointView> _pointViewCollection;
     private IColorPicker _colorPicker;
 
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse wa call to base for clarity evne if nonsense with true
     public View(Node root, string viewPrefab, string pointPrefab)
     {
         _worldRoot = root;
@@ -67,5 +68,11 @@ public class View : ParticleStep, IInit<ParticleWorld>
         script = instance as TView;
         Assert.IsNotNull(script, $"The scene does not have the expected");
         return script;
+    }
+
+    public static Node DefaultTimerRoot = null;
+    public static void CallDeferred(Action action, Node root = null)
+    {
+        (root ?? DefaultTimerRoot).GetTree().CreateTimer(0).Timeout += action;
     }
 }
