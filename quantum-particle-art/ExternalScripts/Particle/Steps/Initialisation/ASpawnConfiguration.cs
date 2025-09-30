@@ -20,6 +20,9 @@ public abstract partial class ASpawnConfiguration : Resource
     }
 
     public UnityEngine.Vector2 Velocity => BaseVelocity() * _velocityScale;
+
+    public int NbParticles => _nbParticles;
+
     protected abstract UnityEngine.Vector2 BaseVelocity();
 
     protected static IEnumerable<UnityEngine.Vector2> LinearReparition(Vector2 lb, Vector2 ub, int nb)
