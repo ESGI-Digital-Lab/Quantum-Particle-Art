@@ -18,7 +18,7 @@ public class Genetics
 
     private IntComparisonFitness comparison;
 
-    public Genetics(int nbParticles, Vector2I size)
+    public Genetics(int nbParticles, Vector2I size, ref Action dataReadyTrigger)
     {
         GatesTypesToInt.OverrideReflection([typeof(Rotate), typeof(Union), typeof(EmptyGate), typeof(Speed)]);
         _nbParticles = nbParticles;
@@ -37,16 +37,15 @@ public class Genetics
         _ga.Termination = new OrTermination(new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/),
             //new FitnessStagnationTermination(50),
             new GenerationNumberTermination(_maxGen));
+        //We start the GA when the trigger is activated
+        dataReadyTrigger += _ga.Start;
         _ga.GenerationRan += (sender, args) =>
         {
+            //When we finished a generation, we stop the GA and wait for the next trigger
             _ga.Stop();
-            if (_ga.Population.GenerationsNumber > 1)
-            {
-                OnGenerationReady?.Invoke(_ga.Population);
-                UnityEngine.Debug.Log("--------------Gen finished, best fitness: " + _ga.BestChromosome.Fitness);
-            }
+            UnityEngine.Debug.Log("--------------Gen finished, best fitness: " + _ga.BestChromosome.Fitness);
+            OnGenerationReady?.Invoke(_ga.Population);
         };
-        _ga.Start();
     }
 
     public GeneticAlgorithm GA => _ga;

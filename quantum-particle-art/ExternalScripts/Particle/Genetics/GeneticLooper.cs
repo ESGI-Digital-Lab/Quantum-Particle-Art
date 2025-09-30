@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GeneticSharp;
 using Godot;
+using KGySoft.CoreLibraries;
 using UnityEngine;
 using Vector2 = Godot.Vector2;
 
@@ -27,6 +28,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private int _currentIndex = -1;
 
     private int _id;
+    private Action OnGenerationFinished;
 
     public void ExternalRestart()
     {
@@ -47,9 +49,12 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         _steps = step.ToArray();
         _prewarm = prewarm.ToArray();
         _texHeight = texHeight;
-        _genetics = new Genetics(_spawn.NbParticles, new Vector2I(_spawn.NbParticles - 2, _spawn.NbParticles));
+        _genetics = new Genetics(_spawn.NbParticles, new Vector2I(_spawn.NbParticles - 2, _spawn.NbParticles),
+            ref OnGenerationFinished);
         _genetics.OnGenerationReady += p => { _population = p.CurrentGeneration.Chromosomes; };
-        _population = _genetics.GA.Population.CurrentGeneration.Chromosomes;
+        _genetics.OnGenerationReady += ResetAndRestart;
+        Debug.Log("First raise for init");
+        OnGenerationFinished?.Invoke(); //Trigger initialization
     }
 
     protected override async Task UpdateInitializer(WorldInitializer init, int loop)
@@ -77,7 +82,6 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
             Log("IN Lock : Updating initializer ");
             _spawn.UpdateEncoded(_genetics.GetInput());
             _spawn.UpdateDynamicGates(_genetics.GetGates(_current));
-
         }
 
         //Debug.Log("Abount to wait on " + _id);
@@ -94,20 +98,29 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
                 var result = _spawn.Result();
 
                 _finishedCount++;
-                Log("Pipeline finished with encoder result : " + result +"checking if generation finished");
+                Log("Pipeline finished with encoder result : " + result + " checking if generation finished");
                 _genetics.SetResult(_current, result);
                 if (_finishedCount == _population.Count)
                 {
-                    Log("Generation finished, restarting GA");
-                    _finishedCount = 0;
-                    _totalIndex = 0;
-                    _currentIndex = -1;
-                    _shouldRestart = true;
-                    _genetics.GA.Start();
-                    this._shouldRestart = true;
+                    Log("Generation finished, raising event");
+                    OnGenerationFinished?.Invoke();
                 }
             }
         }
+    }
+
+    private void ResetAndRestart(IPopulation pop)
+    {
+        lock (_lock)
+        {
+            _finishedCount = 0;
+            _totalIndex = 0;
+            _currentIndex = -1;
+            this._shouldRestart = true;
+            Log("New generation ready, resetting and restarting");
+        }
+
+        _population = pop.CurrentGeneration.Chromosomes;
     }
 
     protected override IEnumerable<IInit<ParticleWorld>> GetPrewarms() => _prewarm;
@@ -129,7 +142,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         if (withId)
             str += $" {_id}";
         if (withIndivId)
-            str += $" indivudual {_currentIndex+1}/{_totalIndex} {_finishedCount}/{_totalIndex}/{_population.Count}";
+            str += $" indivudual {_currentIndex + 1}/{_totalIndex} {_finishedCount}/{_totalIndex}/{_population.Count}";
         str += "] " + value;
         Debug.Log(str);
     }
