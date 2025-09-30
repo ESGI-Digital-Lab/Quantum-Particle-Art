@@ -20,7 +20,7 @@ public class Genetics
 
     public Genetics(int nbParticles, Vector2I size)
     {
-        GatesTypesToInt.OverrideReflection([typeof(Rotate),typeof(Union),typeof(EmptyGate),typeof(Speed)]);
+        GatesTypesToInt.OverrideReflection([typeof(Rotate), typeof(Union), typeof(EmptyGate), typeof(Speed)]);
         _nbParticles = nbParticles;
         _size = size;
         var selection = new TournamentSelection();
@@ -29,7 +29,7 @@ public class Genetics
         float[] w = [.15f, .85f];
         comparison = new IntComparisonFitness();
         IFitness fitness;
-        fitness = new CombinedFitness((new MostNullGates(),w[0]),(comparison,w[1]));
+        fitness = new CombinedFitness((new MostNullGates(), w[0]), (comparison, w[1]));
         //fitness = comparison;
         var chromosome = new Chromosome(_size.X * _size.Y);
         var population = new Population(_popSize / 4, _popSize, chromosome);
@@ -40,8 +40,11 @@ public class Genetics
         _ga.GenerationRan += (sender, args) =>
         {
             _ga.Stop();
-            OnGenerationReady?.Invoke(_ga.Population);
-            UnityEngine.Debug.Log("--------------Gen finished, best fitness: " + _ga.BestChromosome.Fitness);
+            if (_ga.Population.GenerationsNumber > 1)
+            {
+                OnGenerationReady?.Invoke(_ga.Population);
+                UnityEngine.Debug.Log("--------------Gen finished, best fitness: " + _ga.BestChromosome.Fitness);
+            }
         };
         _ga.Start();
     }
@@ -56,7 +59,8 @@ public class Genetics
 
     public void SetResult(IChromosome current, int result)
     {
-        var valuesArray = "";//string.Join(", ",current.GetGenes().Select(g=> "["+((GeneContent) g.Value).ToString())+"]").ToArray();
+        var valuesArray =
+            ""; //string.Join(", ",current.GetGenes().Select(g=> "["+((GeneContent) g.Value).ToString())+"]").ToArray();
         UnityEngine.Debug.Log("setting result " + result + " for chromosome " + valuesArray);
         comparison.UpdateResult(current.GetGenes(), result, GetInput() * 2);
     }

@@ -17,8 +17,14 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private IInit<ParticleWorld>[] _prewarm;
     private int _texHeight;
     private EncodedConfiguration _spawn => _init.Spawn;
+    private IList<IChromosome> _population = null;
+    private IChromosome _current = null;
+    private bool running => _current != null;
+    private static int _finishedCount = 0;
 
     private static readonly object _lock = new object();
+    private static int _totalIndex = 0;
+    private int _currentIndex = -1;
 
     private int _id;
 
@@ -46,15 +52,9 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         _population = _genetics.GA.Population.CurrentGeneration.Chromosomes;
     }
 
-    private IList<IChromosome> _population = null;
-    private int _elapsedLoops = 0;
-    private IChromosome _current = null;
-    private bool _generationFinished = false;
-
     protected override async Task UpdateInitializer(WorldInitializer init, int loop)
     {
-        loop = loop - _elapsedLoops;
-        if (loop == 0)
+        if (_totalIndex == 0)
         {
             init.Init = _init;
             await init.Init.Texture.Create();
@@ -62,15 +62,22 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
                 Image.Interpolation.Trilinear);
         }
 
-        _current = _population[loop];
-        _spawn.UpdateEncoded(_genetics.GetInput());
-        _spawn.UpdateDynamicGates(_genetics.GetGates(_current));
-
-        if (loop == _population.Count - 1)
+        lock (_lock)
         {
-            _elapsedLoops += _population.Count;
-            _generationFinished = true;
-            Log("Generation finishing after this run");
+            if (_totalIndex >= _population.Count)
+            {
+                //It means all the required index are already dispatched
+                _current = null;
+                return;
+            }
+
+            _currentIndex = _totalIndex;
+            _totalIndex++;
+            _current = _population[_currentIndex];
+            Log("IN Lock : Updating initializer ");
+            _spawn.UpdateEncoded(_genetics.GetInput());
+            _spawn.UpdateDynamicGates(_genetics.GetGates(_current));
+
         }
 
         //Debug.Log("Abount to wait on " + _id);
@@ -80,15 +87,26 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
 
     protected override void OnFinished(ParticleSimulation pipeline)
     {
-        var result = _spawn.Result();
-        Log("Pipeline finished with encoder result : " + result);
-        _genetics.SetResult(_current, result);
-        if (_generationFinished)
+        lock (_lock)
         {
-            Log("Generation finished, restarting GA");
-            _generationFinished = false;
-            _genetics.GA.Start();
-            this._shouldRestart = true;
+            if (running)
+            {
+                var result = _spawn.Result();
+
+                _finishedCount++;
+                Log("Pipeline finished with encoder result : " + result +"checking if generation finished");
+                _genetics.SetResult(_current, result);
+                if (_finishedCount == _population.Count)
+                {
+                    Log("Generation finished, restarting GA");
+                    _finishedCount = 0;
+                    _totalIndex = 0;
+                    _currentIndex = -1;
+                    _shouldRestart = true;
+                    _genetics.GA.Start();
+                    this._shouldRestart = true;
+                }
+            }
         }
     }
 
@@ -105,11 +123,14 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         return new ParticleSimulation();
     }
 
-    private void Log(string value, bool withId = true)
+    private void Log(string value, bool withId = true, bool withIndivId = true)
     {
+        var str = "[GeneticLooper";
         if (withId)
-            Debug.LogWarning($"[GeneticLooper {_id}] {value}");
-        else
-            Debug.LogWarning(value);
+            str += $" {_id}";
+        if (withIndivId)
+            str += $" indivudual {_currentIndex+1}/{_totalIndex} {_finishedCount}/{_totalIndex}/{_population.Count}";
+        str += "] " + value;
+        Debug.Log(str);
     }
 }
