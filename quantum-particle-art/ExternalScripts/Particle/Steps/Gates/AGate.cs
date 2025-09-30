@@ -7,29 +7,20 @@ public abstract partial class AGate : Godot.Resource
 {
     public virtual bool Precondition(HashSet<Particle> setInside) => true;
     public abstract bool Resolve(Particle particle);
-    private readonly List<AGate> _copies = new();
-    /// <summary>
-    /// An enumerable containing a reference to any direct copy made from this gate
-    /// </summary>
-    public IEnumerable<AGate> Copies => _copies;
-    public IEnumerable<T> CastedCopies<T>() where T : AGate => _copies.Cast<T>(); 
-    public AGate Copy()
-    {
-        var temp = CopyA();
-        _copies.Add(temp);
-        return temp;
-    }
-
-    protected abstract AGate CopyA();
     public abstract Color Color { get; }
     public abstract string ShortName { get; }
+    public T DeepCopy<T>() where T : AGate
+    {
+        return this.Duplicate(true) as T;
+    }
+    public AGate DeepCopy() => this.DeepCopy<AGate>();
     public virtual string Label => null;
     public bool DynamicName => !string.IsNullOrEmpty(Label);
 }
 public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedTypeID : DualInputAGate<SharedTypeID>
 {
-    private static (SharedTypeID a, Particle p) _lastControl = (null, null);
     [Export] private bool _forceDifferentSpecy = false;
+    private static (SharedTypeID a, Particle p) _lastControl = (null, null);
 
     public override bool Resolve(Particle particle)
     {
@@ -58,10 +49,4 @@ public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedT
     }
     protected abstract DualInputAGate<SharedTypeID> Copy(SharedTypeID source);
 
-    protected override AGate CopyA()
-    {
-        var temp = this.Copy(ID);
-        temp._forceDifferentSpecy = ID._forceDifferentSpecy;
-        return temp;
-    }
 }

@@ -22,13 +22,6 @@ public partial class Speed : AGate
         return true;
     }
 
-    protected override AGate CopyA()
-    {
-        var s = new Speed();
-        s._rawSetOverMult = _rawSetOverMult;
-        s._value = _value;
-        return s;
-    }
 
     public override Color Color => Colors.IndianRed;
 

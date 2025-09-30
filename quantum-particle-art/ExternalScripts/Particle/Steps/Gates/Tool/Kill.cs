@@ -13,13 +13,6 @@ public partial class Kill : AGate
         return true;
     }
 
-    protected override AGate CopyA()
-    { 
-        var k =new Kill();
-        k._safe = _safe;
-        return k;
-    }
-
     public override Color Color => Colors.DarkRed;
 
     public override string ShortName => "X";

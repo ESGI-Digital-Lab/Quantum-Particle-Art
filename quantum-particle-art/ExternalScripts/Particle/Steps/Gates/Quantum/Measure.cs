@@ -8,12 +8,6 @@ public partial class Measure : AGate
         particle.Collapse();
         return true;
     }
-
-    protected override AGate CopyA()
-    {
-        return new Measure();
-    }
-
     public override Color Color => ViewHelpers.MEA;
 
     public override string ShortName => "M";

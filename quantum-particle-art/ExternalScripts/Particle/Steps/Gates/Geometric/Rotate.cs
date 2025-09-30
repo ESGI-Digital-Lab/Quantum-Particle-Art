@@ -20,12 +20,6 @@ public partial class Rotate : AGate
         return true;
     }
 
-    protected override AGate CopyA()
-    {
-        var ret = new Rotate();
-        ret._degrees = _degrees;
-        return ret;
-    }
 
     public override Color Color => Colors.SteelBlue;
 

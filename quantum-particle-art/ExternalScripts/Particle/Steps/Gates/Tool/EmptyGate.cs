@@ -7,11 +7,6 @@ public partial class EmptyGate : AGate
         return false;
     }
 
-    protected override AGate CopyA()
-    {
-        return new EmptyGate();
-    }
-
     public override Color Color => Colors.Transparent;
 
     public override string ShortName => "";

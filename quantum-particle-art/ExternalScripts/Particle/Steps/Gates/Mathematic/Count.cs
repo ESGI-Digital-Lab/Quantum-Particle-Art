@@ -14,13 +14,6 @@ public partial class Count : AGate
         return true;
     }
 
-    protected override AGate CopyA()
-    {
-        var cnt = new Count();
-        cnt._count = _count;
-        return cnt;
-    }
-
     public override Color Color => Colors.LightGray;
     public override string ShortName => "Cnt" + _nameAppendix;
 

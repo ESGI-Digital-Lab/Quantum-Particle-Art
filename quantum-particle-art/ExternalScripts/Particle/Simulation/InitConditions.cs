@@ -81,7 +81,7 @@ public class FixedGates : IGates
 		get
 		{
 			return _gatesRelativePosition.Dictionary.SelectMany(kvp =>
-				kvp.Value.Select(v => (kvp.Key.Copy(),new Vector2(v.X,v.Y)))
+				kvp.Value.Select(v => (kvp.Key.DeepCopy(),new Vector2(v.X,v.Y)))
 			);
 		}
 	}
@@ -107,12 +107,23 @@ public struct Gates
 [Serializable]
 public struct InitConditions
 {
-	public InitConditions(float ratio, ATexProvider texture, RulesSaved rules, IColorPicker colors, Gates gates, ISpecyPicker specyPicker)
+	public InitConditions(InitConditions other)
+	{
+		_texture = other._texture;
+		_rules = other._rules;
+		_colors = other._colors;
+		_gateSize = other._gateSize;
+		_specyPicker = other._specyPicker;
+		_ratio = other._ratio;
+		_spawn = other._spawn.Duplicate(true) as EncodedConfiguration;
+	}
+	public InitConditions(float ratio, ATexProvider texture, RulesSaved rules, IColorPicker colors, float gateSize, ISpecyPicker specyPicker, EncodedConfiguration spawn)
 	{
 		_texture = texture;
 		_rules = rules;
 		_colors = colors;
-		_gates = gates;
+		_spawn = spawn;
+		_gateSize = gateSize;
 		_specyPicker = specyPicker;
 		_ratio = ratio;
 	}
@@ -123,15 +134,16 @@ public struct InitConditions
 
 	[SerializeField] private RulesSaved _rules;
 	[SerializeField] private IColorPicker _colors;
-	[SerializeField] private Gates _gates;
+	[SerializeField] private EncodedConfiguration _spawn;
+	private float _gateSize;
 	[SerializeField] private ISpecyPicker _specyPicker;
 	private float _ratio;
 
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
-	public IGates IGates => _gates.IGates;
-
-	public float GateSize => _gates.Size;
+	public IGates IGates => _spawn.Gates;
+	public EncodedConfiguration Spawn => _spawn;
+	public float GateSize => _gateSize;
 
 	public IColorPicker Colors => _colors;
 
