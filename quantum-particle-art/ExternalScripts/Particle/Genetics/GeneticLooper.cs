@@ -57,9 +57,13 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
     {
         init.Init = _init;
-        await init.Init.Texture.Create();
-        init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
-            Image.Interpolation.Trilinear);
+        if (_texHeight > 0)
+        {
+            await init.Init.Texture.Create();
+            init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
+                Image.Interpolation.Trilinear);
+        }
+
         lock (_lock)
         {
             if (_totalIndex >= _population.Count)
