@@ -50,7 +50,6 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         _prewarm = prewarm.ToArray();
         _texHeight = texHeight;
         _genetics = sharedGenetics;
-        _genetics.OnGenerationReady += p => { _population = p.CurrentGeneration.Chromosomes; };
         _genetics.OnGenerationReady += ResetAndRestart;
     }
 
@@ -109,7 +108,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         }
     }
 
-    private void ResetAndRestart(IPopulation pop)
+    private void ResetAndRestart(IList<IChromosome> pop)
     {
         lock (_lock)
         {
@@ -119,7 +118,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
             Log("New generation ready, resetting and restarting");
         }
 
-        _population = pop.CurrentGeneration.Chromosomes;
+        _population = pop;
     }
 
     protected override IEnumerable<IInit<ParticleWorld>> GetPrewarms() => _prewarm;
@@ -137,12 +136,13 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
 
     private void Log(string value, bool withId = true, bool withIndivId = true)
     {
+        return;
         var str = "[GeneticLooper";
         if (withId)
             str += $" {_id}";
         if (withIndivId)
             str += $" indivudual {_currentIndex + 1}/{_totalIndex} {_finishedCount}/{_totalIndex}/{_population.Count}";
-        str += "] " + value;
+        str += $":Gen {_genetics.NbGen}] " + value;
         Debug.Log(str);
     }
 }

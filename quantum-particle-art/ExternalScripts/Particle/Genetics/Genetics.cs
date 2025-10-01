@@ -14,10 +14,11 @@ public class Genetics
     private readonly int _nbParticles;
     private readonly Vector2I _size;
     private GeneticAlgorithm _ga;
-    
+
     private int _finishedCount = 0;
     private int _totalIndex = 0;
-    public event Action<IPopulation> OnGenerationReady;
+    private int _nbGen = 0;
+    public event Action<IList<IChromosome>> OnGenerationReady;
 
     private IntComparisonFitness comparison;
     private object _lock = new();
@@ -33,24 +34,27 @@ public class Genetics
         var crossover = new UniformCrossover();
         var mutation = new UniformMutation(true);
         float[] w = [.15f, .85f];
-        comparison = new IntComparisonFitness();
+        comparison = new IntComparisonFitness((int)Mathf.Pow(2,nbParticles)-1);
         IFitness fitness;
         fitness = new CombinedFitness((new MostNullGates(), w[0]), (comparison, w[1]));
         //fitness = comparison;
         var chromosome = new Chromosome(_size.X * _size.Y);
-        var population = new Population(_popSize / 4, _popSize, chromosome);
+        var population = new OneLatePopulation(_popSize, chromosome);
         _ga = new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
-        _ga.Termination = new OrTermination(new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/),
-            //new FitnessStagnationTermination(50),
-            new GenerationNumberTermination(_maxGen));
+        _ga.Termination = new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/);
+        if (_nbGen > 0)
+            _ga.Termination = new OrTermination(_ga.Termination, new GenerationNumberTermination(_maxGen));
+
+        //new FitnessStagnationTermination(50),
         //We start the GA when the trigger is activated
         dataReadyTrigger += _ga.Start;
         _ga.GenerationRan += (sender, args) =>
         {
             //When we finished a generation, we stop the GA and wait for the next trigger
             _ga.Stop();
-            UnityEngine.Debug.Log("--------------Gen finished, best fitness: " + _ga.BestChromosome.Fitness);
-            OnGenerationReady?.Invoke(_ga.Population);
+            UnityEngine.Debug.Log($"--------------Gen finished {_nbGen}, best fitness: " + _ga.BestChromosome.Fitness);
+            OnGenerationReady?.Invoke(_ga.Population.CurrentGeneration.Chromosomes);
+            _nbGen++;
         };
     }
 
@@ -62,6 +66,8 @@ public class Genetics
 
     public object Lock => _lock;
 
+    public int NbGen => _nbGen;
+
 
     public int GetInput()
     {
@@ -72,7 +78,7 @@ public class Genetics
     {
         var valuesArray =
             ""; //string.Join(", ",current.GetGenes().Select(g=> "["+((GeneContent) g.Value).ToString())+"]").ToArray();
-        UnityEngine.Debug.Log("setting result " + result + " for chromosome " + valuesArray);
+        //UnityEngine.Debug.Log("setting result " + result + " for chromosome " + valuesArray);
         comparison.UpdateResult(current.GetGenes(), result, GetInput() * 2);
     }
 

@@ -21,6 +21,7 @@ public class GlobalTick : ParticleStep
     public override async Task Init(WorldInitializer init)
     {
         _colorPicker = init.Init.Colors;
+        _nbSteps = 0;
         await base.Init(init);
     }
 

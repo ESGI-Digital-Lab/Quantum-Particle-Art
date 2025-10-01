@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using GeneticSharp;
@@ -53,14 +54,16 @@ public class MostNullGates : IFitness
     }
 }
 
-public class IntComparisonFitness : IFitness
+public class IntComparisonFitness : IFitness, IEqualityComparer<Gene[]>
 {
+    private int _maxValue;
     private int _target;
     private Dictionary<Gene[], (int obtained, int target)> _result;
 
-    public IntComparisonFitness()
+    public IntComparisonFitness(int maxValue)
     {
         _result = new Dictionary<Gene[], (int obtained, int target)>();
+        _maxValue = maxValue;
     }
 
     public void UpdateResult(Gene[] genetics, int result, int target)
@@ -72,9 +75,22 @@ public class IntComparisonFitness : IFitness
     {
         if (_result.TryGetValue(chromosome.GetGenes(), out var values))
         {
-            return 1.0 / (1.0 + System.Math.Abs(values.obtained - values.target));
+            var delta = System.Math.Abs(values.obtained - values.target);
+            Debug.Log("Found");
+            return 1f - delta / (1f * _maxValue);
         }
 
+        Debug.LogError("Not found");
         return 0f;
+    }
+
+    public bool Equals(Gene[] x, Gene[] y)
+    {
+        return !(x != null ^ y != null) && x.SequenceEqual(y);
+    }
+
+    public int GetHashCode(Gene[] obj)
+    {
+        return ((IStructuralEquatable) obj).GetHashCode();
     }
 }
