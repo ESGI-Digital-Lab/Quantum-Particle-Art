@@ -58,7 +58,7 @@ public class GlobalTick : ParticleStep
 
         if (_maxSteps > 0 && _nbSteps % (_maxSteps / 2) == 0)
         {
-            Debug.Log($"[GlobalTick] Step {_nbSteps}/{_maxSteps} moved:{moved}");
+            //Debug.Log($"[GlobalTick] Step {_nbSteps}/{_maxSteps} moved:{moved}");
         }
 
         if (!moved || (_maxSteps > 0 && _nbSteps >= _maxSteps))
