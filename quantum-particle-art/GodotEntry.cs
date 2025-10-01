@@ -26,11 +26,18 @@ public partial class GodotEntry : Node
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _zoom = 1f;
+	#region Genetics
 
+	[ExportCategory("Genetics")] [Export] private int _nbInstances = 50;
+	[Export] private int _nbGenMax = 2000;
+	[Export] private int _maxPopulation = 100;
+
+	#endregion
 	[ExportCategory("Common parameters for all iterations")] [ExportGroup("World")] [Export]
 	private float _worldSize = 600;
 
 	[Export] private float _timeSteps = 0.02f;
+	[Export] private int _maxSteps = 2000;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
 
 	[ExportSubgroup("Stroke settings")] [Export(PropertyHint.Range, "0,100,1")]
@@ -106,11 +113,7 @@ public partial class GodotEntry : Node
 
 	#endregion
 
-	#region Grid
-
-	[ExportCategory("Grid")] [Export] private int _nbInstances = 50;
-
-	#endregion
+	
 
 	private WriteToTex _write;
 
@@ -125,11 +128,20 @@ public partial class GodotEntry : Node
 		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
+		var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
+		if (code == null)
+		{
+			Debug.LogError("No encoding spawn found, looper won't work properly");
+		}
+		Action AnyLooperFinished = null;
+		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),_nbGenMax, _maxPopulation, ref AnyLooperFinished);
 		for (int i = 0; i < _nbInstances; i++)
 		{
-			var looper = CreateLooper(new InitConditions(uniqueCondition), i, i == 0);
+			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalGenetics, i == 0);
+			looper.OnGenerationFinished += AnyLooperFinished;
 			Add(looper);
 		}
+		AnyLooperFinished?.Invoke();//First raise for intialization of global genetics
 
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
@@ -165,12 +177,12 @@ public partial class GodotEntry : Node
 		//Task.WaitAll(_tasks);²
 	}
 
-	private GeneticLooper CreateLooper(InitConditions conditions, int id, bool withView = true)
+	private GeneticLooper CreateLooper(InitConditions conditions, int id, Genetics globalGenetics, bool withView = true)
 	{
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
 		LineCollection lineCollection = new();
-		var tick = new GlobalTick(_timeSteps);
+		var tick = new GlobalTick(_timeSteps,_maxSteps);
 
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
@@ -194,13 +206,7 @@ public partial class GodotEntry : Node
 			prewarm.Add(view);
 		}
 
-		var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
-		if (code == null)
-		{
-			Debug.LogError("No encoding spawn found, looper won't work properly");
-		}
-
-		var looper = new GeneticLooper(id, _duration, conditions, code, psteps, psteps, prewarm,
+		var looper = new GeneticLooper(id, _duration, conditions, globalGenetics, psteps, psteps, prewarm,
 			_targetHeightOfBackgroundTexture);
 		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
 		//looper.InitChange += OnInitChanged;
