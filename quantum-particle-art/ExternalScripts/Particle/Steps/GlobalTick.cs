@@ -9,12 +9,21 @@ public class GlobalTick : ParticleStep
     private int _maxSteps;
     private int _nbSteps = 0;
     private IColorPicker _colorPicker;
+    private bool _rearmed = true;
     public event Action onAllDead;
-    public GlobalTick(float timeSteps, int maxTimeBeforeForcingDead = -1){
+
+    public GlobalTick(float timeSteps, int maxTimeBeforeForcingDead = -1)
+    {
         _timeSteps = timeSteps;
         _maxSteps = maxTimeBeforeForcingDead;
+        onAllDead += () => { _rearmed = false; };
     }
-    public record struct MovementData(Vector2 fromNormalized, Vector2 toNormalize, Color color, Orientation orientation);
+
+    public record struct MovementData(
+        Vector2 fromNormalized,
+        Vector2 toNormalize,
+        Color color,
+        Orientation orientation);
 
     public event System.Action<MovementData> onMovement;
 
@@ -22,6 +31,7 @@ public class GlobalTick : ParticleStep
     {
         _colorPicker = init.Init.Colors;
         _nbSteps = 0;
+        _rearmed = true;
         await base.Init(init);
     }
 
@@ -37,13 +47,13 @@ public class GlobalTick : ParticleStep
             {
                 moved = true;
                 var data = new MovementData(info.fromNormalized, info.particle.NormalizedPosition,
-                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies)/(info.depth+1),
+                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies) / (info.depth + 1),
                     info.particle.Orientation);
                 onMovement?.Invoke(data);
             }
 
             if (delay > 0)
-                await Task.Delay((int)(delay*1000));
+                await Task.Delay((int)(delay * 1000));
         }
 
         if (_maxSteps > 0 && _nbSteps % (_maxSteps / 2) == 0)
@@ -53,11 +63,10 @@ public class GlobalTick : ParticleStep
 
         if (!moved || (_maxSteps > 0 && _nbSteps >= _maxSteps))
         {
-            onAllDead?.Invoke();
+            if (_rearmed)
+                onAllDead?.Invoke();
         }
 
         _nbSteps++;
     }
-
-    
 }

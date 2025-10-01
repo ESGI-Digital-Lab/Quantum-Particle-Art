@@ -23,6 +23,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     }
 
     protected bool _shouldRestart;
+    protected bool _shouldStop;
 
     Func<Task> timer;
 
@@ -30,12 +31,15 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     {
         pipeline = GetPipeline();
         i = -1;
-        timer = async () =>
+        if (_duration > 0)
         {
-            if (_duration > 0)
+            timer = async () =>
+            {
                 await Task.Delay((int)(_duration * 1000));
-            _shouldRestart = true;
-        };
+                _shouldRestart = true;
+            };
+        }
+
         _shouldRestart = true;
     }
 
@@ -51,12 +55,15 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     public override async Task Update()
     {
         await base.Update();
+        if (_shouldStop)
+        {
+            _shouldStop = false;   
+            OnFinished(pipeline);
+        }
         if (_shouldRestart)
         {
             _shouldRestart = false;
             _ready = false;
-            if (i >= 0)
-                OnFinished(pipeline);
             i++;
             bool intializedCorrectly = await UpdateInitializer(_baseInitializer, i);
             if (!intializedCorrectly)
@@ -65,7 +72,8 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
             await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
             _ready = true;
             //Not awaited so non blocking, just launching the timer after initialization finished so we'll reenter this after duration
-            Task.Run(timer);
+            if (timer != null)
+                Task.Run(timer);
         }
 
         if (_ready)

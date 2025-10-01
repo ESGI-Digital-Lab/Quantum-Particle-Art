@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using GeneticSharp;
 using Godot;
 using UnityEngine.ExternalScripts.Particle.Genetics;
@@ -22,8 +23,9 @@ public class Genetics
 
     private IntComparisonFitness comparison;
     private object _lock = new();
+    private const int Input = 79;
 
-    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, ref Action dataReadyTrigger)
+    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, List<GeneticLooper> loopers)
     {
         GatesTypesToInt.OverrideReflection([typeof(Rotate), typeof(Union), typeof(EmptyGate), typeof(Speed)]);
         _nbParticles = nbParticles;
@@ -34,12 +36,12 @@ public class Genetics
         var crossover = new UniformCrossover();
         var mutation = new UniformMutation(true);
         float[] w = [.15f, .85f];
-        comparison = new IntComparisonFitness((int)Mathf.Pow(2,nbParticles)-1);
+        comparison = new IntComparisonFitness((int)Mathf.Pow(2, nbParticles) - 1, Input, Input * 2, loopers);
         IFitness fitness;
         fitness = new CombinedFitness((new MostNullGates(), w[0]), (comparison, w[1]));
         //fitness = comparison;
         var chromosome = new Chromosome(_size.X * _size.Y);
-        var population = new OneLatePopulation(_popSize, chromosome);
+        var population = new Population(_popSize / 4, _popSize, chromosome);
         _ga = new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
         _ga.Termination = new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/);
         if (_nbGen > 0)
@@ -47,63 +49,16 @@ public class Genetics
 
         //new FitnessStagnationTermination(50),
         //We start the GA when the trigger is activated
-        dataReadyTrigger += _ga.Start;
+        _ga.TaskExecutor = new ParallelTaskExecutor();
+        Task.Run(() => _ga.Start());
+        //dataReadyTrigger += _ga.Start;
         _ga.GenerationRan += (sender, args) =>
         {
             //When we finished a generation, we stop the GA and wait for the next trigger
-            _ga.Stop();
+            //_ga.Stop();
             UnityEngine.Debug.Log($"--------------Gen finished {_nbGen}, best fitness: " + _ga.BestChromosome.Fitness);
-            OnGenerationReady?.Invoke(_ga.Population.CurrentGeneration.Chromosomes);
+            //OnGenerationReady?.Invoke(_ga.Population.CurrentGeneration.Chromosomes);
             _nbGen++;
         };
-    }
-
-    public GeneticAlgorithm GA => _ga;
-
-    public int FinishedCount => _finishedCount;
-
-    public int TotalIndex => _totalIndex;
-
-    public object Lock => _lock;
-
-    public int NbGen => _nbGen;
-
-
-    public int GetInput()
-    {
-        return 79;
-    }
-
-    public void SetResult(IChromosome current, int result)
-    {
-        var valuesArray =
-            ""; //string.Join(", ",current.GetGenes().Select(g=> "["+((GeneContent) g.Value).ToString())+"]").ToArray();
-        //UnityEngine.Debug.Log("setting result " + result + " for chromosome " + valuesArray);
-        comparison.UpdateResult(current.GetGenes(), result, GetInput() * 2);
-    }
-
-    public IEnumerable<GateConfiguration> GetGates(IChromosome current)
-    {
-        return current.GetGenes().Select((g, i) =>
-        {
-            var c = (GeneContent)g.Value;
-            //GetConstructor([typeof(byte)]).Invoke([c.Input]);
-            var type = GatesTypesToInt.Type(c.TypeId);
-            return new GateConfiguration(type.GetConstructor([]).Invoke([]) as AGate,
-                new Vector2I(i % _size.X + 1, i / _size.X));
-        });
-        return Enumerable.Range(1, _nbParticles - 2)
-            .Select<int, GateConfiguration>(i =>
-                new(new Rotate(45), [new(i, (int)Random.Range(0, _nbParticles))]));
-    }
-
-    public void IncrementTotalIndex() => _totalIndex++;
-
-    public void IncrementFinishedCount() => _finishedCount++;
-
-    public void ResetCounts()
-    {
-        _finishedCount = 0;
-        _totalIndex = 0;
     }
 }
