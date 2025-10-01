@@ -94,7 +94,7 @@ public class IntComparisonFitness : IFitness, IEqualityComparer<Gene[]>
                     {
                         l.Start(chromosome, _input);
                         looper = l;
-                        Debug.Log("Assigned looper " + l.ToString());
+                        //Debug.Log("Assigned looper " + l.ToString());
                         break;
                     }
                 }
