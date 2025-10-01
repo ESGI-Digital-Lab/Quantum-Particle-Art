@@ -6,12 +6,13 @@ using UnityEngine;
 public class GlobalTick : ParticleStep
 {
     private float _timeSteps;
-    private bool _autoStop;
+    private int _maxSteps;
+    private int _nbSteps = 0;
     private IColorPicker _colorPicker;
     public event Action onAllDead;
-    public GlobalTick(float timeSteps, bool stopOnAllDead = true){
+    public GlobalTick(float timeSteps, int maxTimeBeforeForcingDead = -1){
         _timeSteps = timeSteps;
-        _autoStop = stopOnAllDead;
+        _maxSteps = maxTimeBeforeForcingDead;
     }
     public record struct MovementData(Vector2 fromNormalized, Vector2 toNormalize, Color color, Orientation orientation);
 
@@ -44,10 +45,17 @@ public class GlobalTick : ParticleStep
                 await Task.Delay((int)(delay*1000));
         }
 
-        if (!moved)
+        if (_maxSteps > 0 && _nbSteps % (_maxSteps / 2) == 0)
+        {
+            Debug.Log($"[GlobalTick] Step {_nbSteps}/{_maxSteps} moved:{moved}");
+        }
+
+        if (!moved || (_maxSteps > 0 && _nbSteps >= _maxSteps))
         {
             onAllDead?.Invoke();
         }
+
+        _nbSteps++;
     }
 
     
