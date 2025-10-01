@@ -20,15 +20,15 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private IList<IChromosome> _population = null;
     private IChromosome _current = null;
     private bool running => _current != null;
-    private static int _finishedCount = 0;
 
-    private static Genetics _genetics;
-    private static readonly object _lock = new object();
-    private static int _totalIndex = 0;
+    private Genetics _genetics;
+    private int _finishedCount => _genetics.FinishedCount;
+    private int _totalIndex => _genetics.TotalIndex;
+    private object _lock => _genetics.Lock;
     private int _currentIndex = -1;
 
     private int _id;
-    private Action OnGenerationFinished;
+    public Action OnGenerationFinished;
 
     public void ExternalRestart()
     {
@@ -36,7 +36,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     }
 
     public GeneticLooper(int id, float duration, InitConditions init,
-        EncodedConfiguration spawn,
+        Genetics sharedGenetics,
         IEnumerable<IInit<WorldInitializer>> inits,
         IEnumerable<IStep<ParticleWorld>> step,
         IEnumerable<IInit<ParticleWorld>> prewarm,
@@ -49,35 +49,30 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         _steps = step.ToArray();
         _prewarm = prewarm.ToArray();
         _texHeight = texHeight;
-        _genetics = new Genetics(_spawn.NbParticles, new Vector2I(_spawn.NbParticles - 2, _spawn.NbParticles),
-            ref OnGenerationFinished);
+        _genetics = sharedGenetics;
         _genetics.OnGenerationReady += p => { _population = p.CurrentGeneration.Chromosomes; };
         _genetics.OnGenerationReady += ResetAndRestart;
-        Debug.Log("First raise for init");
-        OnGenerationFinished?.Invoke(); //Trigger initialization
     }
 
-    protected override async Task UpdateInitializer(WorldInitializer init, int loop)
+    protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
     {
-        if (_totalIndex == 0)
-        {
-            init.Init = _init;
-            await init.Init.Texture.Create();
-            init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
-                Image.Interpolation.Trilinear);
-        }
-
+        init.Init = _init;
+        await init.Init.Texture.Create();
+        init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
+            Image.Interpolation.Trilinear);
         lock (_lock)
         {
             if (_totalIndex >= _population.Count)
             {
                 //It means all the required index are already dispatched
                 _current = null;
-                return;
+                _shouldRestart = false;
+                return false;
             }
 
+
             _currentIndex = _totalIndex;
-            _totalIndex++;
+            _genetics.IncrementTotalIndex();
             _current = _population[_currentIndex];
             Log("IN Lock : Updating initializer ");
             _spawn.UpdateEncoded(_genetics.GetInput());
@@ -87,6 +82,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         //Debug.Log("Abount to wait on " + _id);
         //await Task.Delay(2000 * (_id + 1));
         //Debug.Log("Finished on " + _id);
+        return true;
     }
 
     protected override void OnFinished(ParticleSimulation pipeline)
@@ -97,7 +93,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
             {
                 var result = _spawn.Result();
 
-                _finishedCount++;
+                _genetics.IncrementFinishedCount();
                 Log("Pipeline finished with encoder result : " + result + " checking if generation finished");
                 _genetics.SetResult(_current, result);
                 if (_finishedCount == _population.Count)
@@ -113,8 +109,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     {
         lock (_lock)
         {
-            _finishedCount = 0;
-            _totalIndex = 0;
+            _genetics.ResetCounts();
             _currentIndex = -1;
             this._shouldRestart = true;
             Log("New generation ready, resetting and restarting");

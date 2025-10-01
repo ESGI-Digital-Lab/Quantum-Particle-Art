@@ -14,15 +14,21 @@ public class Genetics
     private readonly int _nbParticles;
     private readonly Vector2I _size;
     private GeneticAlgorithm _ga;
+    
+    private int _finishedCount = 0;
+    private int _totalIndex = 0;
     public event Action<IPopulation> OnGenerationReady;
 
     private IntComparisonFitness comparison;
+    private object _lock = new();
 
-    public Genetics(int nbParticles, Vector2I size, ref Action dataReadyTrigger)
+    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, ref Action dataReadyTrigger)
     {
         GatesTypesToInt.OverrideReflection([typeof(Rotate), typeof(Union), typeof(EmptyGate), typeof(Speed)]);
         _nbParticles = nbParticles;
         _size = size;
+        _maxGen = maxGen;
+        _popSize = maxPop;
         var selection = new TournamentSelection();
         var crossover = new UniformCrossover();
         var mutation = new UniformMutation(true);
@@ -49,6 +55,12 @@ public class Genetics
     }
 
     public GeneticAlgorithm GA => _ga;
+
+    public int FinishedCount => _finishedCount;
+
+    public int TotalIndex => _totalIndex;
+
+    public object Lock => _lock;
 
 
     public int GetInput()
@@ -77,5 +89,15 @@ public class Genetics
         return Enumerable.Range(1, _nbParticles - 2)
             .Select<int, GateConfiguration>(i =>
                 new(new Rotate(45), [new(i, (int)Random.Range(0, _nbParticles))]));
+    }
+
+    public void IncrementTotalIndex() => _totalIndex++;
+
+    public void IncrementFinishedCount() => _finishedCount++;
+
+    public void ResetCounts()
+    {
+        _finishedCount = 0;
+        _totalIndex = 0;
     }
 }
