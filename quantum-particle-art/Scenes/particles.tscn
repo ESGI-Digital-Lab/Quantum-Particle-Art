@@ -1,8 +1,7 @@
-[gd_scene load_steps=27 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=26 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
-[ext_resource type="Script" uid="uid://2rsf41vn63o1" path="res://ExternalScripts/Particle/Steps/Initialisation/ASpawnConfiguration.cs" id="2_bv6uv"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
 [ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
@@ -57,6 +56,7 @@ _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
+_nbInstances = 20
 _worldSize = 300.0
 _timeSteps = 1.0
 _saveLastFrame = false
@@ -65,7 +65,7 @@ _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = Array[ExtResource("2_bv6uv")]([ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")])
+_spawns = [ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")]
 _gateSize = 0.04
 _backupGates = ExtResource("6_bv6uv")
 _duration = 100000.0
@@ -76,7 +76,6 @@ _colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource(
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
 _nbSpecies = PackedInt32Array(12, 2, 2, 2, 2)
 _ruleType = Array[int]([6, 1, 1, 1, 1])
-_nbInstances = 3
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true
