@@ -135,23 +135,21 @@ public partial class GodotEntry : Node
 		{
 			Debug.LogError("No encoding spawn found, looper won't work properly");
 		}
-
-		Action AnyLooperFinished = null;
-		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
-			_nbGenMax, _maxPopulation, ref AnyLooperFinished);
+		var globalLock = new object();
+		List<GeneticLooper> _loopers = new();
 		for (int i = 0; i < _nbInstances; i++)
 		{
-			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalGenetics, i == 0);
-			looper.OnGenerationFinished += AnyLooperFinished;
+			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalLock, i == 0);
 			looper.SetNode(this);
+			_loopers.Add(looper);
 			if(i==0)
 				_renderMono = looper;
 			else
 				_monos.Add(looper);
 		}
-
-		AnyLooperFinished?.Invoke(); //First raise for intialization of global genetics
-
+		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
+			_nbGenMax, _maxPopulation, _loopers);
+		
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
 		{
@@ -189,7 +187,7 @@ public partial class GodotEntry : Node
 		//Task.WaitAll(_tasks);²
 	}
 
-	private GeneticLooper CreateLooper(InitConditions conditions, int id, Genetics globalGenetics, bool withView = true)
+	private GeneticLooper CreateLooper(InitConditions conditions, int id,object sharedLock, bool withView = true)
 	{
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
@@ -218,7 +216,7 @@ public partial class GodotEntry : Node
 			prewarm.Add(view);
 		}
 
-		var looper = new GeneticLooper(id, _duration, conditions, globalGenetics, psteps, psteps, prewarm,
+		var looper = new GeneticLooper(id, conditions, psteps, psteps, prewarm,
 			withView ? _targetHeightOfBackgroundTexture : -1);
 		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
 		//looper.InitChange += OnInitChanged;
