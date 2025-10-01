@@ -57,11 +57,11 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
             _ready = false;
             if (i >= 0)
                 OnFinished(pipeline);
-            pipeline.Dispose();
             i++;
             bool intializedCorrectly = await UpdateInitializer(_baseInitializer, i);
             if (!intializedCorrectly)
                 return;
+            pipeline.Dispose();
             await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
             _ready = true;
             //Not awaited so non blocking, just launching the timer after initialization finished so we'll reenter this after duration
