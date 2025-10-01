@@ -59,7 +59,9 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
                 OnFinished(pipeline);
             pipeline.Dispose();
             i++;
-            await UpdateInitializer(_baseInitializer, i);
+            bool intializedCorrectly = await UpdateInitializer(_baseInitializer, i);
+            if (!intializedCorrectly)
+                return;
             await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
             _ready = true;
             //Not awaited so non blocking, just launching the timer after initialization finished so we'll reenter this after duration
@@ -86,6 +88,6 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     //    return found[0];
     //}
 
-    protected abstract Task UpdateInitializer(TInit init, int loop);
+    protected abstract Task<bool> UpdateInitializer(TInit init, int loop);
     protected abstract void OnFinished(TPipe pipeline);
 }
