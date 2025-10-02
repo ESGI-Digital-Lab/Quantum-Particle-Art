@@ -112,7 +112,7 @@ public class IntComparisonFitness : IFitness, IEqualityComparer<Gene[]>
                 if (looper.Finished)
                 {
                     result = looper.GetResultAndFreeLooper();
-                    Debug.Log("Looper finished with fitness as result " + result);
+                    //Debug.Log("Looper finished with fitness as result " + result);
                 }
             }
 
