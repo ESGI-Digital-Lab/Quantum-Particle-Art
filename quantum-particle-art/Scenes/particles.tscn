@@ -1,9 +1,9 @@
-[gd_scene load_steps=27 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=29 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
-[ext_resource type="Script" uid="uid://2rsf41vn63o1" path="res://ExternalScripts/Particle/Steps/Initialisation/ASpawnConfiguration.cs" id="2_1mke2"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
+[ext_resource type="Script" uid="uid://cyv5hjss13b5g" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Rotate.cs" id="2_mum02"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
 [ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
@@ -23,6 +23,16 @@
 [ext_resource type="Texture2D" uid="uid://8qrqg50drga" path="res://Visuals/Init/pexels-pixabay.jpg" id="10_n2aaa"]
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
+
+[sub_resource type="Resource" id="Resource_gvqa1"]
+script = ExtResource("2_mum02")
+_degrees = 45.0
+metadata/_custom_type_script = "uid://cyv5hjss13b5g"
+
+[sub_resource type="Resource" id="Resource_yi0l3"]
+script = ExtResource("2_mum02")
+_degrees = -45.0
+metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [sub_resource type="Resource" id="Resource_mum02"]
 script = ExtResource("5_1mke2")
@@ -58,6 +68,7 @@ _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
 _nbInstances = 10
+_gates = Array[Object]([SubResource("Resource_gvqa1"), SubResource("Resource_yi0l3")])
 _worldSize = 300.0
 _timeSteps = 1.0
 _maxSteps = 100
@@ -67,10 +78,10 @@ _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = Array[ExtResource("2_1mke2")]([ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")])
+_spawns = [ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")]
 _gateSize = 0.04
 _backupGates = ExtResource("6_bv6uv")
-_duration = 100000.0
+_duration = -1.0
 _nbMinLoops = 1
 _backgroundTypes = Array[int]([0, 2, 2, 2, 2, 2, 2])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
