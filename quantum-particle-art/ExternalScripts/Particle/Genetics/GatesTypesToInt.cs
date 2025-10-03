@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using GeneticSharp;
 using UnityEngine.Assertions;
 
@@ -7,10 +8,9 @@ namespace UnityEngine.ExternalScripts.Particle.Genetics;
 
 public static class GatesTypesToInt
 {
-    public static Type NullType => typeof(EmptyGate);
-    public static Type BaseType => typeof(AGate);
-    private static Dictionary<Type, byte> _typesMap;
-    private static Dictionary<byte, Type> _mapBack;
+    private static AGate NullGate;
+    private static Dictionary<AGate, byte> _typesMap;
+    private static Dictionary<byte, AGate> _mapBack;
 
     public static byte Count
     {
@@ -20,14 +20,12 @@ public static class GatesTypesToInt
             return (byte)_typesMap.Count;
         }
     }
-
-    public static byte Id(Type type)
+    public static bool IsNullId(byte geneTypeId)
     {
-        if (_typesMap == null) CreateMaps();
-        return _typesMap[type];
+        return geneTypeId == _typesMap[NullGate];
     }
 
-    public static Type Type(byte id)
+    public static AGate Type(byte id)
     {
         if (_mapBack == null) CreateMaps();
         return _mapBack[id];
@@ -35,28 +33,24 @@ public static class GatesTypesToInt
 
     private static void CreateMaps()
     {
-        //Usinsg abstract type as "default", null gate
-       
-        OverrideReflection(BaseType.Assembly.GetTypes());
+        OverrideReflection(null,[]);
     }
 
-    public static void OverrideReflection(IEnumerable<Type> types)
+    public static void OverrideReflection(AGate nullGate, IEnumerable<AGate> types)
     {
-        _typesMap = new Dictionary<Type, byte>();
-        _mapBack = new Dictionary<byte, Type>();
+        NullGate = nullGate;
+        _typesMap = new Dictionary<AGate, byte>();
+        _mapBack = new Dictionary<byte, AGate>();
         byte id = 0;
-        foreach (var type in types)
+        foreach (var type in types.Append(NullGate))
         {
-            if (!type.IsAbstract && BaseType.IsAssignableFrom(type))
-            {
-                //In case we also find null class, we only want it once
-                _typesMap[type] = id;
-                _mapBack[id] = type;
+            //In case we also find null class, we only want it once
+            _typesMap[type] = id;
+            _mapBack[id] = type;
 
 
-                Assert.IsFalse(id >= byte.MaxValue, $"Too many types {id} for byte encoding");
-                id += 1;
-            }
+            Assert.IsFalse(id >= byte.MaxValue, $"Too many types {id} for byte encoding");
+            id += 1;
         }
     }
 }

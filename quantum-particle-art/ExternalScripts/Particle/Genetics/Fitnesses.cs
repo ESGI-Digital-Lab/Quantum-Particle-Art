@@ -48,7 +48,7 @@ public class MostNullGates : IFitness
         foreach (var ch in genes)
         {
             var gene = (GeneContent)ch.Value;
-            if (gene.TypeId != GatesTypesToInt.Id(GatesTypesToInt.NullType)) cnt--;
+            if (GatesTypesToInt.IsNullId(gene.TypeId)) cnt--;
         }
 
         return cnt / genes.Length;
@@ -109,7 +109,7 @@ public class IntComparisonFitness : IFitness, IEqualityComparer<Gene[]>
             lock (looper.Lock)
             {
                 //Debug.Log("Waiting for looper to finish");
-                if (looper.Finished)
+                if (looper.ResultAvailable)
                 {
                     result = looper.GetResultAndFreeLooper();
                     //Debug.Log("Looper finished with fitness as result " + result);

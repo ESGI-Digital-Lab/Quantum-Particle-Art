@@ -25,9 +25,9 @@ public class Genetics
     private object _lock = new();
     private const int Input = 79;
 
-    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, List<GeneticLooper> loopers)
+    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, List<GeneticLooper> loopers, IEnumerable<AGate> gatesTemplate)
     {
-        GatesTypesToInt.OverrideReflection([typeof(Rotate), typeof(Union), typeof(EmptyGate), typeof(Speed)]);
+        GatesTypesToInt.OverrideReflection(new EmptyGate(), gatesTemplate);
         _nbParticles = nbParticles;
         _size = size;
         _maxGen = maxGen;
@@ -46,18 +46,12 @@ public class Genetics
         _ga.Termination = new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/);
         if (_nbGen > 0)
             _ga.Termination = new OrTermination(_ga.Termination, new GenerationNumberTermination(_maxGen));
-
         //new FitnessStagnationTermination(50),
-        //We start the GA when the trigger is activated
         _ga.TaskExecutor = new ParallelTaskExecutor();
         Task.Run(() => _ga.Start());
-        //dataReadyTrigger += _ga.Start;
         _ga.GenerationRan += (sender, args) =>
         {
-            //When we finished a generation, we stop the GA and wait for the next trigger
-            //_ga.Stop();
             UnityEngine.Debug.Log($"--------------Gen finished {_nbGen}, best fitness: " + _ga.BestChromosome.Fitness);
-            //OnGenerationReady?.Invoke(_ga.Population.CurrentGeneration.Chromosomes);
             _nbGen++;
         };
     }

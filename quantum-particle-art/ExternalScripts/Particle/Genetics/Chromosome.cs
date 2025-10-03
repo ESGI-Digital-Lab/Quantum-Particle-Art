@@ -22,7 +22,8 @@ public class Chromosome : ChromosomeBase
 
     private static Gene RandomGene()
     {
-        return new Gene(new GeneContent((byte)RandomizationProvider.Current.GetInt(0, GatesTypesToInt.Count),(byte)RandomizationProvider.Current.GetInt(0,255)));
+        return new Gene(new GeneContent((byte)RandomizationProvider.Current.GetInt(0, GatesTypesToInt.Count)));
+        //,(byte)RandomizationProvider.Current.GetInt(0,255)));
     }
 
     public override IChromosome CreateNew()
