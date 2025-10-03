@@ -95,7 +95,10 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 			_childs = null;
 		}
 
-		this.QueueFree();
+		if (Node.IsInstanceValid(this))
+		{
+			this.QueueFree();
+		}
 	}
 
 	private void ToggleView(bool state)

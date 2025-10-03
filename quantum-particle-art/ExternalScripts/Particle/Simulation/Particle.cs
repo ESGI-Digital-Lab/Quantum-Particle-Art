@@ -112,7 +112,7 @@ public class Particle
 
     public IEnumerable<(Particle particle, Vector2 fromNormalized, int depth)> Tick(float deltaTime, float friction)
     {
-        if (!this._alive)
+        if (!this._alive || this.speed <= 0.0001f)
             yield break;
         foreach (var pivot in Pivots(false, true, 0))
         {

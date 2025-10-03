@@ -20,26 +20,32 @@ public partial class EncodedConfiguration : ASpawnConfiguration
     {
         //Debug.Log("Updating encoded to " + encoded + (_last==null?" no last":" has last") + (_grid==null?" no grid":" has grid"));
         _encoded = encoded;
-        _grid.SetDynamicGates(Enumerable.Range(1, _nbParticles-2)
-            .Select<int, GateConfiguration>(i => new(new Rotate(45), [new(i, Random.Shared.Next(_nbParticles))])));
+    }
+
+    public void UpdateDynamicGates(IEnumerable<GateConfiguration> gates)
+    {
+        _grid ??= GenerateGates();
+        _grid.SetDynamicGates(gates);
     }
 
     private GridGates GenerateGates()
     {
-        _grid = new GridGates(new(_nbParticles, _nbParticles), new(_nbParticles - 1, 0), [
-            new(_killTemplate, Enumerable.Range(0, _nbParticles).Select(i => new Vector2I(0, i))),
-            new(_countTemplate, Enumerable.Range(0, _nbParticles).Select(i => new Vector2I(-1, i))),
-            //new(new Rotate(45), [new(-3,0)])
-        ]);
+        //So we have a fresh, unique to this set of gate, edition of the templates
+        _killTemplate = _killTemplate.DeepCopy<Kill>();
+        _countTemplate = _countTemplate.DeepCopy<Count>();
+        IEnumerable<GateConfiguration> baseGates = [
+            new(_killTemplate, Enumerable.Range(0, NbParticles).Select(i => new Vector2I(0, i))),
+            new(_countTemplate, Enumerable.Range(0, NbParticles).Select(i => new Vector2I(-1, i)))
+        ];
+        _grid = new GridGates(new(NbParticles, NbParticles), new(NbParticles - 1, 0), baseGates);
         return _grid;
     }
 
     public int Result()
     {
-        Debug.Log("Asking for result with last grid " + (_grid != null));
-        var copies = _grid.Copies(_countTemplate).ToArray();
-        Assert.IsTrue(copies.Length == _nbParticles,
-            $"Count gate copies {copies.Length} does not match number of particles {_nbParticles}");
+        //Debug.Log("Asking for result with last grid " + (_grid != null));
+        var copies = _grid.Copies<Count>(_countTemplate);
+        //Assert.IsTrue(copies.Length == NbParticles,$"Count gate copies {copies.Length} does not match number of particles {NbParticles}");
         int acc = 0;
         int i = 0;
         foreach (var copy in copies)
@@ -53,16 +59,16 @@ public partial class EncodedConfiguration : ASpawnConfiguration
 
     public override IEnumerable<UnityEngine.Vector2> Particles(Random random)
     {
-        var _encoded = Mathf.Clamp(this._encoded, 0, (int)Mathf.Pow(2, _nbParticles) - 1);
-        bool[] bits = new bool[_nbParticles];
-        for (int i = 0; i < _nbParticles; i++)
+        var _encoded = Mathf.Clamp(this._encoded, 0, (int)Mathf.Pow(2, NbParticles) - 1);
+        bool[] bits = new bool[NbParticles];
+        for (int i = 0; i < NbParticles; i++)
         {
-            bits[_nbParticles - (i + 1)] = (_encoded & 1) == 1; //Check last bit is 1
+            bits[NbParticles - (i + 1)] = (_encoded & 1) == 1; //Check last bit is 1
             _encoded >>= 1; //Bit shift
         }
 
         int cnt = 0;
-        foreach (var p in LinearReparition(new(0, 0), new(0, 1), _nbParticles))
+        foreach (var p in LinearReparition(new(0, 0), new(0, 1), NbParticles))
         {
             if (bits[cnt])
                 yield return p;

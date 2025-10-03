@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,18 +19,14 @@ public partial class GridGates : Resource, IGates
     [Export] private bool _useGlobalOffset;
     [Export] private Vector2 _globalOffset;
     [Export] private Array<GateConfiguration> _gatesConfig;
+    private System.Collections.Generic.Dictionary<AGate, List<AGate>> _copies = new();
     private GateConfiguration[] _dynamicGates;
+
     public void SetDynamicGates(IEnumerable<GateConfiguration> gates)
     {
         _dynamicGates = gates?.ToArray() ?? [];
-        Reset();
     }
-    private System.Collections.Generic.Dictionary<AGate, List<AGate>> _copies;
-
-    public IEnumerable<T> Copies<T>(T source) where T : AGate
-    {
-        return _copies.TryGetValue(source, out var list) ? list.Cast<T>() : [];
-    }
+    
 
     public GridGates() : this(new Vector2I(10, 10))
     {
@@ -48,17 +45,18 @@ public partial class GridGates : Resource, IGates
         this._useGlobalOffset = useGlobalOffset;
         this._globalOffset = globalOffset;
         this._gatesConfig = new Array<GateConfiguration>(gatesConfig ?? []);
+        _dynamicGates = [];
     }
 
     public void Reset()
     {
-        _copies = new();
         this._gatesList = BuildList(); //Rebuild
     }
 
     private List<(AGate, UnityEngine.Vector2)> BuildList()
     {
         List<(AGate, UnityEngine.Vector2)> tmp = new();
+        _copies = new();
         var size = _size;
         foreach (var gateConfig in _gatesConfig.Concat(_dynamicGates))
         {
@@ -85,13 +83,24 @@ public partial class GridGates : Resource, IGates
                 }
 
                 final.Y = 1 - final.Y; //Invert Y axis so we are effectively bottom left 0,0
-                Assert.IsNotNull(gateConfig.Gate, "Gate cannot be null in configuration");
+                var baseGate = gateConfig.Gate;
+                Assert.IsNotNull(baseGate, "Gate cannot be null in configuration");
                 //UnityEngine.Debug.Log($"Adding gate {gateConfig.Gate.ShortName} from {pos} with {centered} and index {index} => {final}");
-                var copy = gateConfig.Gate.Copy();
-                if (_copies.TryGetValue(gateConfig.Gate, out var list))
+                var copy = baseGate.DeepCopy();
+                if (_copies.TryGetValue(baseGate, out var list))
+                {
                     list.Add(copy);
+                    //Debug.Log("Found key : " + baseGate.ResourceSceneUniqueId + "," + baseGate.NativeInstance);
+                }
                 else
-                    _copies.Add(gateConfig.Gate, [copy]);
+                {
+                    //Debug.Log("Didn't findd key : " + baseGate.ResourceSceneUniqueId + "," + baseGate.NativeInstance +
+                    //          "\n Is it try get " + _copies.TryGetValue(baseGate, out _) + " or is it contains : " +
+                    //          _copies.ContainsKey(baseGate) + " in full list : ");
+                    //+string.Join(";",_copies.Keys.Select(k=>k.ResourceSceneUniqueId+","+k.NativeInstance)));
+                    _copies.Add(baseGate, [copy]);
+                }
+
                 tmp.Add((copy, final));
             }
         }
@@ -99,5 +108,10 @@ public partial class GridGates : Resource, IGates
         return tmp;
     }
 
-    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions => BuildList();
+    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions => _gatesList;
+
+    public IEnumerable<T> Copies<T>(T original) where T : AGate
+    {
+        return _copies.TryGetValue(original, out var list) ? list.Cast<T>() : [];
+    }
 }

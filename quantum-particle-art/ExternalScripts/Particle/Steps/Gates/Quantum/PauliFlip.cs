@@ -18,13 +18,6 @@ public partial class PauliFlip : AGate
         return true;
     }
 
-    public override AGate Copy()
-    {
-        var ret = new PauliFlip();
-        ret._axis = _axis;
-        return ret;
-    }
-
     public override Color Color => Colors.RoyalBlue;
 
     public override string ShortName => "P" + _axis.ToString().ToLower();

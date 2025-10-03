@@ -52,6 +52,7 @@ public partial class PointView : Node2D, IView<Area2D, ParticleWorld>
 
 	public void Cleanup()
 	{
-		this.QueueFree();
+		if (Node.IsInstanceValid(this))//If not elready disposed
+			this.QueueFree();
 	}
 }

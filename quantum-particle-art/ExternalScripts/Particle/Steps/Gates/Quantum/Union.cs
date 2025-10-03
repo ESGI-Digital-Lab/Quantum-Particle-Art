@@ -11,8 +11,8 @@ public partial class Union : AGate
 
     public override bool Precondition(HashSet<Particle> setInside)
     {
-        if (setInside.Count > 0)
-            Debug.Log("Union Precondition with " + setInside.Count + " particles");
+        //if (setInside.Count > 0)
+        //    Debug.Log("Union Precondition with " + setInside.Count + " particles");
         if (!base.Precondition(setInside))
             return false;
         else if (setInside.Count >= 2) //If we already have more than 2, we don't accept more
@@ -37,11 +37,6 @@ public partial class Union : AGate
         particle.Orientation.AddForce(-particle.Orientation.Velocity / 2f + _thrash.Orientation.Velocity / 2f);
         _thrash.MarkDead();
         return true;
-    }
-
-    public override AGate Copy()
-    {
-        return new Union(); //We don't need to copy "live" references
     }
 
     public override Color Color => Colors.SpringGreen;

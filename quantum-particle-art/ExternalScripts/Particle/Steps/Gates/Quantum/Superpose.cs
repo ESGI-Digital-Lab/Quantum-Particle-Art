@@ -14,11 +14,6 @@ public partial class Superpose : AGate
         particle.Superpose();
         return true;
     }
-    public override AGate Copy()
-    {
-        return new Superpose();
-    }
-
     public override Color Color => ViewHelpers.SUP;
 
     public override string ShortName => "H";

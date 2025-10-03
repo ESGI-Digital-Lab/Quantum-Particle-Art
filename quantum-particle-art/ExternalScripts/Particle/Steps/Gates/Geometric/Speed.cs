@@ -5,7 +5,14 @@ public partial class Speed : AGate
 {
     [Export] private bool _rawSetOverMult = false;
     [Export] private float _value;
+    public Speed() : this(1f)
+    {
+    }
 
+    public Speed(float value)
+    {
+        _value = value;
+    }
     public override bool Resolve(Particle particle)
     {
         if (_rawSetOverMult)
@@ -15,13 +22,6 @@ public partial class Speed : AGate
         return true;
     }
 
-    public override AGate Copy()
-    {
-        var s = new Speed();
-        s._rawSetOverMult = _rawSetOverMult;
-        s._value = _value;
-        return s;
-    }
 
     public override Color Color => Colors.IndianRed;
 

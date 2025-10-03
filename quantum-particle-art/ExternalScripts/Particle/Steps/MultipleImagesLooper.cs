@@ -35,15 +35,15 @@ namespace DefaultNamespace.Particle.Steps
         }
 
         public InitConditions[] Textures => _textures;
-        protected override int Loops => _textures.Length;
 
-        protected override async Task UpdateInitializer(WorldInitializer init, int loop)
+        protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
         {
             init.Init = _textures[loop];
             await init.Init.Texture.Create();
             init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
                 Image.Interpolation.Trilinear);
             _initChange?.Invoke(init.Init);
+            return true;
         }
 
         protected override void OnFinished(ParticleSimulation pipeline)

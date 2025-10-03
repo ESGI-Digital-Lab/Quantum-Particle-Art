@@ -10,7 +10,6 @@ public abstract class ParticleStep : IStep<ParticleWorld>, IInit<WorldInitialize
 
     public virtual async Task Init(WorldInitializer initializer)
     {
-        
     }
 
     public async Task Step(ParticleWorld entry, float delay)

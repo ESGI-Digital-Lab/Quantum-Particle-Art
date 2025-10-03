@@ -1,56 +1,116 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GeneticSharp;
 using Godot;
+using KGySoft.CoreLibraries;
 using UnityEngine;
+using UnityEngine.ExternalScripts.Particle.Genetics;
+using Vector2 = Godot.Vector2;
 
 public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation>
 {
-    private int _nbLoops = 10;
     private InitConditions _init;
 
     private IInit<WorldInitializer>[] _inits;
     private IStep<ParticleWorld>[] _steps;
     private IInit<ParticleWorld>[] _prewarm;
     private int _texHeight;
-    private EncodedConfiguration _spawn;
+    private EncodedConfiguration _spawn => _init.Spawn;
+    private IChromosome _current = null;
+    private int? _result = null;
+
+    private int _id;
 
     public void ExternalRestart()
     {
-        _shouldRestart = true;
+        _shouldStop = true;
     }
 
-    public GeneticLooper(float duration, int nbLoops, InitConditions init,
-        EncodedConfiguration spawn,
+    public bool Finished => _result.HasValue;
+
+    public int GetResultAndFreeLooper()
+    {
+        _current = null;
+        return _result ?? -1;
+    }
+
+    public bool Busy => _current != null;
+    private Vector2I _size;
+    private int _nbParticles => _init.Spawn.NbParticles;
+    private object _lock = new();
+    public object Lock => _lock;
+
+    public GeneticLooper(int id, InitConditions init,
         IEnumerable<IInit<WorldInitializer>> inits,
         IEnumerable<IStep<ParticleWorld>> step,
         IEnumerable<IInit<ParticleWorld>> prewarm,
         int texHeight)
     {
-        _duration = duration;
-        _nbLoops = nbLoops;
+        _id = id;
+        _duration = -1;
         _init = init;
         _inits = inits.ToArray();
         _steps = step.ToArray();
         _prewarm = prewarm.ToArray();
         _texHeight = texHeight;
-        _spawn = spawn;
+        _result = null;
+        _current = null;
+        _size = new(_nbParticles - 2, _nbParticles);
     }
 
-    protected override int Loops => _nbLoops;
-
-    protected override async Task UpdateInitializer(WorldInitializer init, int loop)
+    public void Start(IChromosome evaluationTarget, int input)
     {
-        _spawn.UpdateEncoded((int)Random.Range(0, 255));
+        _current = evaluationTarget;
+        _result = null;
+        Log("IN Lock : Updating initializer ");
+        _shouldRestart = true;
+        _spawn.UpdateEncoded(input);
+        _spawn.UpdateDynamicGates(GetGates(_current));
+    }
+
+    public override async Task Start()
+    {
+        await base.Start();
+        _shouldRestart = false;
+    }
+
+    protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
+    {
         init.Init = _init;
-        await init.Init.Texture.Create();
-        init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
-            Image.Interpolation.Trilinear);
+        if (_texHeight > 0)
+        {
+            await init.Init.Texture.Create();
+            init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
+                Image.Interpolation.Trilinear);
+        }
+
+        if (_current == null)
+            return false;
+        return true;
     }
 
     protected override void OnFinished(ParticleSimulation pipeline)
     {
-        Debug.LogWarning("Pipeline finished with encoder result : " + _spawn.Result());
+        var result = _spawn.Result();
+        _result = result;
+        Log("Pipeline finished with encoder result : " + result + " checking if generation finished");
+    }
+
+    public IEnumerable<GateConfiguration> GetGates(IChromosome current)
+    {
+        return current.GetGenes().Select((g, i) =>
+        {
+            var c = (GeneContent)g.Value;
+            //GetConstructor([typeof(byte)]).Invoke([c.Input]);
+            var type = GatesTypesToInt.Type(c.TypeId);
+            return new GateConfiguration(type.GetConstructor([]).Invoke([]) as AGate,
+                new Vector2I(i % _size.X + 1, i / _size.X));
+        });
+        return Enumerable.Range(1, _nbParticles - 2)
+            .Select<int, GateConfiguration>(i =>
+                new(new Rotate(45), [new(i, (int)UnityEngine.Random.Range(0, _nbParticles))]));
     }
 
     protected override IEnumerable<IInit<ParticleWorld>> GetPrewarms() => _prewarm;
@@ -64,5 +124,22 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     protected override ParticleSimulation GetPipeline()
     {
         return new ParticleSimulation();
+    }
+
+    private void Log(string value, bool withId = true, bool withIndivId = true)
+    {
+        return;
+        //var str = "[GeneticLooper";
+        //if (withId)
+        //    str += $" {_id}";
+        //if (withIndivId)
+        //    str += $" indivudual {_currentIndex + 1}/{_totalIndex} {_finishedCount}/{_totalIndex}/{_population.Count}";
+        //str += $":Gen {_genetics.NbGen}] " + value;
+        //Debug.Log(str);
+    }
+
+    public override string ToString()
+    {
+        return $"GeneticLooper {_id} with {_steps.Length} steps";
     }
 }

@@ -10,14 +10,8 @@ public partial class Count : AGate
     public override bool Resolve(Particle particle)
     {
         _count++;
+        particle.MarkDead();
         return true;
-    }
-
-    public override AGate Copy()
-    {
-        var cnt = new Count();
-        cnt._count = _count;
-        return cnt;
     }
 
     public override Color Color => Colors.LightGray;

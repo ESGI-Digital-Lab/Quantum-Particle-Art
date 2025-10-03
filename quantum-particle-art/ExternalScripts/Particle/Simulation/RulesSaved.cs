@@ -69,7 +69,7 @@ public class RulesSaved : ScriptableObject
     [Button, HideIf(nameof(_locked))]
     public void Lock() => _locked = true;
 
-    private void LoadDefault(Defaults _typeOfRuleset, bool autoStart = false)
+    public void LoadDefault(Defaults _typeOfRuleset, bool autoStart = false)
     {
         if (_locked)
         {

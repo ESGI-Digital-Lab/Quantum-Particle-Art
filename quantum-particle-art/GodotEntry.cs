@@ -15,6 +15,7 @@ namespace UnityEngine;
 public partial class GodotEntry : Node
 {
 	private List<MonoBehaviour> _monos;
+	private MonoBehaviour _renderMono;
 	private Task[] _tasks;
 
 	[ExportCategory("Display settings")] [ExportGroup("References")] [Export]
@@ -27,10 +28,19 @@ public partial class GodotEntry : Node
 	[Export(PropertyHint.Range, "0,10,0.1")]
 	private float _zoom = 1f;
 
+	#region Genetics
+
+	[ExportCategory("Genetics")] [Export] private int _nbInstances = 50;
+	[Export] private int _nbGenMax = 2000;
+	[Export] private int _maxPopulation = 100;
+
+	#endregion
+
 	[ExportCategory("Common parameters for all iterations")] [ExportGroup("World")] [Export]
 	private float _worldSize = 600;
 
 	[Export] private float _timeSteps = 0.02f;
+	[Export] private int _maxSteps = 2000;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
 
 	[ExportSubgroup("Stroke settings")] [Export(PropertyHint.Range, "0,100,1")]
@@ -106,6 +116,7 @@ public partial class GodotEntry : Node
 
 	#endregion
 
+
 	private WriteToTex _write;
 
 	private static Vector2 WorldSize(float height, float ratio) => new(height * ratio, height);
@@ -113,60 +124,106 @@ public partial class GodotEntry : Node
 
 	public override void _Ready()
 	{
+		View.DefaultTimerRoot = this;
 		InitConditions[] conditions = InitConditionsArray();
-		float initialRatio = conditions[0].Ratio; //TODO generalize scaling for every step
+		var uniqueCondition = conditions[0];
+		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
-		List<ParticleStep> psteps = new();
-		List<IInit<ParticleWorld>> prewarm = new();
-		LineCollection lineCollection = new();
-		ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
-		var tick = new GlobalTick(_timeSteps);
-		tick.onMovement += data =>
-		{
-			lineCollection.AddLine(liner.CreateLine(data));
-			//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
-		};
-		psteps.Add(tick);
-		var Influence = new SpeciesInfluence();
-		psteps.Add(Influence);
-		var gates = new PointsIntersection(lineCollection, false, !_allowSameSpeciesInteraction);
-		psteps.Add(gates);
-		_camera.Zoom = Godot.Vector2.One * _zoom;
-		var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
-		psteps.Add(view);
-		_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions[0].Ratio).y, _maxStrokeSize,
-			_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection,
-			!_squareStrokeOverCircle);
-		psteps.Add(_write);
-		prewarm.Add(view);
 		var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
 		if (code == null)
 		{
 			Debug.LogError("No encoding spawn found, looper won't work properly");
 		}
-
-		var looper = new GeneticLooper(_duration, _nbMinLoops, conditions[0], code, psteps, psteps, prewarm,
-			_targetHeightOfBackgroundTexture);
-		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
-		//looper.InitChange += OnInitChanged;
-		tick.onAllDead += () => { looper.ExternalRestart(); };
-		var world = new WorldInitializer(_worldSize, _spawns.ToArray());
-		looper.BaseInitializer = world;
-		Add(looper);
+		var globalLock = new object();
+		List<GeneticLooper> _loopers = new();
+		for (int i = 0; i < _nbInstances; i++)
+		{
+			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalLock, i == 0);
+			looper.SetNode(this);
+			_loopers.Add(looper);
+			if(i==0)
+				_renderMono = looper;
+			else
+				_monos.Add(looper);
+		}
+		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
+			_nbGenMax, _maxPopulation, _loopers);
+		
+		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
 		{
-			_tasks = _monos.Select(m => m.Awake()).ToArray();
-			//Task.WaitAll(_tasks);
+			_renderMono.Awake().Wait();
+			_tasks = _monos.Select(m => Task.Run(async () => await m.Awake())).ToArray();
+			Task.WaitAll(_tasks);
+			_renderMono.Start().Wait();
 			Debug.LogWarning("Entry mid initializing");
-			_tasks = _monos.Select(m => m.Start()).ToArray();
-			//Task.WaitAll(_tasks);
+			_tasks = _monos.Select(m => Task.Run(async () => await m.Start())).ToArray();
+			Task.WaitAll(_tasks);
 			Debug.LogWarning("Entry finished initializing");
 		}
 		catch (Exception e)
 		{
 			GD.PrintErr("Exception during initialization: ", e);
 		}
+	}
+
+	public override void _Process(double delta)
+	{
+		Time.time += (float)delta;
+		try
+		{
+			//Debug.Log("Starting updates");
+			_renderMono.Update().Wait();
+			_tasks = _monos.Select(m => Task.Run(async () => await m.Update())).ToArray();
+			Task.WaitAll(_tasks);
+			//Debug.Log("Finished updates");
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr("Exception during update: ", e, "trace : ", e.StackTrace);
+			throw e;
+		}
+		//Task.WaitAll(_tasks);²
+	}
+
+	private GeneticLooper CreateLooper(InitConditions conditions, int id,object sharedLock, bool withView = true)
+	{
+		List<ParticleStep> psteps = new();
+		List<IInit<ParticleWorld>> prewarm = new();
+		LineCollection lineCollection = new();
+		var tick = new GlobalTick(_timeSteps, _maxSteps);
+
+		psteps.Add(tick);
+		var Influence = new SpeciesInfluence();
+		psteps.Add(Influence);
+		var gates = new PointsIntersection(lineCollection, false, !_allowSameSpeciesInteraction);
+		psteps.Add(gates);
+		if (withView)
+		{
+			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
+			psteps.Add(view);
+			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
+			tick.onMovement += data =>
+			{
+				lineCollection.AddLine(liner.CreateLine(data));
+				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
+			};
+			_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y, _maxStrokeSize,
+				_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection,
+				!_squareStrokeOverCircle);
+			psteps.Add(_write);
+			prewarm.Add(view);
+		}
+
+		var looper = new GeneticLooper(id, conditions, psteps, psteps, prewarm,
+			withView ? _targetHeightOfBackgroundTexture : -1);
+		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
+		//looper.InitChange += OnInitChanged;
+		tick.onAllDead += () => { looper.ExternalRestart(); };
+		var world = new WorldInitializer(_worldSize, _spawns.ToArray());
+		looper.BaseInitializer = world;
+		return looper;
 	}
 
 	private void OnInitChanged(InitConditions init)
@@ -181,10 +238,13 @@ public partial class GodotEntry : Node
 	private InitConditions[] InitConditionsArray()
 	{
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
-		IGates iGates = _spawns.FirstOrDefault(s => !s.Skip && s.Gates != null)?.Gates ??
-						_backupGates; //In case none is unskipped with not null gates
 		var amt = Math.Max(Math.Max(_nbMinLoops, _nbSpecies.Length), Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
+		var spawn =
+			_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) as
+				EncodedConfiguration;
+		Assert.IsNotNull(spawn,
+			"No valid EncodedConfiguration template spawn with gates found in the list of spawns, cannot proceed");
 		int canvasCount = -1;
 		int imageCount = -1;
 		for (int i = 0; i < amt; i++)
@@ -198,6 +258,7 @@ public partial class GodotEntry : Node
 			ISpecyPicker specyPicker;
 			float ratio = 1f;
 			var bgType = _backgroundTypes[i % _backgroundTypes.Count];
+
 			switch (bgType)
 			{
 				case BackgroundSource.Canvas:
@@ -229,7 +290,7 @@ public partial class GodotEntry : Node
 			}
 
 			initConditionsArray[i] = new InitConditions(ratio, tex, rules, colors,
-				new Gates(_gateSize, iGates), specyPicker);
+				_gateSize, specyPicker, spawn);
 		}
 
 
@@ -245,21 +306,6 @@ public partial class GodotEntry : Node
 		specyPicker = quantized;
 	}
 
-	public override void _Process(double delta)
-	{
-		Time.time += (float)delta;
-		try
-		{
-			for (int i = 0; i < _tasks.Length; i++)
-				_tasks[i] = _monos[i].Update();
-		}
-		catch (Exception e)
-		{
-			GD.PrintErr("Exception during update: ", e);
-		}
-		//Task.WaitAll(_tasks);²
-	}
-
 	public override void _Notification(int what)
 	{
 		if (what == NotificationWMCloseRequest)
@@ -269,12 +315,5 @@ public partial class GodotEntry : Node
 
 
 		base._Notification(what);
-	}
-
-
-	private void Add(MonoBehaviour pipe)
-	{
-		pipe.SetNode(this);
-		_monos.Add(pipe);
 	}
 }
