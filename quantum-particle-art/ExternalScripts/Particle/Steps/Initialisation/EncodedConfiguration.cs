@@ -4,6 +4,7 @@ using Godot;
 using Godot.Collections;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.ExternalScripts.Particle.Genetics;
 using Mathf = Godot.Mathf;
 using Random = System.Random;
 
@@ -44,28 +45,16 @@ public partial class EncodedConfiguration : ASpawnConfiguration
     public int Result()
     {
         //Debug.Log("Asking for result with last grid " + (_grid != null));
-        var copies = _grid.Copies<Count>(_countTemplate);
+        var copies = _grid.Copies(_countTemplate);
         //Assert.IsTrue(copies.Length == NbParticles,$"Count gate copies {copies.Length} does not match number of particles {NbParticles}");
-        int acc = 0;
-        int i = 0;
-        foreach (var copy in copies)
-        {
-            acc += copy.Value * (int)Mathf.Pow(2, i);
-            i++;
-        }
+        var acc = copies.Select(c=>c.Value).DecodeBits(2);
 
         return acc;
     }
 
     public override IEnumerable<UnityEngine.Vector2> Particles(Random random)
     {
-        var _encoded = Mathf.Clamp(this._encoded, 0, (int)Mathf.Pow(2, NbParticles) - 1);
-        bool[] bits = new bool[NbParticles];
-        for (int i = 0; i < NbParticles; i++)
-        {
-            bits[NbParticles - (i + 1)] = (_encoded & 1) == 1; //Check last bit is 1
-            _encoded >>= 1; //Bit shift
-        }
+        var bits = _encoded.Bits(NbParticles);
 
         int cnt = 0;
         foreach (var p in LinearReparition(new(0, 0), new(0, 1), NbParticles))
