@@ -13,12 +13,10 @@ public class WorldInitializer
     [SerializeField] private Vector2 _size;
     private float _baseheight;
     [SerializeField] private InitConditions _init;
-    private ASpawnConfiguration[] _spawns;
 
-    public WorldInitializer(float height, params ASpawnConfiguration[] spawns)
+    public WorldInitializer(float height)
     {
         _baseheight = height;
-        this._spawns = spawns;
     }
 
     public ATexProvider Texture => _init.Texture;
@@ -37,18 +35,17 @@ public class WorldInitializer
 
     private System.Random random;
 
-    
 
     public IEnumerable<Particle> RandomCollection()
     {
         random = new System.Random(DateTime.Now.Ticks.GetHashCode());
         var particles = new List<Particle>();
         random = new System.Random(DateTime.Now.Ticks.GetHashCode());
-        foreach (var spawn in _spawns.Where(s => s != null && !s.Skip))
-            particles.AddRange(
-                spawn.Particles(random).Select<Vector2,Particle>(v => 
-                    new Particle(v, _size, spawn.GetSpecy(v,_init.SpecyPicker), spawn.Velocity
-            )));
+        var spawn = _init.Spawn;
+        particles.AddRange(
+            spawn.Particles(random).Select<Vector2, Particle>(v =>
+                new Particle(v, _size, spawn.GetSpecy(v, _init.SpecyPicker), spawn.Velocity
+                )));
         return particles;
     }
 

@@ -78,7 +78,8 @@ public partial class GodotEntry : Node
 	#region Particles&Gates
 
 	[ExportGroup("Particles")] [ExportSubgroup("Spawn area")] [Export]
-	private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
+	EncodedConfiguration _spawnTemplate;
+	//private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
 
 	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
 
@@ -132,7 +133,8 @@ public partial class GodotEntry : Node
 		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
-		var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
+		var code = _spawnTemplate;
+		//_spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
 		if (code == null)
 		{
 			Debug.LogError("No encoding spawn found, looper won't work properly");
@@ -140,19 +142,20 @@ public partial class GodotEntry : Node
 
 		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
+		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, true);
+		viewerLooper.SetNode(this);
+		_renderMono = viewerLooper;
 		for (int i = 0; i < _nbInstances; i++)
 		{
-			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalLock, i == 0);
+			var looper = CreateLooper(new InitConditions(uniqueCondition), i + 1, globalLock, false);
 			looper.SetNode(this);
 			_loopers.Add(looper);
-			if (i == 0)
-				_renderMono = looper;
-			else
-				_monos.Add(looper);
+			_monos.Add(looper);
 		}
+
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
-			_nbGenMax, _maxPopulation, _loopers, _gates);
+			_nbGenMax, _maxPopulation, _loopers, viewerLooper, _gates);
 
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
@@ -225,7 +228,7 @@ public partial class GodotEntry : Node
 		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
 		//looper.InitChange += OnInitChanged;
 		tick.onAllDead += () => { looper.ExternalRestart(); };
-		var world = new WorldInitializer(_worldSize, _spawns.ToArray());
+		var world = new WorldInitializer(_worldSize);
 		looper.BaseInitializer = world;
 		return looper;
 	}
@@ -244,9 +247,8 @@ public partial class GodotEntry : Node
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
 		var amt = Math.Max(Math.Max(_nbMinLoops, _nbSpecies.Length), Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
-		var spawn =
-			_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) as
-				EncodedConfiguration;
+		var spawn = _spawnTemplate;
+			//_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) asEncodedConfiguration;
 		Assert.IsNotNull(spawn,
 			"No valid EncodedConfiguration template spawn with gates found in the list of spawns, cannot proceed");
 		int canvasCount = -1;
