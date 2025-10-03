@@ -25,7 +25,8 @@ public class Genetics
     private object _lock = new();
     private const int Input = 79;
 
-    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, List<GeneticLooper> loopers, IEnumerable<AGate> gatesTemplate)
+    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, List<GeneticLooper> loopers,
+        IEnumerable<AGate> gatesTemplate)
     {
         GatesTypesToInt.OverrideReflection(new EmptyGate(), gatesTemplate);
         _nbParticles = nbParticles;
@@ -36,7 +37,7 @@ public class Genetics
         var crossover = new UniformCrossover();
         var mutation = new UniformMutation(true);
         float[] w = [.15f, .85f];
-        comparison = new BitwiseComparisonFitness((int)Mathf.Pow(2, nbParticles) - 1, Input, Input * 2, loopers);
+        comparison = new BitwiseComparisonFitness(nbParticles, Input, Input * 2, loopers);
         IFitness fitness;
         fitness = new CombinedFitness((new MostNullGates(), w[0]), (comparison, w[1]));
         //fitness = comparison;
