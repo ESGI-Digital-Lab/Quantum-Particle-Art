@@ -33,6 +33,8 @@ public partial class GodotEntry : Node
 	[ExportCategory("Genetics")] [Export] private int _nbInstances = 50;
 	[Export] private int _nbGenMax = 2000;
 	[Export] private int _maxPopulation = 100;
+	[Export] private bool _forceAllGatesLabel = true;
+	[Export] private Godot.Collections.Array<AGate> _gates;
 
 	#endregion
 
@@ -135,6 +137,7 @@ public partial class GodotEntry : Node
 		{
 			Debug.LogError("No encoding spawn found, looper won't work properly");
 		}
+
 		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
 		for (int i = 0; i < _nbInstances; i++)
@@ -142,14 +145,15 @@ public partial class GodotEntry : Node
 			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalLock, i == 0);
 			looper.SetNode(this);
 			_loopers.Add(looper);
-			if(i==0)
+			if (i == 0)
 				_renderMono = looper;
 			else
 				_monos.Add(looper);
 		}
+		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
-			_nbGenMax, _maxPopulation, _loopers);
-		
+			_nbGenMax, _maxPopulation, _loopers, _gates);
+
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
 		{
@@ -187,7 +191,7 @@ public partial class GodotEntry : Node
 		//Task.WaitAll(_tasks);²
 	}
 
-	private GeneticLooper CreateLooper(InitConditions conditions, int id,object sharedLock, bool withView = true)
+	private GeneticLooper CreateLooper(InitConditions conditions, int id, object sharedLock, bool withView = true)
 	{
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
