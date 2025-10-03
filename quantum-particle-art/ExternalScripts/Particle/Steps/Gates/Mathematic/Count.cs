@@ -20,4 +20,6 @@ public partial class Count : AGate
     public override string Label => base.Label + ((_countAsName && _count>0) ? _count.ToString() :"");
 
     public int Value => _count;
+
+    protected override bool ShowLabelAllowed => true;
 }

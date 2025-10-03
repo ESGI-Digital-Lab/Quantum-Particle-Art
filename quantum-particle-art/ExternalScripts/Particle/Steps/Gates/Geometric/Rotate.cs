@@ -5,23 +5,26 @@
 public partial class Rotate : AGate
 {
     [Export] private float _degrees;
-    [Export] private bool _degInName;
+
     public Rotate() : this(45f)
     {
     }
-    public Rotate(float degrees, bool degInName = false)
+
+    public Rotate(float degrees)
     {
         _degrees = degrees;
-        _degInName = degInName;
     }
+
     public override bool Resolve(Particle particle)
     {
         particle.Orientation.Degrees += _degrees;
         return true;
     }
 
+    public override string Label => base.Label + (_degrees > 0 ? "+" : "") + _degrees.ToString("0.#");
+
 
     public override Color Color => Colors.SteelBlue;
 
-    public override string ShortName => "Rz" + (_degInName ? Mathf.RoundToInt(_degrees).ToString() : "");
+    public override string ShortName => "Rz";
 }

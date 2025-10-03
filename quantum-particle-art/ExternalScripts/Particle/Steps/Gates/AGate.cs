@@ -5,6 +5,8 @@ using Godot;
 [GlobalClass]
 public abstract partial class AGate : Godot.Resource
 {
+    public static bool ShowLabelDefault = true;
+    protected virtual bool ShowLabelAllowed => ShowLabelDefault;
     public virtual bool Precondition(HashSet<Particle> setInside) => true;
     public abstract bool Resolve(Particle particle);
     public abstract Color Color { get; }
@@ -15,7 +17,7 @@ public abstract partial class AGate : Godot.Resource
     }
     public AGate DeepCopy() => this.DeepCopy<AGate>();
     public virtual string Label => null;
-    public bool DynamicName => !string.IsNullOrEmpty(Label);
+    public bool DynamicName => ShowLabelAllowed && !string.IsNullOrEmpty(Label);
 }
 public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedTypeID : DualInputAGate<SharedTypeID>
 {
