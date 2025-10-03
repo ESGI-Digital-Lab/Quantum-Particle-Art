@@ -27,11 +27,13 @@
 [sub_resource type="Resource" id="Resource_gvqa1"]
 script = ExtResource("2_mum02")
 _degrees = 45.0
+_inverted = false
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [sub_resource type="Resource" id="Resource_yi0l3"]
 script = ExtResource("2_mum02")
-_degrees = -45.0
+_degrees = 45.0
+_inverted = true
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [sub_resource type="Resource" id="Resource_mum02"]
