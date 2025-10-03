@@ -21,7 +21,7 @@ public class Genetics
     private int _nbGen = 0;
     public event Action<IList<IChromosome>> OnGenerationReady;
 
-    private IntComparisonFitness comparison;
+    private BitwiseComparisonFitness comparison;
     private object _lock = new();
     private const int Input = 79;
 
@@ -36,7 +36,7 @@ public class Genetics
         var crossover = new UniformCrossover();
         var mutation = new UniformMutation(true);
         float[] w = [.15f, .85f];
-        comparison = new IntComparisonFitness((int)Mathf.Pow(2, nbParticles) - 1, Input, Input * 2, loopers);
+        comparison = new BitwiseComparisonFitness((int)Mathf.Pow(2, nbParticles) - 1, Input, Input * 2, loopers);
         IFitness fitness;
         fitness = new CombinedFitness((new MostNullGates(), w[0]), (comparison, w[1]));
         //fitness = comparison;

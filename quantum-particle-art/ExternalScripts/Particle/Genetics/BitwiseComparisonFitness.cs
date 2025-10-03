@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using GeneticSharp;
 using UnityEngine;
 
-public class IntComparisonFitness : IFitness, IEqualityComparer<Gene[]>
+public class BitwiseComparisonFitness : IFitness, IEqualityComparer<Gene[]>
 {
     private int _maxValue;
     private int _input;
@@ -13,7 +13,7 @@ public class IntComparisonFitness : IFitness, IEqualityComparer<Gene[]>
     private Dictionary<Gene[], (int obtained, int target)> _result;
     private List<GeneticLooper> _loopers;
 
-    public IntComparisonFitness(int maxValue, int input, int target, List<GeneticLooper> loopers)
+    public BitwiseComparisonFitness(int maxValue, int input, int target, List<GeneticLooper> loopers)
     {
         _result = new Dictionary<Gene[], (int obtained, int target)>();
         _maxValue = maxValue;
