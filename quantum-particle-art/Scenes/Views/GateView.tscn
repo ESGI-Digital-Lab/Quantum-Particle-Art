@@ -3,7 +3,8 @@
 [ext_resource type="Script" uid="uid://cgc1xg8bbjfsi" path="res://ExternalScripts/Particle/View/PointView.cs" id="1_pm10d"]
 [ext_resource type="FontFile" uid="uid://bu5a5riwdeit0" path="res://Visuals/Fonts/WatersGothic-lKXV.ttf" id="2_de8q1"]
 [ext_resource type="Texture2D" uid="uid://cvqj7kiqiakg0" path="res://Visuals/circle.png" id="2_pm10d"]
-[ext_resource type="FontFile" uid="uid://chyi538hdmxd" path="res://Visuals/Fonts/EnglishGothic17ThC-Da9E.ttf" id="3_qimk3"]
+
+[sub_resource type="SystemFont" id="SystemFont_de8q1"]
 
 [node name="Gate" type="Node2D" node_paths=PackedStringArray("_secondaryLabel", "_sprites", "_label")]
 scale = Vector2(0.05, 0.05)
@@ -82,13 +83,13 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/default_color = Color(0, 0, 0, 1)
-theme_override_fonts/normal_font = ExtResource("3_qimk3")
+theme_override_fonts/normal_font = SubResource("SystemFont_de8q1")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "158034"
+text = "=2*4-4+5"
 scroll_active = false
 horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
 justification_flags = 160
 
 [node name="ColorRect" type="ColorRect" parent="Control/RichTextLabel2"]
