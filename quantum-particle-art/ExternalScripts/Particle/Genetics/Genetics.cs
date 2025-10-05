@@ -8,20 +8,6 @@ using Godot;
 using UnityEngine.ExternalScripts.Particle.Genetics;
 using Random = UnityEngine.Random;
 
-[GlobalClass]
-public partial class GAParams : Resource
-{
-    [Export] private int _maxGen = 10000;
-    [Export] private int _popSize = 12;
-    [Export] private float _threshold = 0.9f;
-
-    public int MaxGen => _maxGen;
-
-    public int PopSize => _popSize;
-
-    public float Threshold => _threshold;
-}
-
 public class Genetics
 {
     private readonly Vector2I _size;
@@ -70,16 +56,17 @@ public class Genetics
     private void GenerationFinished()
     {
         _genFinished++;
-        UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + bestChromosomeFitness +
+        var best = _ga.BestChromosome;
+        UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness +
                               "showing it on the view");
-        while (viewer.Busy) //We run it till the end
+        while (_viewer.Busy) //We run it till the end
             Task.Delay(100).Wait();
-        viewer.Start(_ga.BestChromosome, comparison.Input(_ga.BestChromosome));
+        _viewer.Start(best, comparison.Input(best));
         Task.Run(() =>
         {
-            while (!viewer.ResultAvailable) //We run it till the end
+            while (!_viewer.ResultAvailable) //We run it till the end
                 Task.Delay(100).Wait();
-            _ = viewer.GetResultAndFreeLooper();
+            _ = _viewer.GetResultAndFreeLooper();
         });
     }
 
