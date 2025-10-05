@@ -7,7 +7,7 @@ public class Chromosome : ChromosomeBase
 {
     private int _length;
     private List<int> inputsTestedOn = new();
-    public int Input => inputsTestedOn[(int)Random.Range(0, inputsTestedOn.Count)];
+    public int? Input => inputsTestedOn!= null && inputsTestedOn.Count > 0 ? inputsTestedOn[Random.Range(0, inputsTestedOn.Count)] : null;
 
     public void AddInputTestedOn(int input)
     {
