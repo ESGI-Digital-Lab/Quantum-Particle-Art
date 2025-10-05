@@ -53,9 +53,7 @@ public class WorldInitializer
     public Area2D[] Points()
     {
         var gateSize = _init.GateSize * (_size.x + _size.y) / 2f;
-        Debug.Log("before reset " + Thread.CurrentThread.ManagedThreadId);
         _init.IGates.Reset();
-        Debug.Log("after reset " + Thread.CurrentThread.ManagedThreadId);
         return _init.IGates.Positions.Select(v =>
         {
             var pos = v.pos;

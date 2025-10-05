@@ -52,7 +52,6 @@ public partial class GridGates : Resource, IGates
     public void Reset()
     {
         this._gatesList = BuildList(); //Rebuild
-        Debug.Log("Resetted GridGates, built list : "+ _gatesList.Count +" on th : "+ Thread.CurrentThread.ManagedThreadId);
     }
 
     private List<(AGate, UnityEngine.Vector2)> BuildList()
@@ -110,17 +109,7 @@ public partial class GridGates : Resource, IGates
         return tmp;
     }
 
-    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions
-    {
-        get
-        {
-            Debug.Log("Asking for positions, have " + (_gatesList == null ? "no" : _gatesList.Count.ToString()) +
-                      " gates"+Thread.CurrentThread.ManagedThreadId);
-            if(_gatesList==null)
-                this.Reset();
-            return _gatesList;
-        }
-    }
+    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions => _gatesList;
 
     public IEnumerable<T> Copies<T>(T original) where T : AGate
     {
