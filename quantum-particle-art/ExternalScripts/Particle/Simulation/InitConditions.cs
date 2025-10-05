@@ -122,7 +122,7 @@ public struct InitConditions
 		_texture = texture;
 		_rules = rules;
 		_colors = colors;
-		_spawn = spawn;
+		_spawn = spawn.Duplicate(true) as EncodedConfiguration;
 		_gateSize = gateSize;
 		_specyPicker = specyPicker;
 		_ratio = ratio;
