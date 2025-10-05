@@ -1,10 +1,18 @@
-﻿using GeneticSharp;
+﻿using System.Collections.Generic;
+using GeneticSharp;
 
 namespace UnityEngine.ExternalScripts.Particle.Genetics;
 
 public class Chromosome : ChromosomeBase
 {
     private int _length;
+    private List<int> inputsTestedOn = new();
+    public int Input => inputsTestedOn[(int)Random.Range(0, inputsTestedOn.Count)];
+
+    public void AddInputTestedOn(int input)
+    {
+        inputsTestedOn.Add(input);
+    }
 
     public Chromosome(int length) : base(length)
     {
