@@ -31,8 +31,7 @@ public partial class GodotEntry : Node
 	#region Genetics
 
 	[ExportCategory("Genetics")] [Export] private int _nbInstances = 50;
-	[Export] private int _nbGenMax = 2000;
-	[Export] private int _maxPopulation = 100;
+	[Export] private GAParams _params;
 	[Export] private bool _forceAllGatesLabel = true;
 	[Export] private Godot.Collections.Array<AGate> _gates;
 
@@ -142,20 +141,21 @@ public partial class GodotEntry : Node
 
 		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
-		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, true);
+		var availableSize = new Vector2I(code.NbParticles - 1, code.NbParticles);
+		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, availableSize, true);
 		viewerLooper.SetNode(this);
 		_renderMono = viewerLooper;
 		for (int i = 0; i < _nbInstances; i++)
 		{
-			var looper = CreateLooper(new InitConditions(uniqueCondition), i + 1, globalLock, false);
+			var looper = CreateLooper(new InitConditions(uniqueCondition), i + 1, globalLock, availableSize, false);
 			looper.SetNode(this);
 			_loopers.Add(looper);
 			_monos.Add(looper);
 		}
 
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
-		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
-			_nbGenMax, _maxPopulation, _loopers, viewerLooper, _gates);
+		//Starts GA asynchronously using the provided loopers to run and evaluate simulations
+		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates);
 
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
@@ -194,7 +194,8 @@ public partial class GodotEntry : Node
 		//Task.WaitAll(_tasks);²
 	}
 
-	private GeneticLooper CreateLooper(InitConditions conditions, int id, object sharedLock, bool withView = true)
+	private GeneticLooper CreateLooper(InitConditions conditions, int id, object sharedLock, Vector2I size,
+		bool withView = true)
 	{
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
@@ -223,7 +224,7 @@ public partial class GodotEntry : Node
 			prewarm.Add(view);
 		}
 
-		var looper = new GeneticLooper(id, conditions, psteps, psteps, prewarm,
+		var looper = new GeneticLooper(id, size, conditions, psteps, psteps, prewarm,
 			withView ? _targetHeightOfBackgroundTexture : -1);
 		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
 		//looper.InitChange += OnInitChanged;
@@ -248,7 +249,7 @@ public partial class GodotEntry : Node
 		var amt = Math.Max(Math.Max(_nbMinLoops, _nbSpecies.Length), Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
 		var spawn = _spawnTemplate;
-			//_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) asEncodedConfiguration;
+		//_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) asEncodedConfiguration;
 		Assert.IsNotNull(spawn,
 			"No valid EncodedConfiguration template spawn with gates found in the list of spawns, cannot proceed");
 		int canvasCount = -1;
