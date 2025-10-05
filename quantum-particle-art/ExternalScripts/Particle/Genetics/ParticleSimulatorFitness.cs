@@ -90,6 +90,6 @@ public class ParticleSimulatorFitness : IFitness
 
     public int Input(IChromosome chromosome, bool withSameInput = true)
     {
-        return withSameInput ? (chromosome as Chromosome).Input : _problem.CreateNewInput();
+        return withSameInput ? (chromosome as Chromosome)?.Input ?? _problem.CreateNewInput() : _problem.CreateNewInput();
     }
 }
