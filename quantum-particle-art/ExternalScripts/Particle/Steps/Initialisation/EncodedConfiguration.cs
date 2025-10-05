@@ -13,6 +13,7 @@ public partial class EncodedConfiguration : ASpawnConfiguration
 {
     [Export] private Count _countTemplate;
     [Export] private Kill _killTemplate;
+    private CombinedGates _combined;
     [Export] private int _encoded;
     private GridGates _grid;
     public override IGates Gates => _grid;
@@ -33,21 +34,24 @@ public partial class EncodedConfiguration : ASpawnConfiguration
         //So we have a fresh, unique to this set of gate, edition of the templates
         _killTemplate = _killTemplate.DeepCopy<Kill>();
         _countTemplate = _countTemplate.DeepCopy<Count>();
-        IEnumerable<GateConfiguration> baseGates = [
-            new(_killTemplate, Enumerable.Range(0, NbParticles).Select(i => new Vector2I(0, i))),
-            new(_countTemplate, Enumerable.Range(0, NbParticles).Select(i => new Vector2I(-1, i)))
-        ];
-        _grid = new GridGates(new(NbParticles, NbParticles), new(NbParticles - 1, 0), baseGates);
+        //IEnumerable<GateConfiguration> baseGates = [
+        //    new(_killTemplate)),
+        //    new(_countTemplate, Enumerable.Range(0, NbParticles).Select(i => new Vector2I(-1, i)))
+        //];
+        _combined =
+            new CombinedGates(true, false, false, "X", _countTemplate,
+                _killTemplate); //We don't deep copy, so the base templates remain the parent holders
+        var positions = Enumerable.Range(0, NbParticles).Select(i => new Vector2I(0, i));
+        _grid = new GridGates(new(NbParticles, NbParticles), new(NbParticles - 1, 0), [new(_combined, positions)]);
         return _grid;
     }
 
     public int Result()
     {
         //Debug.Log("Asking for result with last grid " + (_grid != null));
-        var copies = _grid.Copies(_countTemplate);
+        var copies = _grid.Copies(_combined);
         //Assert.IsTrue(copies.Length == NbParticles,$"Count gate copies {copies.Length} does not match number of particles {NbParticles}");
-        var acc = copies.Select(c=>c.Value).DecodeBits(2);
-
+        var acc = copies.SelectMany(c => c.Gates.Select(g=> (g as Count)?.Value)).Where(i=>i.HasValue).Select(i=>i.Value).DecodeBits(2);
         return acc;
     }
 
