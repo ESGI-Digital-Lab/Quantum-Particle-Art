@@ -1,13 +1,11 @@
-[gd_scene load_steps=29 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=27 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
 [ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="Script" uid="uid://cyv5hjss13b5g" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Rotate.cs" id="2_mum02"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
-[ext_resource type="Resource" uid="uid://ba31fecs6ayld" path="res://Data/fullScale.tres" id="3_nrk6x"]
 [ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
-[ext_resource type="Resource" uid="uid://de8v8thcu0nlp" path="res://Data/starting_blocks.tres" id="4_1mke2"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
 [ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="5_1mke2"]
@@ -36,23 +34,24 @@ _degrees = 45.0
 _inverted = true
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
-[sub_resource type="Resource" id="Resource_mum02"]
+[sub_resource type="Resource" id="Resource_bv6uv"]
 script = ExtResource("5_1mke2")
+_max = 1
+_count = 0
 _countAsName = true
 _nameAppendix = ""
-_count = 0
 metadata/_custom_type_script = "uid://coqmrloclwhuy"
 
-[sub_resource type="Resource" id="Resource_cuf3k"]
+[sub_resource type="Resource" id="Resource_w33ia"]
 script = ExtResource("6_2d2wn")
 _safe = false
 metadata/_custom_type_script = "uid://lohey3ijudrc"
 
-[sub_resource type="Resource" id="Resource_n2aaa"]
+[sub_resource type="Resource" id="Resource_1mke2"]
 script = ExtResource("5_yi0l3")
-_countTemplate = SubResource("Resource_mum02")
-_killTemplate = SubResource("Resource_cuf3k")
-_encoded = 79
+_countTemplate = SubResource("Resource_bv6uv")
+_killTemplate = SubResource("Resource_w33ia")
+_encoded = -1
 _skip = false
 _nbParticles = 8
 _specyIndex = -1
@@ -69,7 +68,8 @@ _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
-_nbInstances = 10
+_nbInstances = 100
+_maxPopulation = 25
 _gates = Array[Object]([SubResource("Resource_gvqa1"), SubResource("Resource_yi0l3")])
 _worldSize = 300.0
 _timeSteps = 1.0
@@ -80,7 +80,7 @@ _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawns = [ExtResource("3_nrk6x"), ExtResource("4_1mke2"), SubResource("Resource_n2aaa")]
+_spawnTemplate = SubResource("Resource_1mke2")
 _gateSize = 0.04
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
