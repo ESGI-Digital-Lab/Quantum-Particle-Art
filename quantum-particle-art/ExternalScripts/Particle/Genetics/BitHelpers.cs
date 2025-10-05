@@ -30,4 +30,26 @@ public static class BitHelpers
         }
         return acc;
     }
+
+    public static double WeightedSum(this IEnumerable<(double, double)> vws)
+    {
+        double sum = 0;
+        double totalWeight = 0;
+        foreach (var (value, weight) in vws)
+        {
+            sum += value * weight;
+            totalWeight += weight;
+        }
+
+        //Debug.LogError("Use then logic, using only second fitness only if first is full");
+
+        if (totalWeight > 0)
+        {
+            return sum / totalWeight;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 }
