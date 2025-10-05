@@ -6,7 +6,7 @@
 [sub_resource type="Resource" id="Resource_1td8w"]
 script = ExtResource("1_yrwmj")
 _degrees = 45.0
-_degInName = false
+_inverted = false
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [resource]

@@ -5,9 +5,10 @@
 
 [sub_resource type="Resource" id="Resource_cuf3k"]
 script = ExtResource("1_k8t1a")
+_max = 1
+_count = 0
 _countAsName = true
 _nameAppendix = ""
-_count = 0
 metadata/_custom_type_script = "uid://coqmrloclwhuy"
 
 [resource]
