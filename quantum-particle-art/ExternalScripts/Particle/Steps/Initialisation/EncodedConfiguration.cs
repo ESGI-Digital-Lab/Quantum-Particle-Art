@@ -15,7 +15,7 @@ public partial class EncodedConfiguration : ASpawnConfiguration
     [Export] private Kill _killTemplate;
     [Export] private int _encoded;
     private GridGates _grid;
-    public override IGates Gates => _grid ??= GenerateGates();
+    public override IGates Gates => _grid;
 
     public void UpdateEncoded(int encoded)
     {
@@ -25,7 +25,6 @@ public partial class EncodedConfiguration : ASpawnConfiguration
 
     public void UpdateDynamicGates(IEnumerable<GateConfiguration> gates)
     {
-        _grid ??= GenerateGates();
         _grid.SetDynamicGates(gates);
     }
 
@@ -68,5 +67,10 @@ public partial class EncodedConfiguration : ASpawnConfiguration
     protected override UnityEngine.Vector2 BaseVelocity()
     {
         return new(1, 0f);
+    }
+
+    public void Reset()
+    {
+        _grid = GenerateGates();
     }
 }
