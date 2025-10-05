@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DefaultNamespace.Tools;
 using NaughtyAttributes;
 using UnityEngine;
@@ -49,10 +50,12 @@ public class WorldInitializer
         return particles;
     }
 
-    public IEnumerable<Area2D> Points()
+    public Area2D[] Points()
     {
         var gateSize = _init.GateSize * (_size.x + _size.y) / 2f;
+        Debug.Log("before reset " + Thread.CurrentThread.ManagedThreadId);
         _init.IGates.Reset();
+        Debug.Log("after reset " + Thread.CurrentThread.ManagedThreadId);
         return _init.IGates.Positions.Select(v =>
         {
             var pos = v.pos;
@@ -60,6 +63,6 @@ public class WorldInitializer
             //pos.y = Math.Clamp(v.pos.y, 2 * _init.GateSize, 1 - 2 * _init.GateSize);
             //Debug.Log($"from {v.pos} to {pos*_size}");
             return new Area2D(pos * _size, gateSize, v.type);
-        });
+        }).ToArray();
     }
 }
