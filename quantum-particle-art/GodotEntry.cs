@@ -211,7 +211,7 @@ public partial class GodotEntry : Node
 		{
 			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 			psteps.Add(view);
-			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
+			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new DeltaRotLiner();
 			tick.onMovement += data =>
 			{
 				lineCollection.AddLine(liner.CreateLine(data));
