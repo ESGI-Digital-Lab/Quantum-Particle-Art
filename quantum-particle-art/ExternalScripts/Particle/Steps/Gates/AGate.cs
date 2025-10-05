@@ -11,7 +11,7 @@ public abstract partial class AGate : Godot.Resource
     public abstract bool Resolve(Particle particle);
     public abstract Color Color { get; }
     public abstract string ShortName { get; }
-    public T DeepCopy<T>() where T : AGate
+    public virtual T DeepCopy<T>() where T : AGate
     {
         return this.Duplicate(true) as T;
     }
