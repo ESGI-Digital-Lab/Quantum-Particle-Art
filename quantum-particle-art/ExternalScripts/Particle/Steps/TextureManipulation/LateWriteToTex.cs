@@ -1,17 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Geometry;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using UnityEngine.ExternalScripts.Particle.Simulation;
+using Color = Godot.Color;
 using Image = Godot.Image;
 
 public class LateWriteToTex : ParticleStep
 {
     private class ParticleHistory
     {
-        public record struct HistoryEntry(Vector2 position, Vector2 velocity, Godot.Color color);
+        public record struct HistoryEntry(Vector2 position, Vector2 velocity, Godot.Color color, bool continuous);
 
         private Dictionary<Particle, List<HistoryEntry>> _history = new();
         private IColorPicker _picker;
@@ -26,10 +29,12 @@ public class LateWriteToTex : ParticleStep
 
         public void AddRecord(Particle p)
         {
+            var entry = new HistoryEntry(p.NormalizedPosition, p.Orientation.Velocity,
+                _picker.GetColor(p, _nbSpecies), !p.WrappedLastTick);
             if (!_history.ContainsKey(p))
-                _history[p] = [];
-            _history[p].Add(new HistoryEntry(p.NormalizedPosition, p.Orientation.Velocity,
-                _picker.GetColor(p, _nbSpecies)));
+                _history[p] = [entry];
+            else
+                _history[p].Add(entry);
         }
     }
 
@@ -73,13 +78,43 @@ public class LateWriteToTex : ParticleStep
         base.Release();
         foreach (var kvp in _history.Entries)
         {
-            Bezier curve = new Bezier(kvp.Value.Select(v => v.position.ToSystemV2()).ToArray());
-            int nbPoints = _curveRes;
-            for (int i = 0; i < nbPoints; i++)
+            List<System.Numerics.Vector2> pts = new();
+            Godot.Color startColor = kvp.Value.First().color;
+            foreach (var point in kvp.Value)
             {
-                float t = i / (nbPoints - 1f);
-                var size = Vector2I.One * 10;
-                _base.FillRect(new Rect2I(curve.Position(t).ToGodotV2().ToPixelCoord(_dynamic), size), kvp.Value.First().color);
+                if (point.continuous) //End of continuous line, draw what we have and start a new one
+                {
+                    pts.Add(point.position.ToSystemV2());
+                }
+                else
+                {
+                    if (pts.Count >= 2)//Else we don't draw anything
+                    {
+                        Bezier curve = null;
+                        try
+                        {
+                            curve = new Bezier(pts.ToArray());
+                        }
+                        catch (Exception e)
+                        {
+                            UnityEngine.Debug.Log("Bezier creation failed with pts: " + string.Join(", ", pts) +
+                                                  " error: " + e);
+                            return;
+                        }
+
+                        int nbPoints = _curveRes;
+                        for (int i = 0; i < nbPoints; i++)
+                        {
+                            float t = i / (nbPoints - 1f);
+                            var size = Vector2I.One * 10;
+                            _base.FillRect(new Rect2I(curve.Position(t).ToGodotV2().ToPixelCoord(_dynamic), size),
+                                point.color * t + startColor * (1 - t));
+                        }
+                    }
+
+                    pts = [point.position.ToSystemV2()];
+                    startColor = point.color;
+                }
             }
         }
 
