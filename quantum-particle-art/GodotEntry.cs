@@ -30,8 +30,11 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	[ExportCategory("Genetics")] [Export] private int _nbInstances = 50;
+	[ExportCategory("Genetic Algorithm")]
+	[ExportGroup("Genetic meta parameters")]
+	[Export] private int _nbInstances = 50;
 	[Export] private GAParams _params;
+	[ExportGroup("Gates")]
 	[Export] private bool _forceAllGatesLabel = true;
 	[Export] private Godot.Collections.Array<AGate> _gates;
 
