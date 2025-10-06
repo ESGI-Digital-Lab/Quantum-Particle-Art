@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Godot;
 using UnityEngine;
 using Color = UnityEngine.Color;
@@ -17,13 +18,23 @@ public class Brush
         _brush.Resize(size, size);
     }
 
-    public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor, float strokeRelativeSize = 1f)
+    public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor,
+        float strokeRelativeSize = 1f)
+    {
+        DrawWithBrush(target, points, _ => baseColor, strokeRelativeSize);
+    }
+
+
+    public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Func<int, Color> baseColor,
+        float strokeRelativeSize = 1f)
     {
         int width = target.GetWidth();
         int height = target.GetHeight();
         var finalWidth = (int)(strokeRelativeSize * _brush.GetWidth() / 2);
+        int i = 0;
         foreach (var coords in points)
         {
+            var bColor = baseColor(i++);
             for (int x = -finalWidth; x <= finalWidth; x++)
             {
                 for (int y = -finalWidth; y <= finalWidth; y++)
@@ -35,7 +46,7 @@ public class Brush
                         if (bigX >= 0 && bigX < width && bigY >= 0 &&
                             bigY < height)
                         {
-                            var color = ComputeColorFromBrush(x + finalWidth, y + finalWidth, baseColor);
+                            var color = ComputeColorFromBrush(x + finalWidth, y + finalWidth, bColor);
                             if (color.A > .001f)
                             {
                                 //This is raw results on a blank tex
