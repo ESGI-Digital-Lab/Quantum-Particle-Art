@@ -13,6 +13,8 @@ public class Particle
     [SerializeField] private Vector2 _position;
     [SerializeField] private Vector2 _bounds;
     [SerializeField] private Vector2[] _forces;
+    private bool _wrappedLastTick = false;
+    public bool WrappedLastTick => _wrappedLastTick;
     private bool _alive;
 
 
@@ -117,9 +119,9 @@ public class Particle
         foreach (var pivot in Pivots(false, true, 0))
         {
             var before = pivot.p.NormalizedPosition;
-            Tick(pivot.p, deltaTime, friction, _bounds, out bool x, out bool y);
+            Tick(pivot.p, deltaTime, friction, _bounds);
             //If it wrapped we just return the final position, ignore the wrapping for now
-            yield return (pivot.p, x || y ? pivot.p.NormalizedPosition : before, pivot.depth);
+            yield return (pivot.p, pivot.p._wrappedLastTick ? pivot.p.NormalizedPosition : before, pivot.depth);
         }
     }
 
@@ -137,18 +139,22 @@ public class Particle
     }
 
 
-    private static void Tick(Particle particle, float deltaTime, float friction, Vector2 bounds, out bool wrappedX,
-        out bool wrappedY)
+    private static void Tick(Particle particle, float deltaTime, float friction, Vector2 bounds)
     {
         particle.Orientation.Friction(friction);
         particle._position += particle.Orientation.Velocity * deltaTime;
-        wrappedX = particle._position.x < 0 || particle._position.x >= bounds.x;
-        if (wrappedX)
+        particle._wrappedLastTick = false;
+        if (particle._position.x < 0 || particle._position.x >= bounds.x)
+        {
             particle._position.x = Mathf.Repeat(particle._position.x, bounds.x);
-        wrappedY = particle._position.y < 0 || particle._position.y >= bounds.y;
+            particle._wrappedLastTick = true;
+        }
 
-        if (wrappedY)
+        if (particle._position.y < 0 || particle._position.y >= bounds.y)
+        {
             particle._position.y = Mathf.Repeat(particle._position.y, bounds.y);
+            particle._wrappedLastTick = true;
+        }
     }
 
     public void AddForce(Vector2 force)
@@ -178,6 +184,7 @@ public class Particle
     {
         _orientation.AddForce(new(-_orientation.Velocity.x * 2, 0));
     }
+
     public void FlipY()
     {
         _orientation.AddForce(new(0, -_orientation.Velocity.y * 2));
