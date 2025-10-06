@@ -53,7 +53,8 @@ public partial class GodotEntry : Node
 	private int _maxStrokeSize = 10;
 	[Export] private float _relativeRandomBrushOffset = 0.1f;
 
-
+	[Export] private int _curveRes = 1000;
+	
 	[Export] private float _sineFrequency;
 
 	[ExportSubgroup("Type of stroke")] [Export]
@@ -229,7 +230,7 @@ public partial class GodotEntry : Node
 				!_squareStrokeOverCircle);
 			psteps.Add(_write);
 			prewarm.Add(view);
-			var lateWrite = new LateWriteToTex(_saveLastFrame || true ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late")) : null);
+			var lateWrite = new LateWriteToTex(_saveLastFrame || true ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late")) : null,_curveRes);
 			psteps.Add(lateWrite);
 		}
 
