@@ -49,4 +49,7 @@ public static class ViewHelpers
         var v = new Godot.Vector2(coord.x, coord.y).ToPixelCoord(_drawing);
         return new Vector2Int(v.X, v.Y);
     }
+    public static System.Numerics.Vector2 ToSystemV2(this Godot.Vector2 v) => new System.Numerics.Vector2(v.X, v.Y);
+    
+    public static Godot.Vector2 ToGodotV2(this System.Numerics.Vector2 v) => new Godot.Vector2(v.X, v.Y);
 }
