@@ -7,14 +7,18 @@ using DefaultNamespace.Tools;
 using Godot;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Assertions;
 using Color = UnityEngine.Color;
 using Mathf = UnityEngine.Mathf;
+using Texture = Godot.Texture;
 using Vector2 = UnityEngine.Vector2;
 
 public class WriteToTex : ParticleStep
 {
+    private Image _brush;
     private float _viewSize;
     private int _lineRadius;
+    private float _randomOffset = 0.1f;
 
     public float ViewSize
     {
@@ -27,6 +31,7 @@ public class WriteToTex : ParticleStep
     private bool _circle;
 
     public WriteToTex(Sprite2D renderer, float viewSize, int size, Saver saver, LineCollection lineCollection,
+        Image brush, float randomOffset,
         bool circle = true)
     {
         _renderer = renderer;
@@ -35,6 +40,9 @@ public class WriteToTex : ParticleStep
         _lineRadius = size;
         _circle = circle;
         _lineCollection = lineCollection;
+        _brush = brush;
+        _brush.Resize(_lineRadius, _lineRadius);
+        _randomOffset = randomOffset;
     }
 
     private Sprite2D _renderer;
@@ -58,6 +66,7 @@ public class WriteToTex : ParticleStep
     public override async Task Init(WorldInitializer init)
     {
         await base.Init(init);
+        Assert.IsTrue(_brush.GetWidth() == _brush.GetHeight());
         _texProvider = init.Texture;
         //We need to have the tex before initializing the saving
         var original = _texProvider.Texture.Duplicate() as Image;
@@ -99,36 +108,46 @@ public class WriteToTex : ParticleStep
         var height = _drawingImage.GetHeight();
         foreach (var line in _lineCollection.GetLines())
         {
-            var start = ToPixelCoord(line.Start);
-            var end = ToPixelCoord(line.End);
+            var start = line.Start.ToPixelCoord(_drawing);
+            var end = line.End.ToPixelCoord(_drawing);
             var points = LineCollection.Line.GetPixels(start, end);
             var finalWidth = (int)(line.RelativeWidth * this._lineRadius);
+            finalWidth = (int)(line.RelativeWidth * _brush.GetWidth() / 2);
             foreach (var coords in points)
             {
                 if (_circle)
                 {
                     for (int x = -finalWidth; x <= finalWidth; x++)
-                    for (int y = -finalWidth; y <= finalWidth; y++)
-                        if (x * x + y * y <= finalWidth * finalWidth)
-                            if (coords.x + x >= 0 && coords.x + x < width && coords.y + y >= 0 &&
-                                coords.y + y < height)
+                    {
+                        for (int y = -finalWidth; y <= finalWidth; y++)
+                        {
+                            if (x * x + y * y <= finalWidth * finalWidth)
                             {
-                                //This is raw results on a blank tex
-                                _drawingImage.SetPixel(coords.x + x, coords.y + y, line.Color);
-                                //This is results overwriting the base texture
-                                _toSaveImage.SetPixel(coords.x + x, coords.y + y, line.Color);
+                                var bigX = coords.x + x;
+                                var bigY = coords.y + y;
+                                if (bigX >= 0 && bigX < width && bigY >= 0 &&
+                                    bigY < height)
+                                {
+                                    var color = ComputeColorFromBrush(x + finalWidth, y + finalWidth, line.Color);
+                                    if (color.A > .001f)
+                                    {
+                                        //This is raw results on a blank tex
+                                        _drawingImage.SetPixel(bigX, bigY, color);
+                                        //This is results overwriting the base texture
+                                        _toSaveImage.SetPixel(bigX, bigY, color);
+                                    }
+                                }
                             }
+                        }
+                    }
                 }
                 else
                 {
                     var rect = new Rect2I(coords.x - finalWidth, coords.y - finalWidth, finalWidth * 2 + 1,
                         finalWidth * 2 + 1);
                     //This is raw results on a blank tex
-                    //_drawingImage.SetPixel(coords.x, coords.y, line.Color);
-
                     _drawingImage.FillRect(rect, line.Color);
                     //This is results overwriting the base texture
-                    //_toSaveImage.SetPixel(coords.x, coords.y, line.Color);
                     _toSaveImage.FillRect(rect, line.Color);
                 }
             }
@@ -139,11 +158,18 @@ public class WriteToTex : ParticleStep
         return Task.CompletedTask;
     }
 
-    private Vector2Int ToPixelCoord(Vector2 coord)
+    private Godot.Color ComputeColorFromBrush(int texX, int texY, Color lineColor)
     {
-        var x = Mathf.RoundToInt(coord.x * (_drawing.GetWidth() - 1));
-        var y = Mathf.RoundToInt(coord.y * (_drawing.GetHeight() - 1));
-        return new Vector2Int(x, y);
+        var rdSize = (int)(_lineRadius * _randomOffset);
+        texX += UnityEngine.Random.Range(-rdSize, rdSize);
+        texY += UnityEngine.Random.Range(-rdSize, rdSize);
+        texX = Godot.Mathf.Clamp(texX, 0, _brush.GetWidth() - 1);
+        texY = Godot.Mathf.Clamp(texY, 0, _brush.GetHeight() - 1);
+        var brushColor = _brush.GetPixel(texX, texY);
+        //We asssume brush is black on transparent, we want the fully black part to display the base color untouched, the brighter part (up to transparent) to dim a bit the base color
+        return new Godot.Color((1f - brushColor.R) * lineColor.r, (1f - brushColor.G) * lineColor.g,
+            (1f - brushColor.B) * lineColor.b,
+            brushColor.A * lineColor.a);
     }
 
 

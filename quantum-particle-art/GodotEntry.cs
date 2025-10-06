@@ -44,8 +44,12 @@ public partial class GodotEntry : Node
 	[Export] private int _maxSteps = 2000;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
 
-	[ExportSubgroup("Stroke settings")] [Export(PropertyHint.Range, "0,100,1")]
+	[ExportSubgroup("Stroke settings")] 
+	[Export] private CompressedTexture2D _brush;
+	[Export(PropertyHint.Range, "0,100,1")]
 	private int _maxStrokeSize = 10;
+	[Export] private float _relativeRandomBrushOffset = 0.1f;
+
 
 	[Export] private float _sineFrequency;
 
@@ -218,10 +222,12 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y, _maxStrokeSize,
-				_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection,
+				_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection, _brush.GetImage(), _relativeRandomBrushOffset,
 				!_squareStrokeOverCircle);
 			psteps.Add(_write);
 			prewarm.Add(view);
+			var lateWrite = new LateWriteToTex(_saveLastFrame || true ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late")) : null);
+			psteps.Add(lateWrite);
 		}
 
 		var looper = new GeneticLooper(id, size, conditions, psteps, psteps, prewarm,
