@@ -21,14 +21,13 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private IChromosome _current = null;
     private int? _result = null;
 
-    private int _id;
+    private readonly int _id;
 
     public void ExternalRestart()
     {
         _shouldStop = true;
     }
 
-    public bool Finished => _result.HasValue;
 
     public int GetResultAndFreeLooper()
     {
@@ -36,13 +35,14 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         return _result ?? -1;
     }
 
+    public bool ResultAvailable => _result.HasValue;
     public bool Busy => _current != null;
-    private Vector2I _size;
+    private readonly Vector2I _size;
     private int _nbParticles => _init.Spawn.NbParticles;
     private object _lock = new();
     public object Lock => _lock;
 
-    public GeneticLooper(int id, InitConditions init,
+    public GeneticLooper(int id, Vector2I availableSize, InitConditions init,
         IEnumerable<IInit<WorldInitializer>> inits,
         IEnumerable<IStep<ParticleWorld>> step,
         IEnumerable<IInit<ParticleWorld>> prewarm,
@@ -57,7 +57,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         _texHeight = texHeight;
         _result = null;
         _current = null;
-        _size = new(_nbParticles - 2, _nbParticles);
+        _size = availableSize;
     }
 
     public void Start(IChromosome evaluationTarget, int input)
@@ -104,13 +104,11 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         {
             var c = (GeneContent)g.Value;
             //GetConstructor([typeof(byte)]).Invoke([c.Input]);
+            //GetConstructor([]).Invoke([]) as AGate
             var type = GatesTypesToInt.Type(c.TypeId);
-            return new GateConfiguration(type.GetConstructor([]).Invoke([]) as AGate,
+            return new GateConfiguration(type.DeepCopy(),
                 new Vector2I(i % _size.X + 1, i / _size.X));
         });
-        return Enumerable.Range(1, _nbParticles - 2)
-            .Select<int, GateConfiguration>(i =>
-                new(new Rotate(45), [new(i, (int)UnityEngine.Random.Range(0, _nbParticles))]));
     }
 
     protected override IEnumerable<IInit<ParticleWorld>> GetPrewarms() => _prewarm;

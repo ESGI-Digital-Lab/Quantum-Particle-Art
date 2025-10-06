@@ -165,6 +165,8 @@ namespace UnityEngine
 	{
 		public static float Range(float min, float max) =>
 			(float)GD.RandRange(min, max);
+		public static int Range(int min, int exclusiveMax) =>
+			GD.RandRange(min, exclusiveMax-1);
 
 		public static Color ColorHSV() => Color.ColorHSV(Range(0f, 1f), Range(0f, 1f), Range(0f, 1f));
 	}

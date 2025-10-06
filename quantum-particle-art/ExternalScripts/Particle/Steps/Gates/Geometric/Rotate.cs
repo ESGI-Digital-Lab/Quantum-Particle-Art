@@ -4,24 +4,29 @@
 [GlobalClass]
 public partial class Rotate : AGate
 {
-    [Export] private float _degrees;
-    [Export] private bool _degInName;
+    [Export(PropertyHint.Range,"0,360,1")] private float _degrees;
+    [Export] private bool _inverted = false;
+
     public Rotate() : this(45f)
     {
     }
-    public Rotate(float degrees, bool degInName = false)
+
+    public Rotate(float degrees, bool inverted = false)
     {
+        _inverted = inverted;
         _degrees = degrees;
-        _degInName = degInName;
     }
+
     public override bool Resolve(Particle particle)
     {
-        particle.Orientation.Degrees += _degrees;
+        particle.Orientation.Degrees +=  _inverted ? -_degrees : _degrees;
         return true;
     }
 
+    
+    public override string Label => base.Label + (_inverted ? "-" : "+") + _degrees.ToString("0.#");
 
-    public override Color Color => Colors.SteelBlue;
+    public override Color Color => _inverted ? Colors.MediumSlateBlue : Colors.DarkBlue;
 
-    public override string ShortName => "Rz" + (_degInName ? Mathf.RoundToInt(_degrees).ToString() : "");
+    public override string ShortName => "Rz";
 }

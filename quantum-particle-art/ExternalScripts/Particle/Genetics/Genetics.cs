@@ -10,55 +10,92 @@ using Random = UnityEngine.Random;
 
 public class Genetics
 {
-    private int _maxGen = 10000;
-    private int _popSize = 12;
-    private readonly int _nbParticles;
     private readonly Vector2I _size;
-    private GeneticAlgorithm _ga;
+    private readonly GeneticAlgorithm _ga;
+    private int _genFinished = 0;
 
-    private int _finishedCount = 0;
-    private int _totalIndex = 0;
-    private int _nbGen = 0;
-    public event Action<IList<IChromosome>> OnGenerationReady;
+    private ParticleSimulatorFitness comparison;
+    private IProblem _problem;
 
-    private IntComparisonFitness comparison;
     private object _lock = new();
-    private const int Input = 79;
-
-    public Genetics(int nbParticles, Vector2I size, int maxGen, int maxPop, List<GeneticLooper> loopers)
+    private readonly GAParams _gaParams;
+    private bool _thresholdReached = false;
+    private readonly GeneticLooper _viewer;
+    
+    public Genetics(int nbParticles, Vector2I size, GAParams param, List<GeneticLooper> loopers,
+        GeneticLooper viewer,
+        IEnumerable<AGate> gatesTemplate)
     {
-        GatesTypesToInt.OverrideReflection([typeof(Rotate), typeof(Union), typeof(EmptyGate), typeof(Speed)]);
-        _nbParticles = nbParticles;
+        _gaParams = param;
+        _viewer = viewer;
+        GatesTypesToInt.OverrideReflection(new EmptyGate(), gatesTemplate);
         _size = size;
-        _maxGen = maxGen;
-        _popSize = maxPop;
+        _ga = CreateGA(nbParticles, loopers, out var proportional, out var exact, out var average);
+        _ga.Termination = CreateTermination();
+        _ga.TaskExecutor = new ParallelTaskExecutor();
+        _ga.GenerationRan += (s, a) =>
+        {
+            if (!_thresholdReached && _ga.BestChromosome.Fitness >= _gaParams.Threshold)
+            {
+                _thresholdReached = true;
+                UnityEngine.Debug.Log("Reached fitness of best chromosome threshold of " + _gaParams.Threshold +
+                                      "at gen " + _genFinished);
+                //When we reached a good threshold, we want to favor exact matches, we keep bitwise evaluation to discrimnate potential "not matching" chromosomes, especially after this change
+                UnityEngine.Debug.Log(" increasing average evaluations and changing weights to favor exact matches");
+                comparison.UpdateWeight(proportional, 1f);
+                comparison.UpdateWeight(exact, 8f);
+                average.NumberEvaluations = (int)(average.NumberEvaluations * 3);
+            }
+        };
+        _ga.GenerationRan += (s, a) => GenerationFinished();
+        _ga.TerminationReached += (sender, args) => UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " + _ga.BestChromosome.Fitness);
+        
+        Task.Run(() => _ga.Start());
+    }
+
+    private void GenerationFinished()
+    {
+        _genFinished++;
+        var best = _ga.BestChromosome;
+        UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness +
+                              "showing it on the view");
+        while (_viewer.Busy) //We run it till the end
+            Task.Delay(100).Wait();
+        _viewer.Start(best, comparison.Input(best));
+        Task.Run(() =>
+        {
+            while (!_viewer.ResultAvailable) //We run it till the end
+                Task.Delay(100).Wait();
+            _ = _viewer.GetResultAndFreeLooper();
+        });
+    }
+
+    private ITermination CreateTermination()
+    {
+        ITermination term = new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/);
+        if (_gaParams.MaxGen > 0)
+            term = new OrTermination(term, new GenerationNumberTermination(_gaParams.MaxGen));
+        term = new OrTermination(term, new FitnessStagnationTermination(200));
+        return term;
+    }
+
+    private GeneticAlgorithm CreateGA(int nbParticles, List<GeneticLooper> loopers, out BitWiseEvaluator proportional,
+        out ExactMatchEvaluator exact,
+        out AveragedFitness average)
+    {
         var selection = new TournamentSelection();
         var crossover = new UniformCrossover();
         var mutation = new UniformMutation(true);
-        float[] w = [.15f, .85f];
-        comparison = new IntComparisonFitness((int)Mathf.Pow(2, nbParticles) - 1, Input, Input * 2, loopers);
-        IFitness fitness;
-        fitness = new CombinedFitness((new MostNullGates(), w[0]), (comparison, w[1]));
-        //fitness = comparison;
+        float[] w = [1, 10f];
+        var max = (int)Mathf.Pow(2, nbParticles) - 1;
+        _problem = new Operation(max);
+        proportional = new BitWiseEvaluator(nbParticles);
+        exact = new ExactMatchEvaluator();
+        comparison = new ParticleSimulatorFitness(nbParticles, max, loopers, _problem, (proportional, 4f), (exact, 1f));
+        average = new AveragedFitness(comparison, 7);
+        IFitness fitness = new CombinedFitness((new MostNullGates(), w[0]), (average, w[1]));
         var chromosome = new Chromosome(_size.X * _size.Y);
-        var population = new Population(_popSize / 4, _popSize, chromosome);
-        _ga = new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
-        _ga.Termination = new FitnessThresholdTermination(1f /*w[1] / w.Sum()*/);
-        if (_nbGen > 0)
-            _ga.Termination = new OrTermination(_ga.Termination, new GenerationNumberTermination(_maxGen));
-
-        //new FitnessStagnationTermination(50),
-        //We start the GA when the trigger is activated
-        _ga.TaskExecutor = new ParallelTaskExecutor();
-        Task.Run(() => _ga.Start());
-        //dataReadyTrigger += _ga.Start;
-        _ga.GenerationRan += (sender, args) =>
-        {
-            //When we finished a generation, we stop the GA and wait for the next trigger
-            //_ga.Stop();
-            UnityEngine.Debug.Log($"--------------Gen finished {_nbGen}, best fitness: " + _ga.BestChromosome.Fitness);
-            //OnGenerationReady?.Invoke(_ga.Population.CurrentGeneration.Chromosomes);
-            _nbGen++;
-        };
+        var population = new Population(_gaParams.PopSize, _gaParams.PopSize * 4, chromosome);
+        return new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
     }
 }

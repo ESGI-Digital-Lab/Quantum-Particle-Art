@@ -21,6 +21,7 @@ public partial class Speed : AGate
             particle.Orientation.Speed *= _value;
         return true;
     }
+    public override string Label => base.Label + (_rawSetOverMult ? "=" : "x") + _value.ToString("0.##");
 
 
     public override Color Color => Colors.IndianRed;

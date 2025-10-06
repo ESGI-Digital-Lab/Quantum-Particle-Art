@@ -107,22 +107,17 @@ public struct Gates
 [Serializable]
 public struct InitConditions
 {
-	public InitConditions(InitConditions other)
+	public InitConditions(InitConditions other) : this(other._ratio, other._texture, other._rules, other._colors, other._gateSize, other._specyPicker, other._spawn)
 	{
-		_texture = other._texture;
-		_rules = other._rules;
-		_colors = other._colors;
-		_gateSize = other._gateSize;
-		_specyPicker = other._specyPicker;
-		_ratio = other._ratio;
-		_spawn = other._spawn.Duplicate(true) as EncodedConfiguration;
+		
 	}
 	public InitConditions(float ratio, ATexProvider texture, RulesSaved rules, IColorPicker colors, float gateSize, ISpecyPicker specyPicker, EncodedConfiguration spawn)
 	{
 		_texture = texture;
 		_rules = rules;
 		_colors = colors;
-		_spawn = spawn;
+		_spawn = spawn.Duplicate(true) as EncodedConfiguration;
+		_spawn.Reset();
 		_gateSize = gateSize;
 		_specyPicker = specyPicker;
 		_ratio = ratio;

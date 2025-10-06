@@ -30,9 +30,13 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	[ExportCategory("Genetics")] [Export] private int _nbInstances = 50;
-	[Export] private int _nbGenMax = 2000;
-	[Export] private int _maxPopulation = 100;
+	[ExportCategory("Genetic Algorithm")]
+	[ExportGroup("Genetic meta parameters")]
+	[Export] private int _nbInstances = 50;
+	[Export] private GAParams _params;
+	[ExportGroup("Gates")]
+	[Export] private bool _forceAllGatesLabel = true;
+	[Export] private Godot.Collections.Array<AGate> _gates;
 
 	#endregion
 
@@ -43,9 +47,14 @@ public partial class GodotEntry : Node
 	[Export] private int _maxSteps = 2000;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
 
-	[ExportSubgroup("Stroke settings")] [Export(PropertyHint.Range, "0,100,1")]
+	[ExportSubgroup("Stroke settings")] 
+	[Export] private CompressedTexture2D _brush;
+	[Export(PropertyHint.Range, "0,100,1")]
 	private int _maxStrokeSize = 10;
+	[Export] private float _relativeRandomBrushOffset = 0.1f;
 
+	[Export] private int _curveRes = 1000;
+	
 	[Export] private float _sineFrequency;
 
 	[ExportSubgroup("Type of stroke")] [Export]
@@ -76,7 +85,8 @@ public partial class GodotEntry : Node
 	#region Particles&Gates
 
 	[ExportGroup("Particles")] [ExportSubgroup("Spawn area")] [Export]
-	private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
+	EncodedConfiguration _spawnTemplate;
+	//private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
 
 	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
 
@@ -130,26 +140,31 @@ public partial class GodotEntry : Node
 		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
-		var code = _spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
+		var code = _spawnTemplate;
+		//_spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
 		if (code == null)
 		{
 			Debug.LogError("No encoding spawn found, looper won't work properly");
 		}
+
 		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
+		var availableSize = new Vector2I(code.NbParticles - 1, code.NbParticles);
+		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, availableSize, true);
+		viewerLooper.SetNode(this);
+		_renderMono = viewerLooper;
 		for (int i = 0; i < _nbInstances; i++)
 		{
-			var looper = CreateLooper(new InitConditions(uniqueCondition), i, globalLock, i == 0);
+			var looper = CreateLooper(new InitConditions(uniqueCondition), i + 1, globalLock, availableSize, false);
 			looper.SetNode(this);
 			_loopers.Add(looper);
-			if(i==0)
-				_renderMono = looper;
-			else
-				_monos.Add(looper);
+			_monos.Add(looper);
 		}
-		var globalGenetics = new Genetics(code.NbParticles, new Vector2I(code.NbParticles - 2, code.NbParticles),
-			_nbGenMax, _maxPopulation, _loopers);
-		
+
+		AGate.ShowLabelDefault = _forceAllGatesLabel;
+		//Starts GA asynchronously using the provided loopers to run and evaluate simulations
+		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates);
+
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
 		{
@@ -187,7 +202,8 @@ public partial class GodotEntry : Node
 		//Task.WaitAll(_tasks);²
 	}
 
-	private GeneticLooper CreateLooper(InitConditions conditions, int id,object sharedLock, bool withView = true)
+	private GeneticLooper CreateLooper(InitConditions conditions, int id, object sharedLock, Vector2I size,
+		bool withView = true)
 	{
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
@@ -203,25 +219,27 @@ public partial class GodotEntry : Node
 		{
 			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 			psteps.Add(view);
-			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new ToggleLiner(_sineFrequency);
+			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new DeltaRotLiner();
 			tick.onMovement += data =>
 			{
 				lineCollection.AddLine(liner.CreateLine(data));
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y, _maxStrokeSize,
-				_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection,
+				_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection, _brush.GetImage(), _relativeRandomBrushOffset,
 				!_squareStrokeOverCircle);
 			psteps.Add(_write);
 			prewarm.Add(view);
+			var lateWrite = new LateWriteToTex(_saveLastFrame || true ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late")) : null,_curveRes);
+			psteps.Add(lateWrite);
 		}
 
-		var looper = new GeneticLooper(id, conditions, psteps, psteps, prewarm,
+		var looper = new GeneticLooper(id, size, conditions, psteps, psteps, prewarm,
 			withView ? _targetHeightOfBackgroundTexture : -1);
 		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
 		//looper.InitChange += OnInitChanged;
 		tick.onAllDead += () => { looper.ExternalRestart(); };
-		var world = new WorldInitializer(_worldSize, _spawns.ToArray());
+		var world = new WorldInitializer(_worldSize);
 		looper.BaseInitializer = world;
 		return looper;
 	}
@@ -240,9 +258,8 @@ public partial class GodotEntry : Node
 		Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
 		var amt = Math.Max(Math.Max(_nbMinLoops, _nbSpecies.Length), Math.Max(_backgroundTypes.Count, _ruleType.Count));
 		InitConditions[] initConditionsArray = new InitConditions[amt];
-		var spawn =
-			_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) as
-				EncodedConfiguration;
+		var spawn = _spawnTemplate;
+		//_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) asEncodedConfiguration;
 		Assert.IsNotNull(spawn,
 			"No valid EncodedConfiguration template spawn with gates found in the list of spawns, cannot proceed");
 		int canvasCount = -1;

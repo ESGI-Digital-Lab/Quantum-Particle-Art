@@ -19,6 +19,7 @@
     <Content Include="ExternalScripts\NaughtyAttributes\Core\ValidatorAttributes.meta" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Bezier" Version="0.9.4" />
     <PackageReference Include="GeneticSharp" Version="3.1.4" />
     <PackageReference Include="GeneticSharp.Extensions" Version="3.1.4" />
     <PackageReference Include="KGySoft.Drawing" Version="9.2.0" />
