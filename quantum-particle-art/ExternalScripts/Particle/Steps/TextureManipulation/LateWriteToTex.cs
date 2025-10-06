@@ -42,12 +42,14 @@ public class LateWriteToTex : ParticleStep
     private Image _base;
     private ImageTexture _dynamic;
     private ParticleHistory _history;
+    private Brush _brush;
     private int _curveRes = 1000;
 
-    public LateWriteToTex(Saver saver, int curveRes)
+    public LateWriteToTex(Saver saver, Brush brush, int curveRes)
     {
         _saver = saver;
         _curveRes = curveRes;
+        _brush = brush;
     }
 
     public override async Task Init(WorldInitializer initializer)
@@ -103,13 +105,13 @@ public class LateWriteToTex : ParticleStep
                         }
 
                         int nbPoints = _curveRes;
-                        for (int i = 0; i < nbPoints; i++)
+                        var sampled = Enumerable.Range(0,_curveRes).Select(i => i / (nbPoints - 1f)).Select(t => curve.Position(t).ToUnityV2().ToPixelCoord(_dynamic));
+                        var color = startColor;
+                        _brush.DrawWithBrush(_base, sampled, i =>
                         {
-                            float t = i / (nbPoints - 1f);
-                            var size = Vector2I.One * 10;
-                            _base.FillRect(new Rect2I(curve.Position(t).ToGodotV2().ToPixelCoord(_dynamic), size),
-                                point.color * t + startColor * (1 - t));
-                        }
+                            float  t = i / (nbPoints - 1f);
+                            return point.color * t + color * (1 - t);
+                        }, 1f);
                     }
 
                     pts = [point.position.ToSystemV2()];
