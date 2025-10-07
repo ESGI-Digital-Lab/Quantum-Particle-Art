@@ -38,18 +38,20 @@ public class LateWriteToTex : ParticleStep
         }
     }
 
-    private Saver _saver;
     private Image _base;
     private ImageTexture _dynamic;
     private ParticleHistory _history;
-    private Brush _brush;
-    private int _curveRes = 1000;
+    private readonly Saver _saver;
+    private readonly Brush _brush;
+    private readonly IWidther _width;
+    private readonly int _curveRes = 1000;
 
-    public LateWriteToTex(Saver saver, Brush brush, int curveRes)
+    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes)
     {
         _saver = saver;
         _curveRes = curveRes;
         _brush = brush;
+        _width = width;
     }
 
     public override async Task Init(WorldInitializer initializer)
@@ -61,7 +63,7 @@ public class LateWriteToTex : ParticleStep
         _dynamic = ImageTexture.CreateFromImage(_base);
         if (_saver != null)
         {
-            _saver.Init(_base, aTexProvider.Name + "_"+_brush.ToString()+"_"+_curveRes);
+            _saver.Init(_base, aTexProvider.Name + "_" + _brush.ToString() + "_" + _curveRes);
         }
     }
 
@@ -81,7 +83,7 @@ public class LateWriteToTex : ParticleStep
         foreach (var kvp in _history.Entries)
         {
             List<System.Numerics.Vector2> pts = new();
-            Godot.Color startColor = kvp.Value.First().color;
+            var startInfo = kvp.Value.First();
             foreach (var point in kvp.Value)
             {
                 if (point.continuous) //End of continuous line, draw what we have and start a new one
@@ -90,7 +92,7 @@ public class LateWriteToTex : ParticleStep
                 }
                 else
                 {
-                    if (pts.Count >= 2)//Else we don't draw anything
+                    if (pts.Count >= 2) //Else we don't draw anything
                     {
                         Bezier curve = null;
                         try
@@ -105,17 +107,22 @@ public class LateWriteToTex : ParticleStep
                         }
 
                         int nbPoints = _curveRes;
-                        var sampled = Enumerable.Range(0,_curveRes).Select(i => i / (nbPoints - 1f)).Select(t => curve.Position(t).ToUnityV2().ToPixelCoord(_dynamic));
-                        var color = startColor;
-                        _brush.DrawWithBrush(_base, sampled, i =>
+                        var color = startInfo.color;
+                        var vel = startInfo.velocity;
+                        var sampled = Enumerable.Range(0, _curveRes).Select(i => i / (nbPoints - 1f)).Select(t =>
                         {
-                            float  t = i / (nbPoints - 1f);
-                            return point.color * t + color * (1 - t);
-                        }, 1f);
+                            var coords = curve.Position(t).ToUnityV2().ToPixelCoord(_dynamic);
+                            var width = 
+                                //curve.Tangent(t).Length();
+                                _width.DetermineWidth(point.velocity * t + vel * (1 - t));
+                            UnityEngine.Debug.Log("Tangent length as width: " + width);
+                            return new Brush.StrokePoint(coords, point.color * t + color * (1 - t), width);
+                        });
+                        _brush.DrawWithBrush(_base, sampled);
                     }
 
                     pts = [point.position.ToSystemV2()];
-                    startColor = point.color;
+                    startInfo = point;
                 }
             }
         }
