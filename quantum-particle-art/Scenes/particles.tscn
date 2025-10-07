@@ -16,7 +16,7 @@
 [ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="5_yi0l3"]
 [ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="6_2d2wn"]
 [ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="6_bv6uv"]
-[ext_resource type="Texture2D" uid="uid://pbdwga3lfeke" path="res://Visuals/Generated_Brushes/omni_brush.png" id="6_mum02"]
+[ext_resource type="Texture2D" uid="uid://pbdwga3lfeke" path="res://Visuals/Generated_Brushes/omniBrush.png" id="6_mum02"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
@@ -94,13 +94,14 @@ _gates = Array[Object]([SubResource("Resource_gvqa1"), SubResource("Resource_yi0
 _worldSize = 300.0
 _timeSteps = 1.0
 _maxSteps = 100
+_saveLastFrame = false
 _brush = ExtResource("6_mum02")
-_maxStrokeSize = 100
+_maxStrokeSize = 150
 _relativeRandomBrushOffset = 0.0
 _sineFrequency = 1.0
 _useSpeed = true
 _dynamicMax = true
-_targetHeightOfBackgroundTexture = 2048
+_targetHeightOfBackgroundTexture = 4096
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
 _spawnTemplate = SubResource("Resource_1mke2")
