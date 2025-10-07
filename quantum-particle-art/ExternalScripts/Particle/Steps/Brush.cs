@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using UnityEngine;
 using Color = UnityEngine.Color;
@@ -10,6 +11,8 @@ public class Brush
     private int _size;
     private float _randomOffset = 0.1f;
     private string _name;
+
+    public record struct StrokePoint(Vector2Int coords, Color color, float relativeSize);
 
     public Brush(Image brush, int size, float randomOffset, string name)
     {
@@ -29,28 +32,25 @@ public class Brush
     public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor,
         float strokeRelativeSize = 1f)
     {
-        DrawWithBrush(target, points, _ => baseColor, strokeRelativeSize);
+        DrawWithBrush(target, points.Select(p=> new StrokePoint(p,baseColor,strokeRelativeSize)));
     }
 
-
-    public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Func<int, Color> baseColor,
-        float strokeRelativeSize = 1f)
+    public void DrawWithBrush(Image target, IEnumerable<StrokePoint> points)
     {
         int width = target.GetWidth();
         int height = target.GetHeight();
-        var finalWidth = (int)(strokeRelativeSize * _brush.GetWidth() / 2);
-        int i = 0;
-        foreach (var coords in points)
+        foreach (var point in points)
         {
-            var bColor = baseColor(i++);
+            var finalWidth = (int)(point.relativeSize * _brush.GetWidth() / 2);
+            var bColor = point.color;
             for (int x = -finalWidth; x <= finalWidth; x++)
             {
                 for (int y = -finalWidth; y <= finalWidth; y++)
                 {
                     if (x * x + y * y <= finalWidth * finalWidth)
                     {
-                        var bigX = coords.x + x;
-                        var bigY = coords.y + y;
+                        var bigX = point.coords.x + x;
+                        var bigY = point.coords.y + y;
                         if (bigX >= 0 && bigX < width && bigY >= 0 &&
                             bigY < height)
                         {
