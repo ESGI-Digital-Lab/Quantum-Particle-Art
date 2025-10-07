@@ -19,12 +19,16 @@ public class Genetics
 
     private object _lock = new();
     private readonly GAParams _gaParams;
-    private bool _thresholdReached = false;
     private readonly GeneticLooper _viewer;
-    
+    public event Action<Threshold> OnThresholdReached;
+    private Threshold[] _thresholds;
+    private int _gaThresholdIndex = -1;
+
+    public record struct Threshold(float value, int index, bool firstReach = true);
+
     public Genetics(int nbParticles, Vector2I size, GAParams param, List<GeneticLooper> loopers,
         GeneticLooper viewer,
-        IEnumerable<AGate> gatesTemplate)
+        IEnumerable<AGate> gatesTemplate, IEnumerable<float> thresholds)
     {
         _gaParams = param;
         _viewer = viewer;
@@ -33,23 +37,44 @@ public class Genetics
         _ga = CreateGA(nbParticles, loopers, out var proportional, out var exact, out var average);
         _ga.Termination = CreateTermination();
         _ga.TaskExecutor = new ParallelTaskExecutor();
+        _thresholds = thresholds.Append(_gaParams.Threshold).OrderBy(t => t).Select((t, i) =>
+        {
+            if(Mathf.IsEqualApprox(_gaParams.Threshold, t))
+                _gaThresholdIndex = i;
+            return new Threshold(t, i, true);
+        }).ToArray();
         _ga.GenerationRan += (s, a) =>
         {
-            if (!_thresholdReached && _ga.BestChromosome.Fitness >= _gaParams.Threshold)
+            for (var index = 0; index < _thresholds.Length; index++)
             {
-                _thresholdReached = true;
-                UnityEngine.Debug.Log("Reached fitness of best chromosome threshold of " + _gaParams.Threshold +
-                                      "at gen " + _genFinished);
-                //When we reached a good threshold, we want to favor exact matches, we keep bitwise evaluation to discrimnate potential "not matching" chromosomes, especially after this change
-                UnityEngine.Debug.Log(" increasing average evaluations and changing weights to favor exact matches");
-                comparison.UpdateWeight(proportional, 1f);
-                comparison.UpdateWeight(exact, 8f);
-                average.NumberEvaluations = (int)(average.NumberEvaluations * 3);
+                var t = _thresholds[index];
+                if (_ga.BestChromosome.Fitness >= t.value)
+                {
+                    OnThresholdReached?.Invoke(t);
+                    t.firstReach = false;
+                    _thresholds[index] = t;
+                }
+                else
+                    break; //Assuming they are sorted
             }
         };
+        OnThresholdReached += t =>
+        {
+            if (!t.firstReach || t.index != _gaThresholdIndex)
+                return;
+            UnityEngine.Debug.Log("Reached fitness of best chromosome threshold of " + _gaParams.Threshold +
+                                  "at gen " + _genFinished);
+            //When we reached a good threshold, we want to favor exact matches, we keep bitwise evaluation to discrimnate potential "not matching" chromosomes, especially after this change
+            UnityEngine.Debug.Log(" increasing average evaluations and changing weights to favor exact matches");
+            comparison.UpdateWeight(proportional, 1f);
+            comparison.UpdateWeight(exact, 8f);
+            average.NumberEvaluations = (int)(average.NumberEvaluations * 3);
+        };
         _ga.GenerationRan += (s, a) => GenerationFinished();
-        _ga.TerminationReached += (sender, args) => UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " + _ga.BestChromosome.Fitness);
-        
+        _ga.TerminationReached += (sender, args) =>
+            UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " +
+                                  _ga.BestChromosome.Fitness);
+
         Task.Run(() => _ga.Start());
     }
 
