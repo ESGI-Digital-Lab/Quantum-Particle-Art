@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
-using DefaultNamespace.Particle.Steps.TextureManipulation;
 using DefaultNamespace.Tools;
 using Godot;
 using UnityEngine.Assertions;
@@ -239,9 +238,10 @@ public partial class GodotEntry : Node
 				psteps.Add(_write);
 			}
 
+			IWidther widther = new ToggleLiner(_dynamicMax);
 			var lateWrite = new LateWriteToTex(_saveLastFrame || true
 				? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
-				: null, brush, _curveRes);
+				: null, brush, widther,_curveRes);
 			psteps.Add(lateWrite);
 		}
 
