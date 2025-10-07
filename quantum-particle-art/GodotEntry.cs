@@ -43,6 +43,7 @@ public partial class GodotEntry : Node
 
 	[Export] private float _timeSteps = 0.02f;
 	[Export] private int _maxSteps = 2000;
+	[Export] private Godot.Collections.Array<float> _saveThreholds;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
 	[Export] private bool _drawLive = false;
 
@@ -164,7 +165,14 @@ public partial class GodotEntry : Node
 
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		//Starts GA asynchronously using the provided loopers to run and evaluate simulations
-		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates);
+		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates,
+			_saveThreholds);
+		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
+		globalGenetics.OnThresholdReached += t =>
+		{
+			if (t.firstReach)
+				lateSave.RequestSave((t.value * 100).ToString("F0"));
+		};
 
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
@@ -228,20 +236,21 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			var fileName = _brush.ResourcePath.Split('/')[^1].Split('.')[0]; //Last part without extension
-			var brush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, fileName);
+			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize/10, _relativeRandomBrushOffset, fileName);
 			if (_drawLive)
 			{
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y,
 					_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null,
 					lineCollection,
-					brush);
+					smallBrush);
 				psteps.Add(_write);
 			}
+			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, fileName);
 
 			IWidther widther = new ToggleLiner(_dynamicMax);
 			var lateWrite = new LateWriteToTex(_saveLastFrame || true
 				? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
-				: null, brush, widther,_curveRes);
+				: null, detailledBrush, widther, _curveRes);
 			psteps.Add(lateWrite);
 		}
 
