@@ -61,7 +61,7 @@ public class LateWriteToTex : ParticleStep
         _dynamic = ImageTexture.CreateFromImage(_base);
         if (_saver != null)
         {
-            _saver.Init(_base, aTexProvider.Name + "_");
+            _saver.Init(_base, aTexProvider.Name + "_"+_brush.ToString()+"_"+_curveRes);
         }
     }
 
