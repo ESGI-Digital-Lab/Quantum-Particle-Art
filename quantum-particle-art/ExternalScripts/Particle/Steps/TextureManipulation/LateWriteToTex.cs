@@ -45,13 +45,25 @@ public class LateWriteToTex : ParticleStep
     private readonly Brush _brush;
     private readonly IWidther _width;
     private readonly int _curveRes = 1000;
+    private bool _saveRequested;
+    private bool _saveAll = false;
+    private string _cumulatedInfos = "";
 
-    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes)
+    public void RequestSave(string info)
+    {
+        if (!string.IsNullOrEmpty(info))
+            _cumulatedInfos += "_" + info;
+        _saveRequested = true;
+    }
+
+    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes, bool saveAll = false)
     {
         _saver = saver;
         _curveRes = curveRes;
         _brush = brush;
         _width = width;
+        _saveAll = saveAll;
+        _saveRequested = false;
     }
 
     public override async Task Init(WorldInitializer initializer)
@@ -80,6 +92,9 @@ public class LateWriteToTex : ParticleStep
     public override void Release()
     {
         base.Release();
+        if (!_saveAll && !_saveRequested)
+            return;
+        _saveRequested = false;
         foreach (var kvp in _history.Entries)
         {
             List<System.Numerics.Vector2> pts = new();
@@ -112,10 +127,9 @@ public class LateWriteToTex : ParticleStep
                         var sampled = Enumerable.Range(0, _curveRes).Select(i => i / (nbPoints - 1f)).Select(t =>
                         {
                             var coords = curve.Position(t).ToUnityV2().ToPixelCoord(_dynamic);
-                            var width = 
+                            var width =
                                 //curve.Tangent(t).Length();
                                 _width.DetermineWidth(point.velocity * t + vel * (1 - t));
-                            UnityEngine.Debug.Log("Tangent length as width: " + width);
                             return new Brush.StrokePoint(coords, point.color * t + color * (1 - t), width);
                         });
                         _brush.DrawWithBrush(_base, sampled);
@@ -129,6 +143,7 @@ public class LateWriteToTex : ParticleStep
 
         _dynamic.SetImage(_base);
         if (_saver != null)
-            _saver.SaveTexToDisk();
+            _saver.SaveTexToDisk("-Fit" + _cumulatedInfos);
+        _cumulatedInfos = "";
     }
 }
