@@ -9,13 +9,21 @@ public class Brush
     private Image _brush;
     private int _size;
     private float _randomOffset = 0.1f;
+    private string _name;
 
-    public Brush(Image brush, int size, float randomOffset)
+    public Brush(Image brush, int size, float randomOffset, string name)
     {
         _size = size;
         _brush = brush;
         _randomOffset = randomOffset;
         _brush.Resize(size, size);
+        _name = name;
+    }
+
+    public override string ToString()
+    {
+        return (string.IsNullOrEmpty(_name) ? "" : _name + "_") + _size +
+               (_randomOffset > 0 ? "_" + _randomOffset : "");
     }
 
     public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor,
