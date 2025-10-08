@@ -23,15 +23,16 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
 
     private readonly int _id;
 
-    public void ExternalRestart()
+    public void ExternalStop()
     {
         _shouldStop = true;
     }
 
 
-    public int GetResultAndFreeLooper()
+    public int GetResult(bool free = true)
     {
-        _current = null;
+        if (free)
+            _current = null;
         return _result ?? -1;
     }
 
@@ -72,8 +73,9 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
 
     public override async Task Start()
     {
+        bool alreadyStarted = _shouldRestart;
         await base.Start();
-        _shouldRestart = false;
+        _shouldRestart = alreadyStarted;
     }
 
     protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
@@ -139,10 +141,5 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     public override string ToString()
     {
         return $"GeneticLooper {_id} with {_steps.Length} steps";
-    }
-
-    public T GetStep<T>() where T : class, IStep<ParticleWorld>
-    {
-        return _steps.First(s => s is T) as T;
     }
 }
