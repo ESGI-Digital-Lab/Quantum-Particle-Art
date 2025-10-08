@@ -37,7 +37,7 @@ public class Genetics
         _ga = CreateGA(nbParticles, loopers, out var proportional, out var exact, out var average);
         _ga.CrossoverProbability = _gaParams.CrossoverProb;
         _ga.MutationProbability = _gaParams.MutationProb;
-        _ga.Reinsertion = new FitnessBasedReinsertion();
+        //_ga.Reinsertion = new PureReinsertion();
         _ga.Termination = CreateTermination();
         _ga.TaskExecutor = new ParallelTaskExecutor();
         _thresholds = thresholds.Append(_gaParams.Threshold).OrderBy(t => t).Select((t, i) =>
@@ -71,21 +71,28 @@ public class Genetics
             UnityEngine.Debug.Log(" increasing average evaluations and changing weights to favor exact matches");
             comparison.UpdateWeight(proportional, 1f);
             comparison.UpdateWeight(exact, 8f);
-            average.NumberEvaluations = (int)(average.NumberEvaluations * 3);
+            average.NumberEvaluations = (int)(_gaParams.NbEvaluationsPerIndividual * _gaParams.PostThresholdFactor);
         };
         _ga.GenerationRan += async (s, a) => await GenerationFinished();
         _ga.TerminationReached += (sender, args) =>
             UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " +
                                   _ga.BestChromosome.Fitness);
         Task.Run(() => _ga.Start());
+        Task.Run(async () =>
+        {
+            while (_ga.Population.CurrentGeneration == null)
+                await Task.Delay(100);
+            RunViewer(_ga.Population.CurrentGeneration.Chromosomes[0]);
+            //On start, even before our first evaluation is completed (i.e we don't yet have a best cromosome, we show the first (basically ranodm) one in the viewer so we still have something on screen, all later generations will be showing the best one
+        });
     }
 
     private async Task GenerationFinished()
     {
-        _genFinished++;
         var best = _ga.BestChromosome;
         UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness +
                               "showing it on the view among " + _ga.Population.CurrentGeneration.Chromosomes.Count);
+        _genFinished++;
         while (_viewer.Busy) //We run it till the end
             await Task.Delay(100);
         RunViewer(best);
@@ -94,10 +101,10 @@ public class Genetics
     private void RunViewer(IChromosome target)
     {
         _viewer.Start(target, comparison.Input(target));
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             while (!_viewer.ResultAvailable) //We run it till the end
-                Task.Delay(100).Wait();
+                await Task.Delay(100);
             _ = _viewer.GetResultAndFreeLooper();
         });
     }
@@ -124,7 +131,7 @@ public class Genetics
         proportional = new BitWiseEvaluator(nbParticles);
         exact = new ExactMatchEvaluator();
         comparison = new ParticleSimulatorFitness(nbParticles, max, loopers, _problem, (proportional, 4f), (exact, 1f));
-        average = new AveragedFitness(comparison, 7);
+        average = new AveragedFitness(comparison, _gaParams.NbEvaluationsPerIndividual);
         IFitness fitness = new CombinedFitness((new MostNullGates(), w[0]), (average, w[1]));
         var chromosome = new Chromosome(_size.X * _size.Y);
         var population = new Population(_gaParams.PopSize, _gaParams.PopSize * 4, chromosome);
