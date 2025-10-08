@@ -43,9 +43,9 @@ public partial class GodotEntry : Node
 
 	[Export] private float _timeSteps = 0.02f;
 	[Export] private int _maxSteps = 2000;
-	[Export] private Godot.Collections.Array<float> _saveThreholds;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
 	[Export] private bool _drawLive = false;
+	[Export] private Godot.Collections.Array<float> _saveThreholds;
 
 	[ExportSubgroup("Stroke settings")] [Export]
 	private CompressedTexture2D _brush;
@@ -173,8 +173,14 @@ public partial class GodotEntry : Node
 			if (t.firstReach)
 				lateSave.RequestSave((t.value * 100).ToString("F0"));
 		};
+		RunInitMethods();
+		//After all monos has been initialized we can start the genetics that depends on their process => ready cycles
+		globalGenetics.StartAsync();
+	}
 
-		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
+	private void RunInitMethods()
+	{
+		_camera.Zoom = Godot.Vector2.One * _zoom;
 		try
 		{
 			_renderMono.Awake().Wait();
@@ -208,7 +214,6 @@ public partial class GodotEntry : Node
 			GD.PrintErr("Exception during update: ", e, "trace : ", e.StackTrace);
 			throw e;
 		}
-		//Task.WaitAll(_tasks);²
 	}
 
 	private GeneticLooper CreateLooper(InitConditions conditions, int id, object sharedLock, Vector2I size,
@@ -258,7 +263,11 @@ public partial class GodotEntry : Node
 			withView ? _targetHeightOfBackgroundTexture : -1);
 		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
 		//looper.InitChange += OnInitChanged;
-		tick.onAllDead += () => { looper.ExternalRestart(); };
+		tick.onAllDead += () =>
+		{
+			//Debug.Log("Finished a simulation with " + tick.NbSteps + " steps/"+_maxSteps +" on looper " + looper.ToString());
+			looper.ExternalStop();
+		};
 		var world = new WorldInitializer(_worldSize);
 		looper.BaseInitializer = world;
 		return looper;
