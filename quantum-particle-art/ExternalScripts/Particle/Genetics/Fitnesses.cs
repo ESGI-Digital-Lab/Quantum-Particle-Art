@@ -7,10 +7,10 @@ using UnityEngine.ExternalScripts.Particle.Genetics;
 
 public class AveragedFitness : IFitness
 {
-    private IFitness _fitness;
+    private ParticleSimulatorFitness _fitness;
     private int _numberEvaluations;
 
-    public AveragedFitness(IFitness fitness, int numberEvaluations)
+    public AveragedFitness(ParticleSimulatorFitness fitness, int numberEvaluations)
     {
         _fitness = fitness;
         _numberEvaluations = numberEvaluations;
@@ -25,23 +25,12 @@ public class AveragedFitness : IFitness
     public double Evaluate(IChromosome chromosome)
     {
         double acc = 0;
-        object accLock = new();
-        //Parallel.ForAsync(0, _numberEvaluations, (i,c)  =>
-        //{
-        //    return ValueTask.CompletedTask;
-        //}).Wait();
-        Task[] tasks = new Task[_numberEvaluations];
+        var task = _fitness.Evaluate(chromosome, _numberEvaluations);
+        task.Wait();
+        var val = task.Result;
         for (int i = 0; i < _numberEvaluations; i++)
-        {
-            tasks[i] = Task.Run(() =>
-            {
-                var val = _fitness.Evaluate(chromosome);
-                lock (accLock)
-                    acc += val;
-            });
-        }
+            acc += val[i];
 
-        Task.WaitAll(tasks);
         return acc / _numberEvaluations;
     }
 }
