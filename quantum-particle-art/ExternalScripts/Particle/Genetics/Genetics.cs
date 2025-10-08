@@ -24,12 +24,16 @@ public class Genetics
     private Threshold[] _thresholds;
     private int _gaThresholdIndex = -1;
 
+    private Stopwatch _sw;
+
     public record struct Threshold(float value, int index, bool firstReach = true);
 
     public Genetics(int nbParticles, Vector2I size, GAParams param, List<GeneticLooper> loopers,
         GeneticLooper viewer,
         IEnumerable<AGate> gatesTemplate, IEnumerable<float> thresholds)
     {
+        _sw = new Stopwatch();
+        _sw.Start();
         _gaParams = param;
         _viewer = viewer;
         GatesTypesToInt.OverrideReflection(new EmptyGate(), gatesTemplate);
@@ -40,6 +44,7 @@ public class Genetics
         //_ga.Reinsertion = new PureReinsertion();
         _ga.Termination = CreateTermination();
         _ga.TaskExecutor = new ParallelTaskExecutor();
+        UnityEngine.Debug.Log("GA created : " + _sw.Elapsed);
         _thresholds = thresholds.Append(_gaParams.Threshold).OrderBy(t => t).Select((t, i) =>
         {
             if (Mathf.IsEqualApprox(_gaParams.Threshold, t))
@@ -77,21 +82,22 @@ public class Genetics
         _ga.TerminationReached += (sender, args) =>
             UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " +
                                   _ga.BestChromosome.Fitness);
-        Task.Run(() => _ga.Start());
-        Task.Run(async () =>
-        {
-            while (_ga.Population.CurrentGeneration == null)
-                await Task.Delay(100);
-            RunViewer(_ga.Population.CurrentGeneration.Chromosomes[0]);
-            //On start, even before our first evaluation is completed (i.e we don't yet have a best cromosome, we show the first (basically ranodm) one in the viewer so we still have something on screen, all later generations will be showing the best one
-        });
+        
+        //On start, even before our first evaluation is completed (i.e we don't yet have a best cromosome, we show a random) one in the viewer so we still have something on screen, all later generations will be showing the best one
+        RunViewer(new Chromosome(_size.X * _size.Y));
     }
 
+    public Task StartAsync()
+    {
+        return Task.Run(() => _ga.Start());
+    }
     private async Task GenerationFinished()
     {
         var best = _ga.BestChromosome;
         UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness +
-                              "showing it on the view among " + _ga.Population.CurrentGeneration.Chromosomes.Count);
+                              " showing it on the view among " + _ga.Population.CurrentGeneration.Chromosomes.Count +
+                              " in " + _sw.Elapsed);
+        _sw.Restart();
         _genFinished++;
         while (_viewer.Busy) //We run it till the end
             await Task.Delay(100);
@@ -100,12 +106,15 @@ public class Genetics
 
     private void RunViewer(IChromosome target)
     {
-        _viewer.Start(target, comparison.Input(target));
         Task.Run(async () =>
         {
-            while (!_viewer.ResultAvailable) //We run it till the end
-                await Task.Delay(100);
-            _ = _viewer.GetResultAndFreeLooper();
+            if (_viewer.Busy)
+            {
+                while (!_viewer.ResultAvailable) //We run it till the end
+                    await Task.Delay(100);
+                _ = _viewer.GetResult();
+            }
+            _viewer.Start(target, comparison.Input(target));
         });
     }
 
@@ -122,10 +131,10 @@ public class Genetics
         out ExactMatchEvaluator exact,
         out AveragedFitness average)
     {
-        var selection = new StochasticUniversalSamplingSelection();
-        var crossover = new UniformCrossover();
-        IMutation mutation = new UniformMutation(true);
-        float[] w = [1, 10f];
+        var selection = new TournamentSelection(3);
+        var crossover = new BlockCrossover(_size);
+        IMutation mutation = new Mutation(_gaParams.MutateToEmpty);
+        float[] w = [1, 9f];
         var max = (int)Mathf.Pow(2, nbParticles) - 1;
         _problem = new Operation(max);
         proportional = new BitWiseEvaluator(nbParticles);
