@@ -18,7 +18,7 @@ public partial class PauliFlip : AGate
         return true;
     }
 
-    public override Color Color => Colors.RoyalBlue;
+    public override Color Color => _axis== Axis.X ? Colors.Violet : Colors.DarkViolet;
 
     public override string ShortName => "P" + _axis.ToString().ToLower();
 }

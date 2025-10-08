@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
-using DefaultNamespace.Particle.Steps.TextureManipulation;
 using DefaultNamespace.Tools;
 using Godot;
 using UnityEngine.Assertions;
@@ -30,12 +29,11 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	[ExportCategory("Genetic Algorithm")]
-	[ExportGroup("Genetic meta parameters")]
-	[Export] private int _nbInstances = 50;
+	[ExportCategory("Genetic Algorithm")] [ExportGroup("Genetic meta parameters")] [Export]
+	private int _nbInstances = 50;
+
 	[Export] private GAParams _params;
-	[ExportGroup("Gates")]
-	[Export] private bool _forceAllGatesLabel = true;
+	[ExportGroup("Gates")] [Export] private bool _forceAllGatesLabel = true;
 	[Export] private Godot.Collections.Array<AGate> _gates;
 
 	#endregion
@@ -45,16 +43,20 @@ public partial class GodotEntry : Node
 
 	[Export] private float _timeSteps = 0.02f;
 	[Export] private int _maxSteps = 2000;
+	[Export] private Godot.Collections.Array<float> _saveThreholds;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
+	[Export] private bool _drawLive = false;
 
-	[ExportSubgroup("Stroke settings")] 
-	[Export] private CompressedTexture2D _brush;
-	[Export(PropertyHint.Range, "0,100,1")]
+	[ExportSubgroup("Stroke settings")] [Export]
+	private CompressedTexture2D _brush;
+
+	[Export(PropertyHint.Range, "0,1000,1")]
 	private int _maxStrokeSize = 10;
+
 	[Export] private float _relativeRandomBrushOffset = 0.1f;
 
 	[Export] private int _curveRes = 1000;
-	
+
 	[Export] private float _sineFrequency;
 
 	[ExportSubgroup("Type of stroke")] [Export]
@@ -163,7 +165,14 @@ public partial class GodotEntry : Node
 
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		//Starts GA asynchronously using the provided loopers to run and evaluate simulations
-		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates);
+		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates,
+			_saveThreholds);
+		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
+		globalGenetics.OnThresholdReached += t =>
+		{
+			if (t.firstReach)
+				lateSave.RequestSave((t.value * 100).ToString("F0"));
+		};
 
 		_camera.Zoom = Godot.Vector2.One * _zoom; //Depending on the number of instances with view
 		try
@@ -219,18 +228,29 @@ public partial class GodotEntry : Node
 		{
 			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 			psteps.Add(view);
+			prewarm.Add(view);
 			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new DeltaRotLiner();
 			tick.onMovement += data =>
 			{
 				lineCollection.AddLine(liner.CreateLine(data));
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
-			_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y, _maxStrokeSize,
-				_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null, lineCollection, _brush.GetImage(), _relativeRandomBrushOffset,
-				!_squareStrokeOverCircle);
-			psteps.Add(_write);
-			prewarm.Add(view);
-			var lateWrite = new LateWriteToTex(_saveLastFrame || true ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late")) : null,_curveRes);
+			var fileName = _brush.ResourcePath.Split('/')[^1].Split('.')[0]; //Last part without extension
+			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize/10, _relativeRandomBrushOffset, fileName);
+			if (_drawLive)
+			{
+				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y,
+					_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null,
+					lineCollection,
+					smallBrush);
+				psteps.Add(_write);
+			}
+			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, fileName);
+
+			IWidther widther = new ToggleLiner(_dynamicMax);
+			var lateWrite = new LateWriteToTex(_saveLastFrame || true
+				? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
+				: null, detailledBrush, widther, _curveRes);
 			psteps.Add(lateWrite);
 		}
 
@@ -249,7 +269,8 @@ public partial class GodotEntry : Node
 		var ratio = init.Ratio;
 		var viewScale = WorldSize(_viewportSizeInWindow, ratio);
 		_space.Scale = viewScale;
-		_write.ViewSize = viewScale.y;
+		if (_write != null)
+			_write.ViewSize = viewScale.y;
 	}
 
 

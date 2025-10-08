@@ -140,4 +140,9 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     {
         return $"GeneticLooper {_id} with {_steps.Length} steps";
     }
+
+    public T GetStep<T>() where T : class, IStep<ParticleWorld>
+    {
+        return _steps.First(s => s is T) as T;
+    }
 }
