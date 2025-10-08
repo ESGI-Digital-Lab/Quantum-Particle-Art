@@ -11,6 +11,8 @@ public partial class GAParams : Resource
     [Export] private float _postThresholdFactor = 3;
     [ExportSubgroup("Evolution settings")]
     [Export] private float _mutation = 0.1f;
+
+    [Export] private float _mutateToEmpty = .25f;
     [Export] private float _crossover = 0.75f;
     
 
@@ -25,4 +27,6 @@ public partial class GAParams : Resource
     public int NbEvaluationsPerIndividual => _nbEvaluationsPerIndividual;
 
     public float PostThresholdFactor => _postThresholdFactor;
+
+    public float MutateToEmpty => _mutateToEmpty;
 }
