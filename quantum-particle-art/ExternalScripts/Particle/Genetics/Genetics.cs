@@ -35,11 +35,14 @@ public class Genetics
         GatesTypesToInt.OverrideReflection(new EmptyGate(), gatesTemplate);
         _size = size;
         _ga = CreateGA(nbParticles, loopers, out var proportional, out var exact, out var average);
+        _ga.CrossoverProbability = _gaParams.CrossoverProb;
+        _ga.MutationProbability = _gaParams.MutationProb;
+        _ga.Reinsertion = new FitnessBasedReinsertion();
         _ga.Termination = CreateTermination();
         _ga.TaskExecutor = new ParallelTaskExecutor();
         _thresholds = thresholds.Append(_gaParams.Threshold).OrderBy(t => t).Select((t, i) =>
         {
-            if(Mathf.IsEqualApprox(_gaParams.Threshold, t))
+            if (Mathf.IsEqualApprox(_gaParams.Threshold, t))
                 _gaThresholdIndex = i;
             return new Threshold(t, i, true);
         }).ToArray();
@@ -70,23 +73,27 @@ public class Genetics
             comparison.UpdateWeight(exact, 8f);
             average.NumberEvaluations = (int)(average.NumberEvaluations * 3);
         };
-        _ga.GenerationRan += (s, a) => GenerationFinished();
+        _ga.GenerationRan += async (s, a) => await GenerationFinished();
         _ga.TerminationReached += (sender, args) =>
             UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " +
                                   _ga.BestChromosome.Fitness);
-
         Task.Run(() => _ga.Start());
     }
 
-    private void GenerationFinished()
+    private async Task GenerationFinished()
     {
         _genFinished++;
         var best = _ga.BestChromosome;
         UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness +
-                              "showing it on the view");
+                              "showing it on the view among " + _ga.Population.CurrentGeneration.Chromosomes.Count);
         while (_viewer.Busy) //We run it till the end
-            Task.Delay(100).Wait();
-        _viewer.Start(best, comparison.Input(best));
+            await Task.Delay(100);
+        RunViewer(best);
+    }
+
+    private void RunViewer(IChromosome target)
+    {
+        _viewer.Start(target, comparison.Input(target));
         Task.Run(() =>
         {
             while (!_viewer.ResultAvailable) //We run it till the end
@@ -108,9 +115,9 @@ public class Genetics
         out ExactMatchEvaluator exact,
         out AveragedFitness average)
     {
-        var selection = new TournamentSelection();
+        var selection = new StochasticUniversalSamplingSelection();
         var crossover = new UniformCrossover();
-        var mutation = new UniformMutation(true);
+        IMutation mutation = new UniformMutation(true);
         float[] w = [1, 10f];
         var max = (int)Mathf.Pow(2, nbParticles) - 1;
         _problem = new Operation(max);

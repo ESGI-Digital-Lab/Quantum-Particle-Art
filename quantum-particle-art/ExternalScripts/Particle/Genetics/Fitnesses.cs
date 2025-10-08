@@ -58,7 +58,7 @@ public class CombinedFitness : IFitness
     public double Evaluate(IChromosome chromosome)
     {
         var vws = _fitnesses.Select(fw => (fw.Item1.Evaluate(chromosome), fw.Item2));
-        return BitHelpers.WeightedSum(vws);
+        return vws.WeightedSum();
     }
 }
 
