@@ -16,6 +16,7 @@ public class LateWriteToTex : ParticleStep
     {
         public record struct HistoryEntry(Vector2 position, Vector2 velocity, Godot.Color color, bool continuous);
 
+        public int Count => _history.Count;
         private Dictionary<Particle, List<HistoryEntry>> _history = new();
         private IColorPicker _picker;
         private int _nbSpecies;
@@ -94,14 +95,17 @@ public class LateWriteToTex : ParticleStep
         base.Release();
         if (!_saveAll && !_saveRequested)
             return;
-        _saveRequested = false;
         foreach (var kvp in _history.Entries)
         {
             List<System.Numerics.Vector2> pts = new();
-            var startInfo = kvp.Value.First();
+            ParticleHistory.HistoryEntry startInfo = kvp.Value.First();
+            _saveRequested = false;
+            int count = kvp.Value.Count;
+            int i = -1;
             foreach (var point in kvp.Value)
             {
-                if (point.continuous) //End of continuous line, draw what we have and start a new one
+                i++;
+                if (point.continuous && i < count-1) //End of continuous line or last point, draw what we have and start a new one
                 {
                     pts.Add(point.position.ToSystemV2());
                 }
