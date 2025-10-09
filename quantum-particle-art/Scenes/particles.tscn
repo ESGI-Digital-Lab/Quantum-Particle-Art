@@ -25,41 +25,41 @@
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
 
-[sub_resource type="Resource" id="Resource_2d2wn"]
+[sub_resource type="Resource" id="Resource_fcssu"]
 script = ExtResource("2_w33ia")
 _maxGen = -1
 _popSize = 128
-_nbEvaluationsPerIndividual = 4
+_nbEvaluationsPerIndividual = 8
 _threshold = 0.7
-_postThresholdFactor = 3.0
-_mutation = 0.15
+_postThresholdFactor = 2.5
+_mutation = 0.1
 _mutateToEmpty = 0.25
 _crossover = 0.75
 metadata/_custom_type_script = "uid://dn5rai3ioon7r"
 
-[sub_resource type="Resource" id="Resource_gvqa1"]
-script = ExtResource("2_mum02")
-_degrees = 45.0
-_inverted = false
-metadata/_custom_type_script = "uid://cyv5hjss13b5g"
-
-[sub_resource type="Resource" id="Resource_yi0l3"]
+[sub_resource type="Resource" id="Resource_bv6uv"]
 script = ExtResource("2_mum02")
 _degrees = 45.0
 _inverted = true
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
-[sub_resource type="Resource" id="Resource_176xe"]
+[sub_resource type="Resource" id="Resource_w33ia"]
+script = ExtResource("2_mum02")
+_degrees = 45.0
+_inverted = false
+metadata/_custom_type_script = "uid://cyv5hjss13b5g"
+
+[sub_resource type="Resource" id="Resource_1mke2"]
 script = ExtResource("4_mum02")
 _axis = 0
 metadata/_custom_type_script = "uid://dur585ckuh5yv"
 
-[sub_resource type="Resource" id="Resource_mum02"]
+[sub_resource type="Resource" id="Resource_2d2wn"]
 script = ExtResource("4_mum02")
 _axis = 1
 metadata/_custom_type_script = "uid://dur585ckuh5yv"
 
-[sub_resource type="Resource" id="Resource_bv6uv"]
+[sub_resource type="Resource" id="Resource_mum02"]
 script = ExtResource("5_1mke2")
 _max = 1
 _count = 0
@@ -67,16 +67,16 @@ _countAsName = true
 _nameAppendix = ""
 metadata/_custom_type_script = "uid://coqmrloclwhuy"
 
-[sub_resource type="Resource" id="Resource_w33ia"]
+[sub_resource type="Resource" id="Resource_cuf3k"]
 script = ExtResource("6_2d2wn")
 _safe = false
 metadata/_custom_type_script = "uid://lohey3ijudrc"
 
-[sub_resource type="Resource" id="Resource_1mke2"]
+[sub_resource type="Resource" id="Resource_gvqa1"]
 script = ExtResource("5_yi0l3")
-_countTemplate = SubResource("Resource_bv6uv")
-_killTemplate = SubResource("Resource_w33ia")
-_encoded = -1
+_countTemplate = SubResource("Resource_mum02")
+_killTemplate = SubResource("Resource_cuf3k")
+_encoded = 12
 _skip = false
 _nbParticles = 8
 _specyIndex = -1
@@ -94,14 +94,14 @@ _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
 _nbInstances = 20
-_params = SubResource("Resource_2d2wn")
-_gates = Array[Object]([SubResource("Resource_gvqa1"), SubResource("Resource_yi0l3"), SubResource("Resource_176xe"), SubResource("Resource_mum02")])
+_params = SubResource("Resource_fcssu")
+_gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn")])
 _worldSize = 300.0
 _timeSteps = 1.0
-_maxSteps = 5
+_maxSteps = 50
 _saveLastFrame = false
 _drawLive = true
-_saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.75, 0.95, 1.0])
+_saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.75, 0.9, 1.0])
 _brush = ExtResource("6_mum02")
 _maxStrokeSize = 70
 _relativeRandomBrushOffset = 0.0
@@ -111,7 +111,8 @@ _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawnTemplate = SubResource("Resource_1mke2")
+_spawnTemplate = SubResource("Resource_gvqa1")
+_gateSize = 0.03
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
 _nbMinLoops = 1
