@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=34 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -25,16 +25,20 @@
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
 
+[sub_resource type="Curve" id="Curve_2d2wn"]
+_data = [Vector2(0, 0), 0.0, -0.1196, 0, 0, Vector2(0.918079, 0.0596026), 0.0919366, 0.0919366, 0, 0, Vector2(1, 0.830097), 0.0, 0.0, 0, 0]
+point_count = 3
+
 [sub_resource type="Resource" id="Resource_fcssu"]
 script = ExtResource("2_w33ia")
 _maxGen = -1
 _popSize = 128
-_nbEvaluationsPerIndividual = 8
-_threshold = 0.7
-_postThresholdFactor = 2.5
 _mutation = 0.1
 _mutateToEmpty = 0.25
-_crossover = 0.75
+_mutateBlock = 0.1
+_crossover = 0.2
+_nbEvalRange = Vector2(4, 12)
+_exactWeight = SubResource("Curve_2d2wn")
 metadata/_custom_type_script = "uid://dn5rai3ioon7r"
 
 [sub_resource type="Resource" id="Resource_bv6uv"]
