@@ -136,7 +136,7 @@ public class Genetics
 
     private GeneticAlgorithm CreateGA(int nbParticles, List<GeneticLooper> loopers, out BitWiseEvaluator proportional,
         out ExactMatchEvaluator exact,
-        out AveragedFitness average)
+        out AveragedEvaluators average)
     {
         var selection = new TournamentSelection(3);
         var crossover = new BlockCrossover(_size);
@@ -147,7 +147,7 @@ public class Genetics
         proportional = new BitWiseEvaluator(nbParticles);
         exact = new ExactMatchEvaluator();
         comparison = new ParticleSimulatorFitness(nbParticles, max, loopers, _problem, (proportional, 4f), (exact, 1f));
-        average = new AveragedFitness(comparison, _gaParams.NbEvaluationsPerIndividual);
+        average = new AveragedEvaluators(comparison, _gaParams.NbEvaluationsPerIndividual);
         IFitness fitness = new CombinedFitness((new MostNullGates(), w[0]), (average, w[1]));
         var chromosome = new Chromosome(_size.X * _size.Y);
         var population = new Population(_gaParams.PopSize, _gaParams.PopSize * 4, chromosome);
