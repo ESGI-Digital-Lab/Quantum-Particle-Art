@@ -6,27 +6,32 @@ public partial class GAParams : Resource
     [ExportSubgroup("Pop settings")]
     [Export] private int _maxGen = 10000;
     [Export] private int _popSize = 12;
-    [Export] private int _nbEvaluationsPerIndividual = 7;
-    [Export] private float _threshold = 0.9f;
-    [Export] private float _postThresholdFactor = 3;
     [ExportSubgroup("Evolution settings")]
     [Export] private float _mutation = 0.1f;
-
     [Export] private float _mutateToEmpty = .25f;
+    [Export] private float _mutateBlock = 0.1f;
     [Export] private float _crossover = 0.75f;
+    [ExportSubgroup("Meta evolution")] 
+    [Export] private Vector2 _nbEvalRange = new(1, 20);
+
+    [Export] private Curve _exactWeight;
     
 
     public int MaxGen => _maxGen;
 
     public int PopSize => _popSize;
 
-    public float Threshold => _threshold;
     public float CrossoverProb => _crossover;
     public float MutationProb => _mutation;
 
-    public int NbEvaluationsPerIndividual => _nbEvaluationsPerIndividual;
-
-    public float PostThresholdFactor => _postThresholdFactor;
-
+    public int NbEvaluationsPerIndividual(float t) => (int)Mathf.Lerp(NbEvalRange.Y, NbEvalRange.X, t);
+    
     public float MutateToEmpty => _mutateToEmpty;
+
+    public float ExactWeight(float t) => _exactWeight.Sample(t);
+    public float ProportionalWeight(float t) => 1-ExactWeight(t);
+
+    public Vector2 NbEvalRange => _nbEvalRange;
+
+    public float MutateBlock => _mutateBlock;
 }
