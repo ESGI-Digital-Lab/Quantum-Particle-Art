@@ -23,7 +23,7 @@ public class BlockCrossover : CrossoverBase
             var n = parents[c].CreateNew();
             IChromosome[] quadrants = new IChromosome[4];
             for (int q = 0; q < 4; q++)
-                quadrants[q] = parents[rnd.GetInt(0, q)];
+                quadrants[q] = parents[rnd.GetInt(0, parents.Count)];
             for (int x = 0; x < _size.X; x++)
             {
                 for (int y = 0; y < _size.Y; y++)
