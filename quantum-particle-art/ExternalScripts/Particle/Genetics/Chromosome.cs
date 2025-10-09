@@ -9,6 +9,8 @@ public class Chromosome : ChromosomeBase
     private List<int> inputsTestedOn = new();
     public int? Input => inputsTestedOn!= null && inputsTestedOn.Count > 0 ? inputsTestedOn[Random.Range(0, inputsTestedOn.Count)] : null;
 
+    public IReadOnlyList<int> InputsTestedOn => inputsTestedOn;
+
     public void AddInputTestedOn(int input)
     {
         inputsTestedOn.Add(input);
