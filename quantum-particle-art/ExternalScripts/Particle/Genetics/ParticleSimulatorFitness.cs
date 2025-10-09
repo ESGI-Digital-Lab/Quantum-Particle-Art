@@ -52,7 +52,6 @@ public class ParticleSimulatorFitness
 
         Log("Start");
         GeneticLooper looper = null;
-        int specificInput = _problem.CreateNewInput();
         while (looper == null)
         {
             //Debug.Log("Waiting for free looper");
@@ -78,9 +77,10 @@ public class ParticleSimulatorFitness
         Log("Found and starting + " + looper.ToString());
         for (int i = 0; i < times; i++)
         {
+            int specificInput = _problem.CreateNewInput();
             lock (looper.Lock)
                 looper.Start(chromosome, specificInput);
-            
+
             (chromosome as Chromosome).AddInputTestedOn(specificInput);
             int? result = null;
             while (!result.HasValue)
@@ -90,7 +90,8 @@ public class ParticleSimulatorFitness
                     if (looper.ResultAvailable)
                     {
                         bool freeLooper = i == times - 1;
-                        result = looper.GetResult(freeLooper); //We keep hook on the looper until the last run, to avoid it being used by another thread
+                        result = looper.GetResult(
+                            freeLooper); //We keep hook on the looper until the last run, to avoid it being used by another thread
                     }
                 }
 
@@ -106,8 +107,9 @@ public class ParticleSimulatorFitness
             var weighted = _evaluatorWeights
                 .Select(e => (e.Key.Fitness(specificInput, result.Value, _problem.Expected(specificInput)), e.Value))
                 .WeightedSum();
-            values[i]= weighted;
+            values[i] = weighted;
         }
+
         return values;
     }
 
@@ -121,5 +123,11 @@ public class ParticleSimulatorFitness
         return withSameInput
             ? (chromosome as Chromosome)?.Input ?? _problem.CreateNewInput()
             : _problem.CreateNewInput();
+    }
+
+    public IEnumerable<int> Inputs(IChromosome target)
+    {
+        var l = (target as Chromosome)?.InputsTestedOn;
+        return l==null || l.Count==0 ? [_problem.CreateNewInput()] : l;
     }
 }
