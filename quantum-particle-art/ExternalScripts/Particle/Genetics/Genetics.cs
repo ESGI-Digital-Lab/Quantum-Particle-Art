@@ -82,7 +82,7 @@ public class Genetics
         _ga.TerminationReached += (sender, args) =>
             UnityEngine.Debug.Log($"GA Termination Reached at generation {_genFinished} with best fitness: " +
                                   _ga.BestChromosome.Fitness);
-        
+
         //On start, even before our first evaluation is completed (i.e we don't yet have a best cromosome, we show a random) one in the viewer so we still have something on screen, all later generations will be showing the best one
         RunViewer(new Chromosome(_size.X * _size.Y));
     }
@@ -91,6 +91,7 @@ public class Genetics
     {
         return Task.Run(() => _ga.Start());
     }
+
     private async Task GenerationFinished()
     {
         var best = _ga.BestChromosome;
@@ -99,8 +100,6 @@ public class Genetics
                               " in " + _sw.Elapsed);
         _sw.Restart();
         _genFinished++;
-        while (_viewer.Busy) //We run it till the end
-            await Task.Delay(100);
         RunViewer(best);
     }
 
@@ -108,13 +107,21 @@ public class Genetics
     {
         Task.Run(async () =>
         {
-            if (_viewer.Busy)
+            while (_viewer.Busy) //This call will wait until the viewer has been freed
+                await Task.Delay(100);
+
+            var inputs = comparison.Inputs(target).ToArray();
+            UnityEngine.Debug.Log("Running viewer on best with inputs " + string.Join(",", inputs));
+            for (var i = 0; i < inputs.Length; i++)
             {
-                while (!_viewer.ResultAvailable) //We run it till the end
+                var input = inputs[i];
+                if (input == 0)
+                    continue;
+                _viewer.Start(target, comparison.Input(target));
+                while (!_viewer.ResultAvailable)
                     await Task.Delay(100);
-                _ = _viewer.GetResult();
+                _ = _viewer.GetResult(i == inputs.Length - 1);//Will free for the next call to restart it
             }
-            _viewer.Start(target, comparison.Input(target));
         });
     }
 
