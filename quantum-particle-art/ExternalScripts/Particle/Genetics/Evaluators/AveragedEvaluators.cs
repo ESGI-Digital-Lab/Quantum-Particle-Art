@@ -1,11 +1,11 @@
 using GeneticSharp;
 
-public class AveragedFitness : IFitness
+public class AveragedEvaluators : IFitness
 {
     private ParticleSimulatorFitness _fitness;
     private int _numberEvaluations;
 
-    public AveragedFitness(ParticleSimulatorFitness fitness, int numberEvaluations)
+    public AveragedEvaluators(ParticleSimulatorFitness fitness, int numberEvaluations)
     {
         _fitness = fitness;
         _numberEvaluations = numberEvaluations;
