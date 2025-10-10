@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GeneticSharp;
 using Godot;
 using UnityEngine.ExternalScripts.Particle.Genetics;
+using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
 public class Genetics
@@ -15,6 +16,8 @@ public class Genetics
     private int _genFinished = 0;
 
     private ParticleSimulatorFitness comparison;
+    private ParticleSimulatorFitness viewerEvaluator;
+
     private IProblem _problem;
 
     private object _lock = new();
@@ -84,7 +87,8 @@ public class Genetics
         float proportionalWeight = _gaParams.ProportionalWeight(maxFit);
         float exactWeight = _gaParams.ExactWeight(maxFit);
         int nbEvaluationsPerIndividual = _gaParams.NbEvaluationsPerIndividual(maxFit);
-        UnityEngine.Debug.Log($" Updating weights with max fit {maxFit} => prop {proportionalWeight}, exact {exactWeight} and nb eval {nbEvaluationsPerIndividual}");
+        UnityEngine.Debug.Log(
+            $" Updating weights with max fit {maxFit} => prop {proportionalWeight}, exact {exactWeight} and nb eval {nbEvaluationsPerIndividual}");
         comparison.UpdateWeight(proportional, proportionalWeight);
         comparison.UpdateWeight(exact, exactWeight);
         average.NumberEvaluations = nbEvaluationsPerIndividual;
@@ -94,7 +98,9 @@ public class Genetics
     {
         var best = _ga.BestChromosome;
         var averageFitness = _ga.Population.CurrentGeneration.Chromosomes.Average(c => c.Fitness.Value);
-        UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness + " showing it on the view, avg fitness : " + averageFitness +" among " + _ga.Population.CurrentGeneration.Chromosomes.Count + " in " + _sw.Elapsed);
+        UnityEngine.Debug.Log($"--------------Gen finished {_genFinished}, best fitness: " + best.Fitness +
+                              " showing it on the view, avg fitness : " + averageFitness + " among " +
+                              _ga.Population.CurrentGeneration.Chromosomes.Count + " in " + _sw.Elapsed);
         _sw.Restart();
         _genFinished++;
         RunViewer(best);
@@ -104,22 +110,27 @@ public class Genetics
     {
         Task.Run(async () =>
         {
-            while (_viewer.Busy) //This call will wait until the viewer has been freed
-                await Task.Delay(100);
-
             var inputs = comparison.Inputs(target).ToArray();
             UnityEngine.Debug.Log("Running viewer on best with inputs " + string.Join(",", inputs));
-            for (var i = 0; i < inputs.Length; i++)
-            {
-                var input = inputs[i];
-                if (input == 0)
-                    continue;
-                _viewer.Start(target, comparison.Input(target));
-                while (!_viewer.ResultAvailable)
-                    await Task.Delay(100);
-                _ = _viewer.GetResult(i == inputs.Length - 1); //Will free for the next call to restart it
-            }
+            var result = await viewerEvaluator.Evaluate(target, inputs);
+            Debug.Log("Best of last gen, reran in viewer got sum of fitness " + result.Sum()+" / "+result.Length);
         });
+        //Task.Run(async () =>
+        //{
+        //    while (_viewer.Busy) //This call will wait until the viewer has been freed
+        //        await Task.Delay(100);
+//
+        //    for (var i = 0; i < inputs.Length; i++)
+        //    {
+        //        var input = inputs[i];
+        //        if (input == 0)
+        //            continue;
+        //        _viewer.Start(target, comparison.Input(target));
+        //        while (!_viewer.ResultAvailable)
+        //            await Task.Delay(100);
+        //        _ = _viewer.GetResult(i == inputs.Length - 1); //Will free for the next call to restart it
+        //    }
+        //});
     }
 
     private ITermination CreateTermination()
@@ -138,12 +149,14 @@ public class Genetics
         var selection = new TournamentSelection(3);
         var crossover = new BlockCrossover(_size);
         IMutation mutation = new Mutation(_gaParams.MutateToEmpty, _gaParams.MutateBlock, _size);
-        float[] w = [1, 9f];
+        float[] w = [0, 9f];
         var max = (int)Mathf.Pow(2, nbParticles) - 1;
         _problem = new Operation(max);
         proportional = new BitWiseEvaluator(nbParticles);
         exact = new ExactMatchEvaluator();
-        comparison = new ParticleSimulatorFitness(nbParticles, max, loopers, _problem, (proportional, _gaParams.ProportionalWeight(0)), (exact, _gaParams.ExactWeight(0)));
+        comparison = new ParticleSimulatorFitness(nbParticles, max, loopers, _problem,
+            (proportional, _gaParams.ProportionalWeight(0)), (exact, _gaParams.ExactWeight(0)));
+        viewerEvaluator = new ParticleSimulatorFitness(nbParticles, max, [_viewer], _problem, (exact, 1f));
         average = new AveragedEvaluators(comparison, _gaParams.NbEvaluationsPerIndividual(0));
         IFitness fitness = new CombinedFitness((new MostNullGates(), w[0]), (average, w[1]));
         var chromosome = new Chromosome(_size.X * _size.Y);

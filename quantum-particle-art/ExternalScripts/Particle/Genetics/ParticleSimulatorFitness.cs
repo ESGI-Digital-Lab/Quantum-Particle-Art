@@ -38,10 +38,17 @@ public class ParticleSimulatorFitness
 
     private const int refreshDelay = 100;
 
-
-    public async Task<double[]> Evaluate(IChromosome chromosome, int times)
+    public async Task<double[]> Evaluate(IChromosome chromosome, int inputNb)
     {
-        double[] values = new double[times];
+        var inputs = new int[inputNb];
+        for (int i = 0; i < inputNb; i++)
+            inputs[i] = _problem.CreateNewInput();
+        return await Evaluate(chromosome, inputs);
+    }
+
+    public async Task<double[]> Evaluate(IChromosome chromosome, int[] inputs)
+    {
+        double[] values = new double[inputs.Length];
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
@@ -75,9 +82,9 @@ public class ParticleSimulatorFitness
         }
 
         Log("Found and starting + " + looper.ToString());
-        for (int i = 0; i < times; i++)
+        for (int i = 0; i < inputs.Length; i++)
         {
-            int specificInput = _problem.CreateNewInput();
+            int specificInput = inputs[i];
             lock (looper.Lock)
                 looper.Start(chromosome, specificInput);
 
@@ -89,7 +96,7 @@ public class ParticleSimulatorFitness
                 {
                     if (looper.ResultAvailable)
                     {
-                        bool freeLooper = i == times - 1;
+                        bool freeLooper = i == inputs.Length - 1;
                         result = looper.GetResult(
                             freeLooper); //We keep hook on the looper until the last run, to avoid it being used by another thread
                     }
@@ -128,6 +135,6 @@ public class ParticleSimulatorFitness
     public IEnumerable<int> Inputs(IChromosome target)
     {
         var l = (target as Chromosome)?.InputsTestedOn;
-        return l==null || l.Count==0 ? [_problem.CreateNewInput()] : l;
+        return l == null || l.Count == 0 ? [_problem.CreateNewInput()] : l;
     }
 }
