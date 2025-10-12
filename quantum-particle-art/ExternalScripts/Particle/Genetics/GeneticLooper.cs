@@ -23,11 +23,6 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
 
     private readonly int _id;
 
-    public void ExternalStop()
-    {
-        _shouldStop = true;
-    }
-
 
     public int GetResult(bool free = true)
     {

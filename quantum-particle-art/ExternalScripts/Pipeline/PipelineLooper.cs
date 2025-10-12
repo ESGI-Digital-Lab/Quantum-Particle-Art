@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GeneticSharp;
 using UnityEngine;
 
 public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
@@ -26,13 +27,17 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     protected bool _shouldRestart;
     protected bool _shouldStop;
+    public void ExternalStop()
+    {
+        _shouldStop = true;
+    }
 
     Func<Task> timer;
 
-    public override async Task Start()
+    public override Task Start()
     {
         pipeline = GetPipeline();
-        i = -1;
+        i = 0;
         if (_duration > 0)
         {
             timer = async () =>
@@ -43,6 +48,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         }
 
         _shouldRestart = true;
+        return Task.CompletedTask;
     }
 
     private int i = 0;
@@ -59,7 +65,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         Stopwatch sw = Stopwatch.StartNew();
         void Log(string s)
         {
-            //UnityEngine.Debug.Log(s + " xxx " + sw.Elapsed+" on "+Thread.CurrentThread.ManagedThreadId);
+            UnityEngine.Debug.Log(s + " xxx " + sw.Elapsed+" on "+Thread.CurrentThread.ManagedThreadId);
         }
         await base.Update();
         if (_shouldStop)
