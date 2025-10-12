@@ -49,6 +49,7 @@ public class LateWriteToTex : ParticleStep
     private bool _saveRequested;
     private bool _saveAll = false;
     private string _cumulatedInfos = "";
+    private string _name = "";
 
     public bool SaveAll
     {
@@ -56,14 +57,19 @@ public class LateWriteToTex : ParticleStep
         set { _saveAll = value; }
     }
 
-    public void RequestSave(string info)
+    public void RequestSave(string start,string info)
     {
         if (!string.IsNullOrEmpty(info))
+        {
+            if (string.IsNullOrEmpty(info))
+                _cumulatedInfos = start;
             _cumulatedInfos += "_" + info;
+        }
         _saveRequested = true;
     }
 
-    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes, bool saveAll = false)
+    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes, string name = "",
+        bool saveAll = false)
     {
         _saver = saver;
         _curveRes = curveRes;
@@ -71,18 +77,18 @@ public class LateWriteToTex : ParticleStep
         _width = width;
         _saveAll = saveAll;
         _saveRequested = false;
+        _name = string.IsNullOrEmpty(name) ? (_brush.ToString() + "_" + _curveRes) : name;
     }
 
     public override async Task Init(WorldInitializer initializer)
     {
         await base.Init(initializer);
         _history = new(initializer.Init.Colors, initializer.Init.Rules.NbSpecies);
-        var aTexProvider = initializer.Texture;
-        _base = aTexProvider.Texture.Duplicate() as Image;
+        _base = initializer.Texture.Texture.Duplicate() as Image;
         _dynamic = ImageTexture.CreateFromImage(_base);
         if (_saver != null)
         {
-            _saver.Init(_base, aTexProvider.Name + "_" + _brush.ToString() + "_" + _curveRes);
+            _saver.Init(_base, initializer.Init.Name);
         }
     }
 
@@ -111,7 +117,8 @@ public class LateWriteToTex : ParticleStep
             foreach (var point in kvp.Value)
             {
                 i++;
-                if (point.continuous && i < count-1) //End of continuous line or last point, draw what we have and start a new one
+                if (point.continuous &&
+                    i < count - 1) //End of continuous line or last point, draw what we have and start a new one
                 {
                     pts.Add(point.position.ToSystemV2());
                 }
@@ -157,6 +164,6 @@ public class LateWriteToTex : ParticleStep
         _cumulatedInfos = "";
     }
 
-    private string Addon => "-Fit" + _cumulatedInfos;
+    private string Addon => _cumulatedInfos;
     public string FullName => _saver.Name + Addon;
 }
