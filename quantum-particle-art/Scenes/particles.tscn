@@ -75,7 +75,7 @@ metadata/_custom_type_script = "uid://coqmrloclwhuy"
 
 [sub_resource type="Resource" id="Resource_yi0l3"]
 script = ExtResource("7_mum02")
-_safe = false
+_safe = true
 metadata/_custom_type_script = "uid://lohey3ijudrc"
 
 [sub_resource type="Resource" id="Resource_176xe"]
@@ -124,12 +124,12 @@ _gateSize = 0.03
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
 _nbMinLoops = 1
-_backgroundTypes = Array[int]([0, 2, 2, 2, 2, 2, 2])
+_backgroundTypes = Array[int]([0, 0, 0, 0, 0, 0, 0])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
-_colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
+_colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8")])
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
-_nbSpecies = PackedInt32Array(12, 2, 2, 2, 2)
-_ruleType = Array[int]([6, 1, 1, 1, 1])
+_nbSpecies = PackedInt32Array(12, 4)
+_ruleType = Array[int]([6])
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true
