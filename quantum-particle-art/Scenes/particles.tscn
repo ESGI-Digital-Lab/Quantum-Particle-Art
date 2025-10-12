@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=35 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -10,18 +10,15 @@
 [ext_resource type="Script" uid="uid://dur585ckuh5yv" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/PauliFlip.cs" id="4_mum02"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
+[ext_resource type="Resource" uid="uid://b756ahudomjdb" path="res://Data/Handmade/times_2.tres" id="5_mum02"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
-[ext_resource type="Resource" uid="uid://ddhyw1ntoo5uy" path="res://Data/Saved/Black2048_omniBrush_70_1000-Fit_10.tres" id="5_yi0l3"]
 [ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="6_2d2wn"]
-[ext_resource type="Resource" uid="uid://s40qroko31sh" path="res://Data/Saved/Black2048_omniBrush_70_1000-Fit_10_25.tres" id="6_176xe"]
 [ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="6_bv6uv"]
 [ext_resource type="Texture2D" uid="uid://pbdwga3lfeke" path="res://Visuals/Generated_Brushes/omniBrush.png" id="6_mum02"]
 [ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="7_mum02"]
-[ext_resource type="Resource" uid="uid://c77tq5xqogubt" path="res://Data/Saved/Black2048_omniBrush_70_1000-Fit_10_25_50.tres" id="7_utk7t"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
 [ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="8_cuf3k"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
-[ext_resource type="Resource" uid="uid://cl34fmm431fkh" path="res://Data/Saved/Black2048_omniBrush_70_1000-Fit_75.tres" id="8_ttgvu"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
@@ -106,7 +103,7 @@ _training = false
 _nbInstances = 200
 _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn")])
-_replays = Array[Object]([ExtResource("5_yi0l3"), ExtResource("6_176xe"), ExtResource("7_utk7t"), ExtResource("8_ttgvu")])
+_replays = Array[Object]([ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02")])
 _worldSize = 300.0
 _timeSteps = 1.0
 _maxSteps = 100
