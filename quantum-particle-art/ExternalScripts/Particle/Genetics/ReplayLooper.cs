@@ -12,7 +12,6 @@ using Vector2 = Godot.Vector2;
 public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation>
 {
     private InitConditions _init;
-
     private IInit<WorldInitializer>[] _inits;
     private IStep<ParticleWorld>[] _steps;
     private IInit<ParticleWorld>[] _prewarm;
@@ -20,8 +19,9 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
     private EncodedConfiguration _spawn => _init.Spawn;
 
     private ChromosomeConfiguration[] _chromosomes;
+    private InitConditions[] _conditions;
 
-    public ReplayLooper(InitConditions init,
+    public ReplayLooper( IEnumerable<InitConditions> conditions,
         IEnumerable<IInit<WorldInitializer>> inits,
         IEnumerable<IStep<ParticleWorld>> step,
         IEnumerable<IInit<ParticleWorld>> prewarm,
@@ -29,11 +29,12 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
         int texHeight)
     {
         _duration = -1;
-        _init = init;
         _inits = inits.ToArray();
         _steps = step.ToArray();
         _prewarm = prewarm.ToArray();
         _chromosomes = chromosomes.ToArray();
+        _conditions = conditions.ToArray();
+        _init = _conditions[0];
         _texHeight = texHeight;
     }
 
@@ -44,6 +45,7 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
             _shouldRestart = false;
             return false;
         }
+        _init = _conditions[loop % _conditions.Length];
         init.Init = _init;
         if (_texHeight > 0)
         {
