@@ -89,7 +89,7 @@ public class ParticleSimulatorFitness
                 looper.Start(chromosome, specificInput);
 
             if (saveInputs)
-                (chromosome as Chromosome).AddInputTestedOn(specificInput);
+                (chromosome as GateChromosome).AddInputTestedOn(specificInput);
             int? result = null;
             while (!result.HasValue)
             {
@@ -128,7 +128,7 @@ public class ParticleSimulatorFitness
 
     public IEnumerable<int> Inputs(IChromosome target)
     {
-        var l = (target as Chromosome)?.InputsTestedOn;
+        var l = (target as GateChromosome)?.InputsTestedOn;
         return l == null || l.Count == 0 ? [_problem.CreateNewInput()] : l;
     }
 }

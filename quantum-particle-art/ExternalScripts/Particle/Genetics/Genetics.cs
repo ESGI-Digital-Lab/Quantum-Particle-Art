@@ -28,7 +28,7 @@ public class Genetics
 
     private Stopwatch _sw;
 
-    public record struct Threshold(float value, int index, bool firstReach = true);
+    public record struct Threshold(float value, int index, GateChromosome chromosome, bool firstReach = true);
 
     private BitWiseEvaluator proportional;
     private ExactMatchEvaluator exact;
@@ -51,14 +51,16 @@ public class Genetics
         _ga.Termination = CreateTermination();
         _ga.TaskExecutor = new ParallelTaskExecutor();
         UnityEngine.Debug.Log("GA created : " + _sw.Elapsed);
-        _thresholds = thresholds.OrderBy(t => t).Select((t, i) => new Threshold(t, i, true)).ToArray();
+        _thresholds = thresholds.OrderBy(t => t).Select((t, i) => new Threshold(t, i, null, true)).ToArray();
         _ga.GenerationRan += (s, a) =>
         {
             for (var index = 0; index < _thresholds.Length; index++)
             {
                 var t = _thresholds[index];
-                if (_ga.BestChromosome.Fitness >= t.value)
+                var best = _ga.BestChromosome;
+                if (best.Fitness >= t.value)
                 {
+                    t.chromosome = (GateChromosome)best;
                     OnThresholdReached?.Invoke(t);
                     t.firstReach = false;
                     _thresholds[index] = t;
@@ -74,7 +76,7 @@ public class Genetics
                                   _ga.BestChromosome.Fitness);
 
         //On start, even before our first evaluation is completed (i.e we don't yet have a best cromosome, we show a random) one in the viewer so we still have something on screen, all later generations will be showing the best one
-        RunViewer(new Chromosome(_size.X * _size.Y));
+        RunViewer(new GateChromosome(_size.X * _size.Y));
     }
 
     public Task StartAsync()
@@ -124,22 +126,6 @@ public class Genetics
                     "Best of last gen, reran in viewer got sum of fitness " + result.Sum() + " / " + result.Length);
             });
         });
-        //Task.Run(async () =>
-        //{
-        //    while (_viewer.Busy) //This call will wait until the viewer has been freed
-        //        await Task.Delay(100);
-//
-        //    for (var i = 0; i < inputs.Length; i++)
-        //    {
-        //        var input = inputs[i];
-        //        if (input == 0)
-        //            continue;
-        //        _viewer.Start(target, comparison.Input(target));
-        //        while (!_viewer.ResultAvailable)
-        //            await Task.Delay(100);
-        //        _ = _viewer.GetResult(i == inputs.Length - 1); //Will free for the next call to restart it
-        //    }
-        //});
     }
 
     private ITermination CreateTermination()
@@ -168,7 +154,7 @@ public class Genetics
         viewerEvaluator = new ParticleSimulatorFitness(nbParticles, max, [_viewer], _problem, (exact, 1f));
         average = new AveragedEvaluators(comparison, _gaParams.NbEvaluationsPerIndividual(0));
         IFitness fitness = new CombinedFitness((new MostNullGates(), w[0]), (average, w[1]));
-        var chromosome = new Chromosome(_size.X * _size.Y);
+        var chromosome = new GateChromosome(_size.X * _size.Y);
         var population = new Population(_gaParams.PopSize, _gaParams.PopSize * 4, chromosome);
         return new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
     }
