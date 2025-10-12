@@ -26,7 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
 
 [sub_resource type="Curve" id="Curve_2d2wn"]
-_data = [Vector2(0, 0), 0.0, 0.105487, 0, 1, Vector2(0.84887, 0.0895448), 0.105487, 4.9001, 1, 1, Vector2(1, 0.830097), 4.9001, 0.0, 1, 0]
+_data = [Vector2(0, 0), 0.0, 0.105882, 0, 1, Vector2(0.85, 0.09), 0.105882, 4.93398, 1, 1, Vector2(1, 0.830097), 4.93398, 0.0, 1, 0]
 point_count = 3
 
 [sub_resource type="Resource" id="Resource_fcssu"]
@@ -37,8 +37,9 @@ _mutation = 0.1
 _mutateToEmpty = 0.25
 _mutateBlock = 0.1
 _crossover = 0.2
-_nbEvalRange = Vector2(4, 12)
+_nbEvalRange = Vector2(4, 25)
 _exactWeight = SubResource("Curve_2d2wn")
+_randomizeViewerInputs = true
 metadata/_custom_type_script = "uid://dn5rai3ioon7r"
 
 [sub_resource type="Resource" id="Resource_bv6uv"]
@@ -82,7 +83,7 @@ _countTemplate = SubResource("Resource_mum02")
 _killTemplate = SubResource("Resource_cuf3k")
 _encoded = 12
 _skip = false
-_nbParticles = 8
+_nbParticles = 6
 _specyIndex = -1
 _velocityScale = 10.0
 metadata/_custom_type_script = "uid://cn3bgbpha7dm3"
@@ -97,12 +98,12 @@ _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
-_nbInstances = 20
+_nbInstances = 200
 _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn")])
 _worldSize = 300.0
 _timeSteps = 1.0
-_maxSteps = 50
+_maxSteps = 100
 _saveLastFrame = false
 _drawLive = true
 _saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.75, 0.9, 1.0])
