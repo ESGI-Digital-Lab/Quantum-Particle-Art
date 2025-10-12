@@ -182,7 +182,7 @@ public partial class GodotEntry : Node
 			{
 				if (t.firstReach)
 				{
-					lateSave.RequestSave((t.value * 100).ToString("F0"));
+					lateSave.RequestSave("Fit-",(t.value * 100).ToString("F0"));
 					var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
 					saved.SetName(lateSave.FullName);
 					ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
@@ -259,6 +259,9 @@ public partial class GodotEntry : Node
 		psteps.Add(Influence);
 		var gates = new PointsIntersection(lineCollection, false, !_allowSameSpeciesInteraction);
 		psteps.Add(gates);
+
+		
+
 		if (withView)
 		{
 			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
@@ -270,8 +273,8 @@ public partial class GodotEntry : Node
 				lineCollection.AddLine(liner.CreateLine(data));
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
-			var fileName = _brush.ResourcePath.Split('/')[^1].Split('.')[0]; //Last part without extension
-			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize / 10, _relativeRandomBrushOffset, fileName);
+			var brushName = _brush.FileName(); //Last part without extension
+			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize / 10, _relativeRandomBrushOffset, brushName);
 			if (_drawLive)
 			{
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y,
@@ -281,7 +284,7 @@ public partial class GodotEntry : Node
 				psteps.Add(_write);
 			}
 
-			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, fileName);
+			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
 
 			IWidther widther = new ToggleLiner(_dynamicMax);
 			var lateWrite = new LateWriteToTex(_saveLastFrame || true
@@ -305,6 +308,8 @@ public partial class GodotEntry : Node
 		var world = new WorldInitializer(_worldSize);
 		looper.BaseInitializer = world;
 		return looper;
+
+		
 	}
 
 	private void OnInitChanged(InitConditions init)
