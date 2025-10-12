@@ -65,7 +65,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         Stopwatch sw = Stopwatch.StartNew();
         void Log(string s)
         {
-            UnityEngine.Debug.Log(s + " xxx " + sw.Elapsed+" on "+Thread.CurrentThread.ManagedThreadId);
+            //UnityEngine.Debug.Log(s + " xxx " + sw.Elapsed+" on "+Thread.CurrentThread.ManagedThreadId);
         }
         await base.Update();
         if (_shouldStop)
