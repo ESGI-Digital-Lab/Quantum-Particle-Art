@@ -11,10 +11,15 @@ public partial class EncodedConfiguration : GridConfiguration
 {
     [Export] private int _encoded;
 
-    public void UpdateEncoded(int encoded)
+    public void UpdateEncoded(int encoded, int? nbParticles = null)
     {
         //Debug.Log("Updating encoded to " + encoded + (_last==null?" no last":" has last") + (_grid==null?" no grid":" has grid"));
         _encoded = encoded;
+        if (nbParticles.HasValue)
+        {
+            this.NbParticles = nbParticles.Value;
+            this.Reset();
+        }
     }
 
     public int Result()

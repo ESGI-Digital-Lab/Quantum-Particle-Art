@@ -11,7 +11,7 @@ public partial class FakeChromosomeConfiguration : ChromosomeConfiguration
         {
             return base.GatesConfig.SelectMany(g =>
             {
-                return Enumerable.Range(0, _size.Y).Select(i =>
+                return Enumerable.Range(0, Size.Y).Select(i =>
                 {
                     return new GateConfiguration(g.Gate, g.Positions.Select(p => new Vector2I(p.X, i)));
                 });

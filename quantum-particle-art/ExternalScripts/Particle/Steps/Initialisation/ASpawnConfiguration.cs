@@ -6,7 +6,7 @@ public abstract partial class ASpawnConfiguration : Resource
 {
 	[Export] private bool _skip = false;
 	public bool Skip => _skip;
-	[ExportGroup("Particles")] [Export] protected int _nbParticles = 1;
+	[ExportGroup("Particles")] [Export] private int _nbParticles = 1;
 	[Export] private int _specyIndex = -1;
 	[ExportGroup("Speed")] [Export] private float _velocityScale = 1f;
 	public abstract IGates Gates { get; }
@@ -21,7 +21,15 @@ public abstract partial class ASpawnConfiguration : Resource
 
 	public UnityEngine.Vector2 Velocity => BaseVelocity() * _velocityScale;
 
-	public int NbParticles => _nbParticles;
+	public int NbParticles
+	{
+		get { return _nbParticles; }
+		protected set
+		{
+			_nbParticles = value;
+			Gates.Reset();
+		}
+	}
 
 	protected abstract UnityEngine.Vector2 BaseVelocity();
 
