@@ -46,7 +46,7 @@ public class ParticleSimulatorFitness
         return await Evaluate(chromosome, inputs);
     }
 
-    public async Task<double[]> Evaluate(IChromosome chromosome, int[] inputs)
+    public async Task<double[]> Evaluate(IChromosome chromosome, int[] inputs, bool saveInputs = true)
     {
         double[] values = new double[inputs.Length];
         Stopwatch sw = new Stopwatch();
@@ -88,7 +88,8 @@ public class ParticleSimulatorFitness
             lock (looper.Lock)
                 looper.Start(chromosome, specificInput);
 
-            (chromosome as Chromosome).AddInputTestedOn(specificInput);
+            if (saveInputs)
+                (chromosome as Chromosome).AddInputTestedOn(specificInput);
             int? result = null;
             while (!result.HasValue)
             {
@@ -123,13 +124,6 @@ public class ParticleSimulatorFitness
     public bool Equals(Gene[] x, Gene[] y)
     {
         return !(x != null ^ y != null) && x.SequenceEqual(y);
-    }
-
-    public int Input(IChromosome chromosome, bool withSameInput = true)
-    {
-        return withSameInput
-            ? (chromosome as Chromosome)?.Input ?? _problem.CreateNewInput()
-            : _problem.CreateNewInput();
     }
 
     public IEnumerable<int> Inputs(IChromosome target)

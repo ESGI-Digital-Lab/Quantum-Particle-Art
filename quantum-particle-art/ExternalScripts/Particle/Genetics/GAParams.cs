@@ -13,8 +13,9 @@ public partial class GAParams : Resource
     [Export] private float _crossover = 0.75f;
     [ExportSubgroup("Meta evolution")] 
     [Export] private Vector2 _nbEvalRange = new(1, 20);
-
     [Export] private Curve _exactWeight;
+    [ExportSubgroup("Viewer settings")]
+    [Export] private bool _randomizeViewerInputs = true;
     
 
     public int MaxGen => _maxGen;
@@ -34,4 +35,6 @@ public partial class GAParams : Resource
     public Vector2 NbEvalRange => _nbEvalRange;
 
     public float MutateBlock => _mutateBlock;
+
+    public bool RandomizeViewerInputs => _randomizeViewerInputs;
 }

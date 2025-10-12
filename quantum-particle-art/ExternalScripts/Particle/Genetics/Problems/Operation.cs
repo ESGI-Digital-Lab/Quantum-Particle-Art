@@ -9,5 +9,5 @@
 
     public int CreateNewInput() => UnityEngine.Random.Range(1, _maxValue);
 
-    public int Expected(int input) => (input * 2 - 1)%_maxValue;
+    public int Expected(int input) => (input * 2) % _maxValue;
 }

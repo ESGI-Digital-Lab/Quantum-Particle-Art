@@ -108,12 +108,21 @@ public class Genetics
 
     private void RunViewer(IChromosome target)
     {
-        Task.Run(async () =>
+        Task.Run(() =>
         {
             var inputs = comparison.Inputs(target).ToArray();
-            UnityEngine.Debug.Log("Running viewer on best with inputs " + string.Join(",", inputs));
-            var result = await viewerEvaluator.Evaluate(target, inputs);
-            Debug.Log("Best of last gen, reran in viewer got sum of fitness " + result.Sum()+" / "+result.Length);
+            if (_gaParams.RandomizeViewerInputs)
+                inputs = Enumerable.Range(0, inputs.Length).Select(i => _problem.CreateNewInput()).ToArray();
+            UnityEngine.Debug.Log(
+                $"Running viewer on best with {(_gaParams.RandomizeViewerInputs ? "random " : "last")} inputs " +
+                string.Join(",", inputs));
+            //For some reasons running the viewer in another nested task makes it not block the viewing thread
+            Task.Run(async () =>
+            {
+                var result = await viewerEvaluator.Evaluate(target, inputs, false);
+                Debug.Log(
+                    "Best of last gen, reran in viewer got sum of fitness " + result.Sum() + " / " + result.Length);
+            });
         });
         //Task.Run(async () =>
         //{
@@ -149,7 +158,7 @@ public class Genetics
         var selection = new TournamentSelection(3);
         var crossover = new BlockCrossover(_size);
         IMutation mutation = new Mutation(_gaParams.MutateToEmpty, _gaParams.MutateBlock, _size);
-        float[] w = [0, 9f];
+        float[] w = [0.1f, 9f];
         var max = (int)Mathf.Pow(2, nbParticles) - 1;
         _problem = new Operation(max);
         proportional = new BitWiseEvaluator(nbParticles);
