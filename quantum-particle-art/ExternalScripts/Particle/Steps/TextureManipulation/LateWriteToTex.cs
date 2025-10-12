@@ -50,6 +50,12 @@ public class LateWriteToTex : ParticleStep
     private bool _saveAll = false;
     private string _cumulatedInfos = "";
 
+    public bool SaveAll
+    {
+        get { return _saveAll; }
+        set { _saveAll = value; }
+    }
+
     public void RequestSave(string info)
     {
         if (!string.IsNullOrEmpty(info))
@@ -147,7 +153,10 @@ public class LateWriteToTex : ParticleStep
 
         _dynamic.SetImage(_base);
         if (_saver != null)
-            _saver.SaveTexToDisk("-Fit" + _cumulatedInfos);
+            _saver.SaveTexToDisk(Addon);
         _cumulatedInfos = "";
     }
+
+    private string Addon => "-Fit" + _cumulatedInfos;
+    public string FullName => _saver.Name + Addon;
 }
