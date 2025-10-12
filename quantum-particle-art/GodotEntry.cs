@@ -29,12 +29,16 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	[ExportCategory("Genetic Algorithm")] [ExportGroup("Genetic meta parameters")] [Export]
+	[ExportCategory("Genetic Algorithm")] [Export]
+	private bool _training = true;
+
+	[ExportGroup("Training")] [ExportSubgroup("Genetic meta parameters")] [Export]
 	private int _nbInstances = 50;
 
 	[Export] private GAParams _params;
-	[ExportGroup("Gates")] [Export] private bool _forceAllGatesLabel = true;
+	[ExportSubgroup("Gates")] [Export] private bool _forceAllGatesLabel = true;
 	[Export] private Godot.Collections.Array<AGate> _gates;
+	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfiguration> _replays;
 
 	#endregion
 
@@ -152,30 +156,50 @@ public partial class GodotEntry : Node
 		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
 		var availableSize = new Vector2I(code.NbParticles - 1, code.NbParticles);
-		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, availableSize, true);
+		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, availableSize, true,
+			_training);
 		viewerLooper.SetNode(this);
+		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
-		for (int i = 0; i < _nbInstances; i++)
+		Genetics globalGenetics = null;
+		AGate.ShowLabelDefault = _forceAllGatesLabel;
+
+		if (_training)
 		{
-			var looper = CreateLooper(new InitConditions(uniqueCondition), i + 1, globalLock, availableSize, false);
-			looper.SetNode(this);
-			_loopers.Add(looper);
-			_monos.Add(looper);
+			for (int i = 0; i < _nbInstances; i++)
+			{
+				var looper = CreateGeneticLooper(new InitConditions(uniqueCondition), i + 1, globalLock, availableSize);
+				looper.SetNode(this);
+				_loopers.Add(looper);
+				_monos.Add(looper);
+			}
+
+			//Starts GA asynchronously using the provided loopers to run and evaluate simulations
+			globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers,
+				(GeneticLooper)viewerLooper, _gates,
+				_saveThreholds);
+			globalGenetics.OnThresholdReached += t =>
+			{
+				if (t.firstReach)
+				{
+					lateSave.RequestSave((t.value * 100).ToString("F0"));
+					var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
+					saved.SetName(lateSave.FullName);
+					ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
+				}
+			};
+		}
+		else
+		{
+			lateSave.SaveAll = true;
 		}
 
-		AGate.ShowLabelDefault = _forceAllGatesLabel;
-		//Starts GA asynchronously using the provided loopers to run and evaluate simulations
-		var globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers, viewerLooper, _gates,
-			_saveThreholds);
-		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
-		globalGenetics.OnThresholdReached += t =>
-		{
-			if (t.firstReach)
-				lateSave.RequestSave((t.value * 100).ToString("F0"));
-		};
 		RunInitMethods();
-		//After all monos has been initialized we can start the genetics that depends on their process => ready cycles
-		globalGenetics.StartAsync();
+		if (_training)
+		{
+			//After all monos has been initialized we can start the genetics that depends on their process => ready cycles
+			globalGenetics?.StartAsync();
+		}
 	}
 
 	private void RunInitMethods()
@@ -216,8 +240,14 @@ public partial class GodotEntry : Node
 		}
 	}
 
-	private GeneticLooper CreateLooper(InitConditions conditions, int id, object sharedLock, Vector2I size,
-		bool withView = true)
+	private GeneticLooper CreateGeneticLooper(InitConditions conditions, int id, object sharedLock, Vector2I size)
+	{
+		return CreateLooper(conditions, id, sharedLock, size, false, true) as GeneticLooper;
+	}
+
+	private PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> CreateLooper(InitConditions conditions,
+		int id, object sharedLock, Vector2I size,
+		bool withView = true, bool isGenetic = true)
 	{
 		List<ParticleStep> psteps = new();
 		List<IInit<ParticleWorld>> prewarm = new();
@@ -241,7 +271,7 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			var fileName = _brush.ResourcePath.Split('/')[^1].Split('.')[0]; //Last part without extension
-			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize/10, _relativeRandomBrushOffset, fileName);
+			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize / 10, _relativeRandomBrushOffset, fileName);
 			if (_drawLive)
 			{
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y,
@@ -250,6 +280,7 @@ public partial class GodotEntry : Node
 					smallBrush);
 				psteps.Add(_write);
 			}
+
 			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, fileName);
 
 			IWidther widther = new ToggleLiner(_dynamicMax);
@@ -259,10 +290,13 @@ public partial class GodotEntry : Node
 			psteps.Add(lateWrite);
 		}
 
-		var looper = new GeneticLooper(id, size, conditions, psteps, psteps, prewarm,
-			withView ? _targetHeightOfBackgroundTexture : -1);
-		// = new MultipleImageLooper new(_duration, conditions, psteps, psteps, prewarm,_targetHeightOfBackgroundTexture);
-		//looper.InitChange += OnInitChanged;
+		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> looper;
+		if (isGenetic)
+			looper = new GeneticLooper(id, size, conditions, psteps, psteps, prewarm,
+				withView ? _targetHeightOfBackgroundTexture : -1);
+		else
+			looper = new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture);
+
 		tick.onAllDead += () =>
 		{
 			//Debug.Log("Finished a simulation with " + tick.NbSteps + " steps/"+_maxSteps +" on looper " + looper.ToString());
