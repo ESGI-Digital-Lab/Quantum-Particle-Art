@@ -52,7 +52,8 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
                 Image.Interpolation.Trilinear);
         }
         ChromosomeConfiguration chromosomeConfiguration = _chromosomes[loop];
-        _spawn.UpdateEncoded(chromosomeConfiguration.RandomInput);
+        init.SetName(chromosomeConfiguration.FileName());
+        _spawn.UpdateEncoded(chromosomeConfiguration.RandomInput, chromosomeConfiguration.Size.Y);
         _spawn.UpdateDynamicGates(chromosomeConfiguration.GatesConfig);
         return true;
     }

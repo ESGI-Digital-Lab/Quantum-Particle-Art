@@ -133,6 +133,7 @@ public struct InitConditions
 	private float _gateSize;
 	[SerializeField] private ISpecyPicker _specyPicker;
 	private float _ratio;
+	private string _nameAddon = "";
 
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
@@ -145,4 +146,10 @@ public struct InitConditions
 	public ISpecyPicker SpecyPicker => _specyPicker;
 
 	public float Ratio => _ratio;
+
+	public string Name
+	{
+		get => _texture.Name +"_"+_nameAddon;
+		set => _nameAddon = value;
+	}
 }
