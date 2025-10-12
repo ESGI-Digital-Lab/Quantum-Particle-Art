@@ -156,20 +156,27 @@ public partial class GodotEntry : Node
 		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
 		var availableSize = new Vector2I(code.NbParticles - 1, code.NbParticles);
-		var viewerLooper = CreateLooper(new InitConditions(uniqueCondition), 0, globalLock, availableSize, true,
-			_training);
-		viewerLooper.SetNode(this);
+		List<ParticleStep> psteps;
+		List<IInit<ParticleWorld>> prewarm;
+		AGate.ShowLabelDefault = _forceAllGatesLabel;
+		GlobalTick globalTick;
+		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out globalTick);
+		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper = _training
+			? new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps, prewarm,
+				_targetHeightOfBackgroundTexture)
+			: new ReplayLooper(conditions, psteps, psteps, prewarm,  _replays, _targetHeightOfBackgroundTexture);
+		BindLooper(viewerLooper, globalTick);
 		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
 		Genetics globalGenetics = null;
-		AGate.ShowLabelDefault = _forceAllGatesLabel;
 
 		if (_training)
 		{
 			for (int i = 0; i < _nbInstances; i++)
 			{
-				var looper = CreateGeneticLooper(new InitConditions(uniqueCondition), i + 1, globalLock, availableSize);
-				looper.SetNode(this);
+				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out globalTick);
+				var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps, prewarm, -1);
+				BindLooper(looper, globalTick);
 				_loopers.Add(looper);
 				_monos.Add(looper);
 			}
@@ -239,20 +246,13 @@ public partial class GodotEntry : Node
 			throw e;
 		}
 	}
-
-	private GeneticLooper CreateGeneticLooper(InitConditions conditions, int id, object sharedLock, Vector2I size)
+	
+	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps, out List<IInit<ParticleWorld>> prewarm, out GlobalTick tick)
 	{
-		return CreateLooper(conditions, id, sharedLock, size, false, true) as GeneticLooper;
-	}
-
-	private PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> CreateLooper(InitConditions conditions,
-		int id, object sharedLock, Vector2I size,
-		bool withView = true, bool isGenetic = true)
-	{
-		List<ParticleStep> psteps = new();
-		List<IInit<ParticleWorld>> prewarm = new();
+		psteps = new();
+		prewarm = new();
 		LineCollection lineCollection = new();
-		var tick = new GlobalTick(_timeSteps, _maxSteps);
+		tick = new GlobalTick(_timeSteps, _maxSteps);
 
 		psteps.Add(tick);
 		var Influence = new SpeciesInfluence();
@@ -277,7 +277,7 @@ public partial class GodotEntry : Node
 			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize / 10, _relativeRandomBrushOffset, brushName);
 			if (_drawLive)
 			{
-				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, conditions.Ratio).y,
+				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
 					_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null,
 					lineCollection,
 					smallBrush);
@@ -292,24 +292,14 @@ public partial class GodotEntry : Node
 				: null, detailledBrush, widther, _curveRes);
 			psteps.Add(lateWrite);
 		}
-
-		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> looper;
-		if (isGenetic)
-			looper = new GeneticLooper(id, size, conditions, psteps, psteps, prewarm,
-				withView ? _targetHeightOfBackgroundTexture : -1);
-		else
-			looper = new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture);
-
-		tick.onAllDead += () =>
-		{
-			//Debug.Log("Finished a simulation with " + tick.NbSteps + " steps/"+_maxSteps +" on looper " + looper.ToString());
-			looper.ExternalStop();
-		};
-		var world = new WorldInitializer(_worldSize);
-		looper.BaseInitializer = world;
-		return looper;
-
 		
+	}
+
+	private void BindLooper(PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> looper, GlobalTick tick)
+	{
+		tick.onAllDead += looper.ExternalStop;
+		looper.BaseInitializer = new WorldInitializer(_worldSize);
+		looper.SetNode(this);
 	}
 
 	private void OnInitChanged(InitConditions init)
