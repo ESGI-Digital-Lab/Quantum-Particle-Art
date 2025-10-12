@@ -4,7 +4,7 @@ using GeneticSharp;
 
 namespace UnityEngine.ExternalScripts.Particle.Genetics;
 
-public class Chromosome : ChromosomeBase
+public class GateChromosome : ChromosomeBase
 {
 	private int _length;
 	private HashSet<int> inputsTestedOn = new();
@@ -16,7 +16,7 @@ public class Chromosome : ChromosomeBase
 		inputsTestedOn.Add(input);
 	}
 
-	public Chromosome(int length) : base(length)
+	public GateChromosome(int length) : base(length)
 	{
 		_length = length;
 		for (int i = 0; i < length; i++)
@@ -38,6 +38,6 @@ public class Chromosome : ChromosomeBase
 
 	public override IChromosome CreateNew()
 	{
-		return new Chromosome(_length);
+		return new GateChromosome(_length);
 	}
 }
