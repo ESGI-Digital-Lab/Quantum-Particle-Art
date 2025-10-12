@@ -22,6 +22,8 @@ public partial class ChromosomeConfiguration : Resource
         }
     }
 
+    public Vector2I Size => _size;
+
     public ChromosomeConfiguration() : this([])
     {
     }
