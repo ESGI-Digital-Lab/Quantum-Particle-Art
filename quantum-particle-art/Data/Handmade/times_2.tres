@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Resource_vrooe"]
 script = ExtResource("1_j75h2")
 _degrees = 45.0
-_inverted = true
+_inverted = false
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [sub_resource type="Resource" id="Resource_5x0jg"]
@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
 [sub_resource type="Resource" id="Resource_j75h2"]
 script = ExtResource("1_j75h2")
 _degrees = 45.0
-_inverted = false
+_inverted = true
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
 [sub_resource type="Resource" id="Resource_rwn8a"]
@@ -30,10 +30,10 @@ metadata/_custom_type_script = "uid://h6cdmkj0jr7m"
 
 [resource]
 script = ExtResource("1_pxpin")
-_patternCenter = Vector2i(10, 0)
-_patternRepeat = Vector2i(1, 20)
+_patternCenter = Vector2i(0, 0)
+_patternRepeat = Vector2i(1, 31)
 _patternOffsetX = Vector2i(0, 0)
-_patternOffsetY = Vector2i(0, 1)
+_patternOffsetY = Vector2i(1, 1)
 _gates = Array[Object]([SubResource("Resource_5x0jg"), SubResource("Resource_rwn8a")])
-_size = Vector2i(20, 20)
+_size = Vector2i(32, 32)
 metadata/_custom_type_script = "uid://c6npsp6hnuxaa"
