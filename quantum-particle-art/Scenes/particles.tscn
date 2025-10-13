@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=39 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -10,10 +10,12 @@
 [ext_resource type="Script" uid="uid://dur585ckuh5yv" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/PauliFlip.cs" id="4_mum02"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
-[ext_resource type="Resource" uid="uid://b756ahudomjdb" path="res://Data/Handmade/times_2.tres" id="5_mum02"]
+[ext_resource type="Resource" uid="uid://b756ahudomjdb" path="res://Data/Handmade/times_2.tres" id="5_cuf3k"]
+[ext_resource type="Resource" uid="uid://qmqeclrlxonq" path="res://Scenes/diamond.tres" id="5_gvqa1"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
 [ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="6_2d2wn"]
 [ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="6_bv6uv"]
+[ext_resource type="Script" uid="uid://cmrpexp80khrg" path="res://ExternalScripts/Particle/Steps/Initialisation/GateConfigurations/RepeatedConfiguration.cs" id="6_gvqa1"]
 [ext_resource type="Texture2D" uid="uid://pbdwga3lfeke" path="res://Visuals/Generated_Brushes/omniBrush.png" id="6_mum02"]
 [ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="7_mum02"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
@@ -65,6 +67,18 @@ script = ExtResource("4_mum02")
 _axis = 1
 metadata/_custom_type_script = "uid://dur585ckuh5yv"
 
+[sub_resource type="Resource" id="Resource_2bkyo"]
+script = ExtResource("6_gvqa1")
+_repeats = 5
+_baseConfig = ExtResource("5_gvqa1")
+metadata/_custom_type_script = "uid://cmrpexp80khrg"
+
+[sub_resource type="Resource" id="Resource_utk7t"]
+script = ExtResource("6_gvqa1")
+_repeats = 2
+_baseConfig = ExtResource("5_cuf3k")
+metadata/_custom_type_script = "uid://cmrpexp80khrg"
+
 [sub_resource type="Resource" id="Resource_gvqa1"]
 script = ExtResource("6_2d2wn")
 _max = 1
@@ -103,10 +117,10 @@ _training = false
 _nbInstances = 200
 _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn")])
-_replays = Array[Object]([ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02")])
+_replays = Array[Object]([SubResource("Resource_2bkyo"), SubResource("Resource_utk7t")])
 _worldSize = 750.0
 _timeSteps = 1.0
-_maxSteps = 250
+_maxSteps = 600
 _saveLastFrame = false
 _lateSave = true
 _drawLive = true
