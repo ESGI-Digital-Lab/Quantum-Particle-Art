@@ -38,7 +38,7 @@ public partial class GodotEntry : Node
 	[Export] private GAParams _params;
 	[ExportSubgroup("Gates")] [Export] private bool _forceAllGatesLabel = true;
 	[Export] private Godot.Collections.Array<AGate> _gates;
-	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfiguration> _replays;
+	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfigurationBase> _replays;
 
 	#endregion
 
