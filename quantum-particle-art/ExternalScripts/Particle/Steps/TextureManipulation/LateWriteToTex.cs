@@ -120,7 +120,8 @@ public class LateWriteToTex : ParticleStep
         base.Release();
         if (!_saveAll && !_saveRequested)
             return;
-        Parallel.ForEach(_history.Entries, kvp =>
+        //Parallel.ForEach(_history.Entries, kvp =>
+        foreach(var kvp in _history.Entries)
         {
             List<System.Numerics.Vector2> pts = new();
             ParticleHistory.HistoryEntry startInfo = kvp.Value.First();
@@ -137,7 +138,7 @@ public class LateWriteToTex : ParticleStep
                 }
                 else
                 {
-                    UnityEngine.Debug.Log($"Drawing {i}th new arc" + pts.Count + " points for particle " + kvp.Key +
+                    UnityEngine.Debug.Log($"Drawing new arc" + pts.Count + " points for particle " + kvp.Key +
                                           " of color " +
                                           startInfo.color + " to " + point.position + " with width from " +
                                           startInfo.velocity +
@@ -174,7 +175,8 @@ public class LateWriteToTex : ParticleStep
                     startInfo = point;
                 }
             }
-        });
+        }
+        //);
 
 
         _dynamic.SetImage(_base);
