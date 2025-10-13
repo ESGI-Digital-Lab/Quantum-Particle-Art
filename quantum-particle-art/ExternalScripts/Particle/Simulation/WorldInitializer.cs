@@ -63,4 +63,9 @@ public class WorldInitializer
             return new Area2D(pos * _size, gateSize, v.type);
         }).ToArray();
     }
+
+    public void SetName(string name)
+    {
+        _init.Name = name;
+    }
 }

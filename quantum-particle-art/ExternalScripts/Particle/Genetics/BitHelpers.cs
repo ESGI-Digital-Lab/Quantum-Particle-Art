@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using GeneticSharp;
+using Godot;
+using UnityEngine.ExternalScripts.Particle.Genetics;
 
 public static class BitHelpers
 {
@@ -51,5 +54,18 @@ public static class BitHelpers
         {
             return 0;
         }
+    }
+
+    public static IEnumerable<GateConfiguration> GetGates(IChromosome current, Vector2I size)
+    {
+        return current.GetGenes().Select((g, i) =>
+        {
+            var c = (GeneContent)g.Value;
+            //GetConstructor([typeof(byte)]).Invoke([c.Input]);
+            //GetConstructor([]).Invoke([]) as AGate
+            var type = GatesTypesToInt.Type(c.TypeId);
+            return new GateConfiguration(type.DeepCopy(),
+                new Vector2I(i % size.X + 1, i / size.X));
+        });
     }
 }

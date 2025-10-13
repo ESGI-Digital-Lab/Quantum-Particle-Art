@@ -13,6 +13,8 @@ public class Saver
 		_path = path;
 	}
 
+	public string Name => _name;
+
 	public void Init(Image image, string name)
 	{
 		this._image = image;

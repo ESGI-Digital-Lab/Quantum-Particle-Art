@@ -18,25 +18,21 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private IInit<ParticleWorld>[] _prewarm;
     private int _texHeight;
     private EncodedConfiguration _spawn => _init.Spawn;
-    private IChromosome _current = null;
+    private bool _busy = false;
     private int? _result = null;
 
     private readonly int _id;
 
-    public void ExternalRestart()
-    {
-        _shouldStop = true;
-    }
 
-
-    public int GetResultAndFreeLooper()
+    public int GetResult(bool free = true)
     {
-        _current = null;
+        if (free)
+            _busy = false;
         return _result ?? -1;
     }
 
     public bool ResultAvailable => _result.HasValue;
-    public bool Busy => _current != null;
+    public bool Busy => _busy;
     private readonly Vector2I _size;
     private int _nbParticles => _init.Spawn.NbParticles;
     private object _lock = new();
@@ -56,24 +52,29 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         _prewarm = prewarm.ToArray();
         _texHeight = texHeight;
         _result = null;
-        _current = null;
+        _busy = false;
         _size = availableSize;
     }
 
     public void Start(IChromosome evaluationTarget, int input)
     {
-        _current = evaluationTarget;
+        Start(BitHelpers.GetGates(evaluationTarget, _size), input);
+    }
+    public void Start(IEnumerable<GateConfiguration> evaluationTarget, int input)
+    {
+        _busy = true;
         _result = null;
         Log("IN Lock : Updating initializer ");
         _shouldRestart = true;
         _spawn.UpdateEncoded(input);
-        _spawn.UpdateDynamicGates(GetGates(_current));
+        _spawn.UpdateDynamicGates(evaluationTarget);
     }
 
     public override async Task Start()
     {
+        bool alreadyStarted = _shouldRestart;
         await base.Start();
-        _shouldRestart = false;
+        _shouldRestart = alreadyStarted;
     }
 
     protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
@@ -86,7 +87,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
                 Image.Interpolation.Trilinear);
         }
 
-        if (_current == null)
+        if (_busy == null)
             return false;
         return true;
     }
@@ -96,19 +97,6 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
         var result = _spawn.Result();
         _result = result;
         Log("Pipeline finished with encoder result : " + result + " checking if generation finished");
-    }
-
-    public IEnumerable<GateConfiguration> GetGates(IChromosome current)
-    {
-        return current.GetGenes().Select((g, i) =>
-        {
-            var c = (GeneContent)g.Value;
-            //GetConstructor([typeof(byte)]).Invoke([c.Input]);
-            //GetConstructor([]).Invoke([]) as AGate
-            var type = GatesTypesToInt.Type(c.TypeId);
-            return new GateConfiguration(type.DeepCopy(),
-                new Vector2I(i % _size.X + 1, i / _size.X));
-        });
     }
 
     protected override IEnumerable<IInit<ParticleWorld>> GetPrewarms() => _prewarm;
@@ -139,10 +127,5 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     public override string ToString()
     {
         return $"GeneticLooper {_id} with {_steps.Length} steps";
-    }
-
-    public T GetStep<T>() where T : class, IStep<ParticleWorld>
-    {
-        return _steps.First(s => s is T) as T;
     }
 }

@@ -16,6 +16,7 @@ public class LateWriteToTex : ParticleStep
     {
         public record struct HistoryEntry(Vector2 position, Vector2 velocity, Godot.Color color, bool continuous);
 
+        public int Count => _history.Count;
         private Dictionary<Particle, List<HistoryEntry>> _history = new();
         private IColorPicker _picker;
         private int _nbSpecies;
@@ -48,15 +49,27 @@ public class LateWriteToTex : ParticleStep
     private bool _saveRequested;
     private bool _saveAll = false;
     private string _cumulatedInfos = "";
+    private string _name = "";
 
-    public void RequestSave(string info)
+    public bool SaveAll
+    {
+        get { return _saveAll; }
+        set { _saveAll = value; }
+    }
+
+    public void RequestSave(string start,string info)
     {
         if (!string.IsNullOrEmpty(info))
+        {
+            if (string.IsNullOrEmpty(info))
+                _cumulatedInfos = start;
             _cumulatedInfos += "_" + info;
+        }
         _saveRequested = true;
     }
 
-    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes, bool saveAll = false)
+    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes, string name = "",
+        bool saveAll = false)
     {
         _saver = saver;
         _curveRes = curveRes;
@@ -64,18 +77,18 @@ public class LateWriteToTex : ParticleStep
         _width = width;
         _saveAll = saveAll;
         _saveRequested = false;
+        _name = string.IsNullOrEmpty(name) ? (_brush.ToString() + "_" + _curveRes) : name;
     }
 
     public override async Task Init(WorldInitializer initializer)
     {
         await base.Init(initializer);
         _history = new(initializer.Init.Colors, initializer.Init.Rules.NbSpecies);
-        var aTexProvider = initializer.Texture;
-        _base = aTexProvider.Texture.Duplicate() as Image;
+        _base = initializer.Texture.Texture.Duplicate() as Image;
         _dynamic = ImageTexture.CreateFromImage(_base);
         if (_saver != null)
         {
-            _saver.Init(_base, aTexProvider.Name + "_" + _brush.ToString() + "_" + _curveRes);
+            _saver.Init(_base, initializer.Init.Name);
         }
     }
 
@@ -94,14 +107,18 @@ public class LateWriteToTex : ParticleStep
         base.Release();
         if (!_saveAll && !_saveRequested)
             return;
-        _saveRequested = false;
         foreach (var kvp in _history.Entries)
         {
             List<System.Numerics.Vector2> pts = new();
-            var startInfo = kvp.Value.First();
+            ParticleHistory.HistoryEntry startInfo = kvp.Value.First();
+            _saveRequested = false;
+            int count = kvp.Value.Count;
+            int i = -1;
             foreach (var point in kvp.Value)
             {
-                if (point.continuous) //End of continuous line, draw what we have and start a new one
+                i++;
+                if (point.continuous &&
+                    i < count - 1) //End of continuous line or last point, draw what we have and start a new one
                 {
                     pts.Add(point.position.ToSystemV2());
                 }
@@ -143,7 +160,10 @@ public class LateWriteToTex : ParticleStep
 
         _dynamic.SetImage(_base);
         if (_saver != null)
-            _saver.SaveTexToDisk("-Fit" + _cumulatedInfos);
+            _saver.SaveTexToDisk(Addon);
         _cumulatedInfos = "";
     }
+
+    private string Addon => _cumulatedInfos;
+    public string FullName => _saver.Name + Addon;
 }

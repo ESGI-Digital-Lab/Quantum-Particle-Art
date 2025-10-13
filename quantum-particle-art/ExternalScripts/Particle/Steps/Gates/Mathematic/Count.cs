@@ -13,7 +13,6 @@ public partial class Count : AGate
         if (_count >= _max)
             return false;
         _count++;
-        particle.MarkDead();
         return true;
     }
 

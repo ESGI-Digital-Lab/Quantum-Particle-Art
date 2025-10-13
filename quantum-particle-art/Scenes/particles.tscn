@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=35 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -10,13 +10,14 @@
 [ext_resource type="Script" uid="uid://dur585ckuh5yv" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/PauliFlip.cs" id="4_mum02"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
-[ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="5_1mke2"]
+[ext_resource type="Resource" uid="uid://b756ahudomjdb" path="res://Data/Handmade/times_2.tres" id="5_mum02"]
 [ext_resource type="Texture2D" uid="uid://dw5sy5vu72sov" path="res://Visuals/Init/Lenna.png" id="5_rvlvc"]
-[ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="5_yi0l3"]
-[ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="6_2d2wn"]
+[ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="6_2d2wn"]
 [ext_resource type="Resource" uid="uid://dnq5k07uehyqj" path="res://Data/Gates/handGrid.tres" id="6_bv6uv"]
 [ext_resource type="Texture2D" uid="uid://pbdwga3lfeke" path="res://Visuals/Generated_Brushes/omniBrush.png" id="6_mum02"]
+[ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="7_mum02"]
 [ext_resource type="Texture2D" uid="uid://btcggpsgqrvjm" path="res://Visuals/Init/pexels-brandon-ricketts.jpg" id="7_xqktt"]
+[ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="8_cuf3k"]
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
@@ -25,48 +26,63 @@
 [ext_resource type="Texture2D" uid="uid://bw74ufkfwqpfp" path="res://Visuals/Init/openCV.png" id="11_8ns5o"]
 [ext_resource type="Texture2D" uid="uid://clo7rfil0moo6" path="res://Visuals/Init/pexels-simon-robben.jpg" id="11_fcssu"]
 
-[sub_resource type="Resource" id="Resource_2d2wn"]
+[sub_resource type="Curve" id="Curve_2d2wn"]
+_data = [Vector2(0, 0), 0.0, 0.105882, 0, 1, Vector2(0.85, 0.09), 0.105882, 4.93398, 1, 1, Vector2(1, 0.830097), 4.93398, 0.0, 1, 0]
+point_count = 3
+
+[sub_resource type="Resource" id="Resource_fcssu"]
 script = ExtResource("2_w33ia")
 _maxGen = -1
-_popSize = 25
-_threshold = 0.9
+_popSize = 128
+_mutation = 0.1
+_mutateToEmpty = 0.25
+_mutateBlock = 0.1
+_crossover = 0.2
+_nbEvalRange = Vector2(4, 25)
+_exactWeight = SubResource("Curve_2d2wn")
+_randomizeViewerInputs = true
 metadata/_custom_type_script = "uid://dn5rai3ioon7r"
 
-[sub_resource type="Resource" id="Resource_gvqa1"]
-script = ExtResource("2_mum02")
-_degrees = 45.0
-_inverted = false
-metadata/_custom_type_script = "uid://cyv5hjss13b5g"
-
-[sub_resource type="Resource" id="Resource_yi0l3"]
+[sub_resource type="Resource" id="Resource_bv6uv"]
 script = ExtResource("2_mum02")
 _degrees = 45.0
 _inverted = true
 metadata/_custom_type_script = "uid://cyv5hjss13b5g"
 
-[sub_resource type="Resource" id="Resource_176xe"]
+[sub_resource type="Resource" id="Resource_w33ia"]
+script = ExtResource("2_mum02")
+_degrees = 45.0
+_inverted = false
+metadata/_custom_type_script = "uid://cyv5hjss13b5g"
+
+[sub_resource type="Resource" id="Resource_1mke2"]
 script = ExtResource("4_mum02")
 _axis = 0
 metadata/_custom_type_script = "uid://dur585ckuh5yv"
 
-[sub_resource type="Resource" id="Resource_bv6uv"]
-script = ExtResource("5_1mke2")
+[sub_resource type="Resource" id="Resource_2d2wn"]
+script = ExtResource("4_mum02")
+_axis = 1
+metadata/_custom_type_script = "uid://dur585ckuh5yv"
+
+[sub_resource type="Resource" id="Resource_gvqa1"]
+script = ExtResource("6_2d2wn")
 _max = 1
 _count = 0
 _countAsName = true
 _nameAppendix = ""
 metadata/_custom_type_script = "uid://coqmrloclwhuy"
 
-[sub_resource type="Resource" id="Resource_w33ia"]
-script = ExtResource("6_2d2wn")
-_safe = false
+[sub_resource type="Resource" id="Resource_yi0l3"]
+script = ExtResource("7_mum02")
+_safe = true
 metadata/_custom_type_script = "uid://lohey3ijudrc"
 
-[sub_resource type="Resource" id="Resource_1mke2"]
-script = ExtResource("5_yi0l3")
-_countTemplate = SubResource("Resource_bv6uv")
-_killTemplate = SubResource("Resource_w33ia")
-_encoded = -1
+[sub_resource type="Resource" id="Resource_176xe"]
+script = ExtResource("8_cuf3k")
+_encoded = 0
+_countTemplate = SubResource("Resource_gvqa1")
+_killTemplate = SubResource("Resource_yi0l3")
 _skip = false
 _nbParticles = 8
 _specyIndex = -1
@@ -83,15 +99,17 @@ _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
 _zoom = 2.0
-_nbInstances = 100
-_params = SubResource("Resource_2d2wn")
-_gates = Array[Object]([SubResource("Resource_gvqa1"), SubResource("Resource_yi0l3"), SubResource("Resource_176xe")])
+_training = false
+_nbInstances = 200
+_params = SubResource("Resource_fcssu")
+_gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn")])
+_replays = Array[Object]([ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02")])
 _worldSize = 300.0
 _timeSteps = 1.0
 _maxSteps = 100
-_saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.75, 0.95, 1.0])
 _saveLastFrame = false
 _drawLive = true
+_saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.75, 0.9, 1.0])
 _brush = ExtResource("6_mum02")
 _maxStrokeSize = 70
 _relativeRandomBrushOffset = 0.0
@@ -101,16 +119,17 @@ _dynamicMax = true
 _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
-_spawnTemplate = SubResource("Resource_1mke2")
+_spawnTemplate = SubResource("Resource_176xe")
+_gateSize = 0.03
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
 _nbMinLoops = 1
-_backgroundTypes = Array[int]([0, 2, 2, 2, 2, 2, 2])
+_backgroundTypes = Array[int]([0, 0, 0, 0, 0, 0, 0])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
-_colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8"), ExtResource("2_0qkf8")])
+_colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8")])
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
-_nbSpecies = PackedInt32Array(12, 2, 2, 2, 2)
-_ruleType = Array[int]([6, 1, 1, 1, 1])
+_nbSpecies = PackedInt32Array(12, 4)
+_ruleType = Array[int]([6])
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true

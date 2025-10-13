@@ -22,8 +22,9 @@ public static class GatesTypesToInt
     }
     public static bool IsNullId(byte geneTypeId)
     {
-        return geneTypeId == _typesMap[NullGate];
+        return geneTypeId == NullId;
     }
+    public static byte NullId => _typesMap[NullGate];
 
     public static AGate Type(byte id)
     {

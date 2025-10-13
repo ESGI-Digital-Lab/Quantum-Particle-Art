@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class GlobalTick : ParticleStep
 {
-    private float _timeSteps;
-    private int _maxSteps;
+    private readonly float _timeSteps;
+    private readonly int _maxSteps;
     private int _nbSteps = 0;
     private IColorPicker _colorPicker;
     private bool _rearmed = true;
@@ -26,6 +26,8 @@ public class GlobalTick : ParticleStep
         Orientation orientation);
 
     public event System.Action<MovementData> onMovement;
+
+    public int NbSteps => _nbSteps;
 
     public override async Task Init(WorldInitializer init)
     {

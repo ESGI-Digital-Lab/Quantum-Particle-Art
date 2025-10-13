@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GeneticSharp;
 using UnityEngine;
 
 public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
@@ -24,13 +27,17 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     protected bool _shouldRestart;
     protected bool _shouldStop;
+    public void ExternalStop()
+    {
+        _shouldStop = true;
+    }
 
     Func<Task> timer;
 
-    public override async Task Start()
+    public override Task Start()
     {
         pipeline = GetPipeline();
-        i = -1;
+        i = 0;
         if (_duration > 0)
         {
             timer = async () =>
@@ -41,6 +48,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         }
 
         _shouldRestart = true;
+        return Task.CompletedTask;
     }
 
     private int i = 0;
@@ -54,22 +62,34 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     public override async Task Update()
     {
+        Stopwatch sw = Stopwatch.StartNew();
+        void Log(string s)
+        {
+            //UnityEngine.Debug.Log(s + " xxx " + sw.Elapsed+" on "+Thread.CurrentThread.ManagedThreadId);
+        }
         await base.Update();
         if (_shouldStop)
         {
+            _ready = false;
             _shouldStop = false;   
             OnFinished(pipeline);
+            Log("Stopped");
+
         }
         if (_shouldRestart)
         {
-            _shouldRestart = false;
             _ready = false;
-            i++;
+            Log("restarting " + i);
             bool intializedCorrectly = await UpdateInitializer(_baseInitializer, i);
             if (!intializedCorrectly)
                 return;
+            _shouldRestart = false;
+            i++;
+            Log("initialized " + i);
             pipeline.Dispose();
+            Log("disposed " + i);
             await pipeline.Restart(_baseInitializer, GetSteps(), GetInits(), GetPrewarms());
+            Log("restarted " + i);
             _ready = true;
             //Not awaited so non blocking, just launching the timer after initialization finished so we'll reenter this after duration
             if (timer != null)
@@ -98,4 +118,9 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     protected abstract Task<bool> UpdateInitializer(TInit init, int loop);
     protected abstract void OnFinished(TPipe pipeline);
+
+    public V GetStep<V>() where V : class, IStep<T>
+    {
+        return GetSteps().First(s => s is V) as V;
+    }
 }

@@ -53,4 +53,9 @@ public static class ViewHelpers
     
     public static Godot.Vector2 ToGodotV2(this System.Numerics.Vector2 v) => new Godot.Vector2(v.X, v.Y);
     public static UnityEngine.Vector2 ToUnityV2(this System.Numerics.Vector2 v) => new UnityEngine.Vector2(v.X, v.Y);
+
+    public static string FileName(this Resource r)
+    {
+        return r.ResourcePath.Split('/')[^1].Split('.')[0];
+    }
 }
