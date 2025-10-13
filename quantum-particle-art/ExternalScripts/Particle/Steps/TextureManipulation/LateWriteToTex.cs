@@ -51,13 +51,15 @@ public class LateWriteToTex : ParticleStep
     private string _cumulatedInfos = "";
     private string _name = "";
 
+    private object[][] _locks;
+
     public bool SaveAll
     {
         get { return _saveAll; }
         set { _saveAll = value; }
     }
 
-    public void RequestSave(string start,string info)
+    public void RequestSave(string start, string info)
     {
         if (!string.IsNullOrEmpty(info))
         {
@@ -65,6 +67,7 @@ public class LateWriteToTex : ParticleStep
                 _cumulatedInfos = start;
             _cumulatedInfos += "_" + info;
         }
+
         _saveRequested = true;
     }
 
@@ -90,6 +93,16 @@ public class LateWriteToTex : ParticleStep
         {
             _saver.Init(_base, initializer.Init.Name);
         }
+
+        var size = _base.GetWidth();
+        _locks = new object[size][];
+        for (int i = 0; i < size; i++)
+        {
+            var line = new object[size];
+            for (int j = 0; j < size; j++)
+                line[j] = new object();
+            _locks[i] = line;
+        }
     }
 
     public override Task HandleParticles(ParticleWorld entry, float delay)
@@ -107,7 +120,7 @@ public class LateWriteToTex : ParticleStep
         base.Release();
         if (!_saveAll && !_saveRequested)
             return;
-        foreach (var kvp in _history.Entries)
+        Parallel.ForEach(_history.Entries, kvp =>
         {
             List<System.Numerics.Vector2> pts = new();
             ParticleHistory.HistoryEntry startInfo = kvp.Value.First();
@@ -117,13 +130,18 @@ public class LateWriteToTex : ParticleStep
             foreach (var point in kvp.Value)
             {
                 i++;
-                if (point.continuous &&
-                    i < count - 1) //End of continuous line or last point, draw what we have and start a new one
+                //End of continuous line or last point, draw what we have and start a new one
+                if (point.continuous && (i < count - 1))
                 {
                     pts.Add(point.position.ToSystemV2());
                 }
                 else
                 {
+                    UnityEngine.Debug.Log($"Drawing {i}th new arc" + pts.Count + " points for particle " + kvp.Key +
+                                          " of color " +
+                                          startInfo.color + " to " + point.position + " with width from " +
+                                          startInfo.velocity +
+                                          " to " + point.velocity);
                     if (pts.Count >= 2) //Else we don't draw anything
                     {
                         Bezier curve = null;
@@ -156,7 +174,8 @@ public class LateWriteToTex : ParticleStep
                     startInfo = point;
                 }
             }
-        }
+        });
+
 
         _dynamic.SetImage(_base);
         if (_saver != null)

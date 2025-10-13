@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
+using UnityEngine.Assertions;
 using Color = UnityEngine.Color;
 
 public class Brush
@@ -32,14 +34,18 @@ public class Brush
     public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor,
         float strokeRelativeSize = 1f)
     {
-        DrawWithBrush(target, points.Select(p=> new StrokePoint(p,baseColor,strokeRelativeSize)));
+        DrawWithBrush(target, points.Select(p => new StrokePoint(p, baseColor, strokeRelativeSize)), null);
     }
 
-    public void DrawWithBrush(Image target, IEnumerable<StrokePoint> points)
+    public void DrawWithBrush(Image target, IEnumerable<StrokePoint> points, object[][] locks = null)
     {
         int width = target.GetWidth();
         int height = target.GetHeight();
-        foreach (var point in points)
+        Assert.IsTrue(locks==null, "Approach isn't correct, go single threaded only, we would need to use a buffer with thread safe access and then flush it to the image\n");
+        Assert.IsTrue(locks == null || locks.Length == height && locks[0].Length == width,
+            $"Locks size {(locks?.Length, locks?[0].Length)} does not match target size {(width, height)}");
+        
+        void Body(StrokePoint point, bool threadSafe)
         {
             var finalWidth = (int)(point.relativeSize * _brush.GetWidth() / 2);
             var bColor = point.color;
@@ -57,12 +63,26 @@ public class Brush
                             var color = ComputeColorFromBrush(x + finalWidth, y + finalWidth, bColor);
                             if (color.A > .001f)
                             {
-                                //This is raw results on a blank tex
-                                target.SetPixel(bigX, bigY, color);
+                                if (threadSafe)
+                                    lock (locks[bigX][bigY])
+                                        target.SetPixel(bigX, bigY, color);
+                                else
+                                    target.SetPixel(bigX, bigY, color);
                             }
                         }
                     }
                 }
+            }
+        }
+        if (locks != null)
+        {
+            Parallel.ForEach(points, point => Body(point, true));
+        }
+        else
+        {
+            foreach (var point in points)
+            {
+                Body(point, false);
             }
         }
     }
