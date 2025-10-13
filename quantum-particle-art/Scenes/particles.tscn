@@ -75,7 +75,7 @@ metadata/_custom_type_script = "uid://coqmrloclwhuy"
 
 [sub_resource type="Resource" id="Resource_yi0l3"]
 script = ExtResource("7_mum02")
-_safe = true
+_safe = false
 metadata/_custom_type_script = "uid://lohey3ijudrc"
 
 [sub_resource type="Resource" id="Resource_176xe"]
@@ -104,10 +104,11 @@ _nbInstances = 200
 _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn")])
 _replays = Array[Object]([ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02"), ExtResource("5_mum02")])
-_worldSize = 300.0
+_worldSize = 750.0
 _timeSteps = 1.0
-_maxSteps = 100
+_maxSteps = 250
 _saveLastFrame = false
+_lateSave = true
 _drawLive = true
 _saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.75, 0.9, 1.0])
 _brush = ExtResource("6_mum02")
@@ -120,15 +121,15 @@ _targetHeightOfBackgroundTexture = 2048
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
 _spawnTemplate = SubResource("Resource_176xe")
-_gateSize = 0.03
+_gateSize = 0.01
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
 _nbMinLoops = 1
 _backgroundTypes = Array[int]([0, 0, 0, 0, 0, 0, 0])
-_backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1)
-_colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("2_0qkf8")])
+_backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1)
+_colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("2_0qkf8"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("4_sph3f"), ExtResource("2_0qkf8")])
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
-_nbSpecies = PackedInt32Array(12, 4)
+_nbSpecies = PackedInt32Array(12, 8)
 _ruleType = Array[int]([6])
 
 [node name="Space" type="Node2D" parent="Simulation"]
