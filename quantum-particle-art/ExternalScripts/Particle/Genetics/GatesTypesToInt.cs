@@ -45,6 +45,11 @@ public static class GatesTypesToInt
         byte id = 0;
         foreach (var type in types.Append(NullGate))
         {
+            if (type == null)
+            {
+                Debug.LogError($"Null gate passed in type list, probably mistake in the inspector");
+                continue;
+            }
             //In case we also find null class, we only want it once
             _typesMap[type] = id;
             _mapBack[id] = type;

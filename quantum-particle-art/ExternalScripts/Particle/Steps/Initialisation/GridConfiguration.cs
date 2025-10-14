@@ -27,7 +27,7 @@ public abstract partial class GridConfiguration : ASpawnConfiguration
         _combined =
             new CombinedGates(true, false, false, "X", _countTemplate,
                 _killTemplate); //We don't deep copy, so the base templates remain the parent holders
-        var width = NbParticles+1;
+        var width = NbParticles;
         var positions = Enumerable.Range(0, NbParticles).Select(i => new Vector2I(width-1, i));
         _grid = new GridGates(new(width, NbParticles), new(0, 0), [new(_combined, positions)]);
         return _grid;

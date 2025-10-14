@@ -63,15 +63,15 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 				_childs = new(c1, c2);
 			}
 
-			_childs.Item1.UpdateView(info.Superposition.Item1);
-			_childs.Item2.UpdateView(info.Superposition.Item2);
+			_childs.Item1?.UpdateView(info.Superposition.Item1);
+			_childs.Item2?.UpdateView(info.Superposition.Item2);
 			if (_showOnlyChilds)
 				LineTo(info.Superposition.Item1, info.Superposition.Item2.Orientation, ViewHelpers.SUP);
 			else
 			{
 				this.UpdateView(info.Orientation);
-				_childs.Item1.LineTo(info.Orientation, ViewHelpers.SUP);
-				_childs.Item2.LineTo(info.Orientation, ViewHelpers.SUP);
+				_childs.Item1?.LineTo(info.Orientation, ViewHelpers.SUP);
+				_childs.Item2?.LineTo(info.Orientation, ViewHelpers.SUP);
 			}
 		}
 		else

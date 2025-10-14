@@ -138,11 +138,11 @@ public class LateWriteToTex : ParticleStep
                 }
                 else
                 {
-                    UnityEngine.Debug.Log($"Drawing new arc" + pts.Count + " points for particle " + kvp.Key +
-                                          " of color " +
-                                          startInfo.color + " to " + point.position + " with width from " +
-                                          startInfo.velocity +
-                                          " to " + point.velocity);
+                    //UnityEngine.Debug.Log($"Drawing new arc" + pts.Count + " points for particle " + kvp.Key +
+                    //                      " of color " +
+                    //                      startInfo.color + " to " + point.position + " with width from " +
+                    //                      startInfo.velocity +
+                    //                      " to " + point.velocity);
                     if (pts.Count >= 2) //Else we don't draw anything
                     {
                         Bezier curve = null;

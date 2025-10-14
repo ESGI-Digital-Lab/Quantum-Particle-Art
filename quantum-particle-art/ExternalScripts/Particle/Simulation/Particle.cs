@@ -169,9 +169,11 @@ public class Particle
 
     public void Warp(Vector2 position)
     {
-        foreach (var piv in Pivots(false, true))
+        //So main pivot is snapped and the others are offseted relatively
+        var delta = position - _position;
+        foreach (var piv in Pivots(true, true))
         {
-            piv.p._position = position;
+            piv.p._position += delta;
         }
     }
 
