@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=52 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -27,6 +27,7 @@
 [ext_resource type="Script" uid="uid://c54g55g02h1kq" path="res://ExternalScripts/Tools/PythonCaller.cs" id="8_sph3f"]
 [ext_resource type="Script" uid="uid://bl314imlflpvr" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/Union.cs" id="9_2bkyo"]
 [ext_resource type="Texture2D" uid="uid://cryo48bmw4eie" path="res://Visuals/Init/pexels-thyrone-paas.jpg" id="9_hcmhk"]
+[ext_resource type="Script" uid="uid://cd46npi8ojcgk" path="res://ExternalScripts/Particle/Steps/Gates/Tool/SpecyChange.cs" id="10_1td8w"]
 [ext_resource type="Texture2D" uid="uid://dbtg86ok162xa" path="res://Visuals/Init/Mona_Lisa.jpg" id="10_8ns5o"]
 [ext_resource type="Script" uid="uid://dtig5i10ltd6o" path="res://ExternalScripts/Particle/Steps/TextureManipulation/CameraCSBindings.cs" id="10_f56ef"]
 [ext_resource type="Texture2D" uid="uid://8qrqg50drga" path="res://Visuals/Init/pexels-pixabay.jpg" id="10_n2aaa"]
@@ -100,6 +101,11 @@ script = ExtResource("9_2bkyo")
 _unionMode = 2
 metadata/_custom_type_script = "uid://bl314imlflpvr"
 
+[sub_resource type="Resource" id="Resource_r5g61"]
+script = ExtResource("10_1td8w")
+_seed = 159
+metadata/_custom_type_script = "uid://cd46npi8ojcgk"
+
 [sub_resource type="Resource" id="Resource_2bkyo"]
 script = ExtResource("6_gvqa1")
 _repeats = 5
@@ -148,7 +154,7 @@ _space = NodePath("Space")
 _zoom = 2.0
 _nbInstances = 200
 _params = SubResource("Resource_fcssu")
-_gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn"), SubResource("Resource_ttgvu"), SubResource("Resource_1td8w"), SubResource("Resource_p38iw"), SubResource("Resource_mbg80"), SubResource("Resource_bmecf"), SubResource("Resource_lrcpn")])
+_gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn"), SubResource("Resource_ttgvu"), SubResource("Resource_1td8w"), SubResource("Resource_p38iw"), SubResource("Resource_mbg80"), SubResource("Resource_bmecf"), SubResource("Resource_lrcpn"), SubResource("Resource_r5g61")])
 _replays = Array[Object]([SubResource("Resource_2bkyo"), SubResource("Resource_utk7t")])
 _worldSize = 300.0
 _timeSteps = 1.0
