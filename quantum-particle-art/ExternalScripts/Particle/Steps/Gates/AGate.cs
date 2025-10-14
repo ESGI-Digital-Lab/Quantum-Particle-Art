@@ -11,29 +11,31 @@ public abstract partial class AGate : Godot.Resource
     public abstract bool Resolve(Particle particle);
     public abstract Color Color { get; }
     public abstract string ShortName { get; }
+
     public virtual T DeepCopy<T>() where T : AGate
     {
         return this.Duplicate(true) as T;
     }
+
     public AGate DeepCopy() => this.DeepCopy<AGate>();
     public virtual string Label => null;
     public bool DynamicName => ShowLabelAllowed && !string.IsNullOrEmpty(Label);
 }
+
 public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedTypeID : DualInputAGate<SharedTypeID>
 {
     [Export] private bool _forceDifferentSpecy = false;
-    private static (SharedTypeID a, Particle p) _lastControl = (null, null);
+    private (SharedTypeID a, Particle p) _lastInput = (null, null);
 
     public override bool Resolve(Particle particle)
     {
-        var first = _lastControl.p;
+        var first = _lastInput.p;
         if (first == null)
-            _lastControl = (ID, particle);
-        else if (first != particle && !_lastControl.a.Equals(this) &&
-                 SpecyCondition(first, particle))
+            _lastInput = (ID, particle);
+        else if (first != particle && SpecyCondition(first, particle))
         {
             Resolve(particle, first);
-            _lastControl = (default, null);
+            _lastInput = (default, null);
             return true;
         }
 
@@ -45,10 +47,10 @@ public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedT
     public abstract SharedTypeID
         ID { get; } //This on any inerhiting class with itself as ID, would share the same static _lastControl
 
-    protected bool SpecyCondition(Particle toBeTeleported, Particle particle)
+    protected bool SpecyCondition(Particle initialControl, Particle particle)
     {
-        return !_forceDifferentSpecy || toBeTeleported.Species != particle.Species;
+        return !_forceDifferentSpecy || initialControl.Species != particle.Species;
     }
-    protected abstract DualInputAGate<SharedTypeID> Copy(SharedTypeID source);
 
+    protected abstract DualInputAGate<SharedTypeID> Copy(SharedTypeID source);
 }
