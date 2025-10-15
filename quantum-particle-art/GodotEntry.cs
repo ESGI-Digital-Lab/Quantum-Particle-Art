@@ -7,6 +7,7 @@ using DefaultNamespace.Particle.Steps;
 using DefaultNamespace.Tools;
 using Godot;
 using UnityEngine.Assertions;
+using UnityEngine.ExternalScripts.Particle.Genetics;
 using UnityEngine.ExternalScripts.Particle.Simulation;
 
 namespace UnityEngine;
@@ -98,7 +99,7 @@ public partial class GodotEntry : Node
 
 	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
 
-	[Export(PropertyHint.Range, "0,1,0.01")]
+	[Export(PropertyHint.Range, "0,1,0.001")]
 	private float _gateSize = .05f;
 
 	[Export] private GridGates _backupGates;
@@ -171,6 +172,7 @@ public partial class GodotEntry : Node
 		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
 		Genetics globalGenetics = null;
+		GatesTypesToInt.OverrideReflection(new EmptyGate(), _gates);
 
 		if (_training)
 		{
@@ -186,7 +188,7 @@ public partial class GodotEntry : Node
 
 			//Starts GA asynchronously using the provided loopers to run and evaluate simulations
 			globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers,
-				(GeneticLooper)viewerLooper, _gates,
+				(GeneticLooper)viewerLooper,
 				_saveThreholds);
 			globalGenetics.OnThresholdReached += t =>
 			{
