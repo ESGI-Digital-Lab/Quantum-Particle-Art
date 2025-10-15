@@ -22,7 +22,7 @@ public partial class SpecyChange : AGate
         var ch = (t as SpecyChange);
         ch._seed = this._seed + 1;
         ch._random = new System.Random(ch._seed);
-        ch._target = (float)_random.NextDouble();
+        ch._target = (float)ch._random.NextDouble();
 
         return t;
     }
