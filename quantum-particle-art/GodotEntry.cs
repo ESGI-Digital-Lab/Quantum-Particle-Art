@@ -7,6 +7,7 @@ using DefaultNamespace.Particle.Steps;
 using DefaultNamespace.Tools;
 using Godot;
 using UnityEngine.Assertions;
+using UnityEngine.ExternalScripts.Particle.Genetics;
 using UnityEngine.ExternalScripts.Particle.Simulation;
 
 namespace UnityEngine;
@@ -38,7 +39,7 @@ public partial class GodotEntry : Node
 	[Export] private GAParams _params;
 	[ExportSubgroup("Gates")] [Export] private bool _forceAllGatesLabel = true;
 	[Export] private Godot.Collections.Array<AGate> _gates;
-	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfiguration> _replays;
+	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfigurationBase> _replays;
 
 	#endregion
 
@@ -48,6 +49,8 @@ public partial class GodotEntry : Node
 	[Export] private float _timeSteps = 0.02f;
 	[Export] private int _maxSteps = 2000;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
+
+	[Export] private bool _lateSave;
 	[Export] private bool _drawLive = false;
 	[Export] private Godot.Collections.Array<float> _saveThreholds;
 
@@ -96,7 +99,7 @@ public partial class GodotEntry : Node
 
 	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
 
-	[Export(PropertyHint.Range, "0,1,0.01")]
+	[Export(PropertyHint.Range, "0,1,0.001")]
 	private float _gateSize = .05f;
 
 	[Export] private GridGates _backupGates;
@@ -164,18 +167,20 @@ public partial class GodotEntry : Node
 		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper = _training
 			? new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps, prewarm,
 				_targetHeightOfBackgroundTexture)
-			: new ReplayLooper(conditions, psteps, psteps, prewarm,  _replays, _targetHeightOfBackgroundTexture);
+			: new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture);
 		BindLooper(viewerLooper, globalTick);
 		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
 		Genetics globalGenetics = null;
+		GatesTypesToInt.OverrideReflection(new EmptyGate(), _gates);
 
 		if (_training)
 		{
 			for (int i = 0; i < _nbInstances; i++)
 			{
 				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out globalTick);
-				var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps, prewarm, -1);
+				var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps,
+					prewarm, -1);
 				BindLooper(looper, globalTick);
 				_loopers.Add(looper);
 				_monos.Add(looper);
@@ -183,13 +188,14 @@ public partial class GodotEntry : Node
 
 			//Starts GA asynchronously using the provided loopers to run and evaluate simulations
 			globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers,
-				(GeneticLooper)viewerLooper, _gates,
+				(GeneticLooper)viewerLooper,
 				_saveThreholds);
 			globalGenetics.OnThresholdReached += t =>
 			{
 				if (t.firstReach)
 				{
-					lateSave.RequestSave("Fit-",(t.value * 100).ToString("F0"));
+					if (_lateSave)
+						lateSave.RequestSave("Fit-", (t.value * 100).ToString("F0"));
 					var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
 					saved.SetName(lateSave.FullName);
 					ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
@@ -198,7 +204,7 @@ public partial class GodotEntry : Node
 		}
 		else
 		{
-			lateSave.SaveAll = true;
+			lateSave.SaveAll = _lateSave;
 		}
 
 		RunInitMethods();
@@ -246,8 +252,9 @@ public partial class GodotEntry : Node
 			throw e;
 		}
 	}
-	
-	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps, out List<IInit<ParticleWorld>> prewarm, out GlobalTick tick)
+
+	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps,
+		out List<IInit<ParticleWorld>> prewarm, out GlobalTick tick)
 	{
 		psteps = new();
 		prewarm = new();
@@ -260,7 +267,6 @@ public partial class GodotEntry : Node
 		var gates = new PointsIntersection(lineCollection, false, !_allowSameSpeciesInteraction);
 		psteps.Add(gates);
 
-		
 
 		if (withView)
 		{
@@ -292,7 +298,6 @@ public partial class GodotEntry : Node
 				: null, detailledBrush, widther, _curveRes);
 			psteps.Add(lateWrite);
 		}
-		
 	}
 
 	private void BindLooper(PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> looper, GlobalTick tick)

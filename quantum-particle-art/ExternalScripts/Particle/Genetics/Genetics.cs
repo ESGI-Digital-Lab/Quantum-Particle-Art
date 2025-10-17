@@ -35,14 +35,12 @@ public class Genetics
     private AveragedEvaluators average;
 
     public Genetics(int nbParticles, Vector2I size, GAParams param, List<GeneticLooper> loopers,
-        GeneticLooper viewer,
-        IEnumerable<AGate> gatesTemplate, IEnumerable<float> thresholds)
+        GeneticLooper viewer, IEnumerable<float> thresholds)
     {
         _sw = new Stopwatch();
         _sw.Start();
         _gaParams = param;
         _viewer = viewer;
-        GatesTypesToInt.OverrideReflection(new EmptyGate(), gatesTemplate);
         _size = size;
         _ga = CreateGA(nbParticles, loopers, out proportional, out exact, out average);
         _ga.CrossoverProbability = _gaParams.CrossoverProb;

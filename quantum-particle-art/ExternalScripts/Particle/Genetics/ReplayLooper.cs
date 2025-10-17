@@ -18,14 +18,14 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
     private int _texHeight;
     private EncodedConfiguration _spawn => _init.Spawn;
 
-    private ChromosomeConfiguration[] _chromosomes;
+    private ChromosomeConfigurationBase[] _chromosomes;
     private InitConditions[] _conditions;
 
     public ReplayLooper( IEnumerable<InitConditions> conditions,
         IEnumerable<IInit<WorldInitializer>> inits,
         IEnumerable<IStep<ParticleWorld>> step,
         IEnumerable<IInit<ParticleWorld>> prewarm,
-        IEnumerable<ChromosomeConfiguration> chromosomes,
+        IEnumerable<ChromosomeConfigurationBase> chromosomes,
         int texHeight)
     {
         _duration = -1;
@@ -37,14 +37,11 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
         _init = _conditions[0];
         _texHeight = texHeight;
     }
+    private int _currentLoop = 0;
+    private ChromosomeConfigurationBase chromosomeConfiguration = null;
 
     protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
     {
-        if (loop >= _chromosomes.Length)
-        {
-            _shouldRestart = false;
-            return false;
-        }
         _init = _conditions[loop % _conditions.Length];
         init.Init = _init;
         if (_texHeight > 0)
@@ -53,8 +50,24 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
             init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
                 Image.Interpolation.Trilinear);
         }
-        ChromosomeConfiguration chromosomeConfiguration = _chromosomes[loop];
-        init.SetName(chromosomeConfiguration.FileName());
+        if(chromosomeConfiguration == null) 
+            this.chromosomeConfiguration = _chromosomes[0];
+        else
+        {
+            if (chromosomeConfiguration.MoveNext())
+            {
+                _currentLoop++;
+                if (_currentLoop >= _chromosomes.Length)
+                {
+                    _shouldRestart = false;
+                    return false;
+                }
+                chromosomeConfiguration = _chromosomes[_currentLoop];
+            }
+                
+        }
+        
+        init.SetName(chromosomeConfiguration.Name);
         _spawn.UpdateEncoded(chromosomeConfiguration.RandomInput, chromosomeConfiguration.Size.Y);
         _spawn.UpdateDynamicGates(chromosomeConfiguration.GatesConfig);
         return true;

@@ -86,9 +86,6 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
             init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
                 Image.Interpolation.Trilinear);
         }
-
-        if (_busy == null)
-            return false;
         return true;
     }
 

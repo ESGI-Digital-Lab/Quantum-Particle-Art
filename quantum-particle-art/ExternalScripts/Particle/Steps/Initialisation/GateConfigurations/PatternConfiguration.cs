@@ -4,9 +4,10 @@ using System.Linq;
 using Godot;
 
 [GlobalClass]
-public partial class PatternConfiguration : ChromosomeConfiguration
+public partial class PatternConfiguration : ChromosomeConfigurationBase
 {
-    [ExportCategory("List interpreted as pattern, tiled as below")]
+    [Export] private Godot.Collections.Array<GateConfiguration> _pattern;
+    [Export] protected Vector2I _size;
     [Export] private Vector2I _patternCenter;
     [Export] private Vector2I _patternRepeat;
     [Export] private Vector2I _patternOffsetX;
@@ -17,9 +18,9 @@ public partial class PatternConfiguration : ChromosomeConfiguration
         {
             if(_patternRepeat.X == 0 || _patternRepeat.Y == 0)
                 UnityEngine.Debug.LogWarning($"PatternConfiguration with zero repeat {_patternRepeat}, is it on purpose or did you mean 1?");
-            var bs = base.GatesConfig.ToArray();
-            List<GateConfiguration> repeated = new List<GateConfiguration>(bs.Length * _patternRepeat.X * _patternRepeat.Y);
-            foreach (var g in bs)
+            var pattern = _pattern;
+            List<GateConfiguration> repeated = new List<GateConfiguration>(pattern.Count * _patternRepeat.X * _patternRepeat.Y);
+            foreach (var g in pattern)
             {
                 for (int x = 0; x < _patternRepeat.X; x++)
                 {
@@ -38,4 +39,6 @@ public partial class PatternConfiguration : ChromosomeConfiguration
             return repeated;
         }
     }
+
+    public override Vector2I Size => _size;
 }

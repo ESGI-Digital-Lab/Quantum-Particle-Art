@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using GeneticSharp;
+using Godot;
 
 namespace UnityEngine.ExternalScripts.Particle.Genetics;
 
@@ -14,6 +15,9 @@ public class GateChromosome : ChromosomeBase
 	public void AddInputTestedOn(int input)
 	{
 		inputsTestedOn.Add(input);
+	}
+	public GateChromosome(Vector2I size) : this(size.X * size.Y)
+	{
 	}
 
 	public GateChromosome(int length) : base(length)

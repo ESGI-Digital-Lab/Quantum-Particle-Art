@@ -8,6 +8,7 @@ using UnityEngine;
 public class Particle
 {
     [SerializeField] private int _species = -1;
+    private readonly int _totalSpecies = -1;
     [SerializeField] private Orientation _orientation;
     private Tuple<Particle, Particle> _superposition = null;
     [SerializeField] private Vector2 _position;
@@ -24,7 +25,7 @@ public class Particle
     }
 
 
-    public Particle(Vector2 normalizedPos, Vector2 bounds, int species, Vector2 baseVelocity = default)
+    public Particle(Vector2 normalizedPos, Vector2 bounds, int species, int totalSpecies, Vector2 baseVelocity = default)
     {
         _orientation = new Orientation(this);
         _bounds = bounds;
@@ -33,6 +34,7 @@ public class Particle
         _forces = new Vector2[Ruleset.MaxSteps];
         _orientation.AddForce(baseVelocity);
         _alive = true;
+        _totalSpecies = totalSpecies;
     }
 
     public Particle(Particle particle)
@@ -169,9 +171,11 @@ public class Particle
 
     public void Warp(Vector2 position)
     {
-        foreach (var piv in Pivots(false, true))
+        //So main pivot is snapped and the others are offseted relatively
+        var delta = position - _position;
+        foreach (var piv in Pivots(true, true))
         {
-            piv.p._position = position;
+            piv.p._position += delta;
         }
     }
 
@@ -188,5 +192,10 @@ public class Particle
     public void FlipY()
     {
         _orientation.AddForce(new(0, -_orientation.Velocity.y * 2));
+    }
+
+    public void UpdateSpecies(float relative01Specy)
+    {
+        _species = Mathf.FloorToInt(_totalSpecies * relative01Specy)%_totalSpecies;
     }
 }

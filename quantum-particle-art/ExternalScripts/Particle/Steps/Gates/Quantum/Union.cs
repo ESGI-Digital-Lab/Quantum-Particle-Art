@@ -7,6 +7,13 @@ using Color = Godot.Color;
 [GlobalClass]
 public partial class Union : AGate
 {
+    private enum UnionMode
+    {
+        Average=0,
+        First=1,
+        Second=2
+    }
+    [Export] private UnionMode _unionMode;
     private Particle _thrash;
 
     public override bool Precondition(HashSet<Particle> setInside)
@@ -34,8 +41,14 @@ public partial class Union : AGate
             return false; //We do it only on one of the two
         //Average velocity into first one, kill second
         //Average velocity
-        particle.Orientation.AddForce(-particle.Orientation.Velocity / 2f + _thrash.Orientation.Velocity / 2f);
+        if (_unionMode!= UnionMode.Average)
+        {
+            (particle, _thrash) = _unionMode == UnionMode.Second ? (particle, _thrash) : (_thrash, particle);
+        }else
+            particle.Orientation.AddForce(-particle.Orientation.Velocity / 2f + _thrash.Orientation.Velocity / 2f);
+
         _thrash.MarkDead();
+
         return true;
     }
 

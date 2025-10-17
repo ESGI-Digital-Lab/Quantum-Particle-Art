@@ -18,10 +18,12 @@ public static class BitHelpers
 
         return bits;
     }
+
     public static int DecodeBits(this IEnumerable<bool> bits)
     {
         return DecodeBits(bits.Select(b => b ? 1 : 0), 2);
     }
+
     public static int DecodeBits(this IEnumerable<int> copies, int baseNum)
     {
         int acc = 0;
@@ -31,6 +33,7 @@ public static class BitHelpers
             acc += copy * (int)Godot.Mathf.Pow(baseNum, i);
             i++;
         }
+
         return acc;
     }
 
@@ -61,11 +64,9 @@ public static class BitHelpers
         return current.GetGenes().Select((g, i) =>
         {
             var c = (GeneContent)g.Value;
-            //GetConstructor([typeof(byte)]).Invoke([c.Input]);
-            //GetConstructor([]).Invoke([]) as AGate
             var type = GatesTypesToInt.Type(c.TypeId);
             return new GateConfiguration(type.DeepCopy(),
-                new Vector2I(i % size.X + 1, i / size.X));
+                new Vector2I(i % size.X, i / size.X));
         });
     }
 }
