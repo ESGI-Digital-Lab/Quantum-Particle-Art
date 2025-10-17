@@ -122,14 +122,14 @@ metadata/_custom_type_script = "uid://cmrpexp80khrg"
 
 [sub_resource type="Resource" id="Resource_utk7t"]
 script = ExtResource("6_gvqa1")
-_repeats = 2
+_repeats = 10
 _baseConfig = ExtResource("5_cuf3k")
 metadata/_custom_type_script = "uid://cmrpexp80khrg"
 
 [sub_resource type="Resource" id="Resource_tqdhy"]
 script = ExtResource("11_p38iw")
-_repeats = 500
-_nbParticlesRange = Vector2i(16, 128)
+_repeats = 10
+_nbParticlesRange = Vector2i(20, 40)
 metadata/_custom_type_script = "uid://cm5f43tlx3ymr"
 
 [sub_resource type="Resource" id="Resource_gvqa1"]
@@ -170,10 +170,10 @@ _training = false
 _nbInstances = 201
 _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn"), SubResource("Resource_ttgvu"), SubResource("Resource_1td8w"), SubResource("Resource_p38iw"), SubResource("Resource_mbg80"), SubResource("Resource_bmecf"), SubResource("Resource_lrcpn"), SubResource("Resource_r5g61")])
-_replays = Array[Object]([SubResource("Resource_2bkyo"), SubResource("Resource_utk7t"), ExtResource("15_bwfut"), ExtResource("16_6t04x"), ExtResource("17_s1vpn"), ExtResource("18_7vq1d"), ExtResource("19_qwy08"), ExtResource("20_04sbt"), ExtResource("21_keigo"), SubResource("Resource_tqdhy")])
-_worldSize = 1000.0
+_replays = Array[Object]([SubResource("Resource_2bkyo"), SubResource("Resource_utk7t"), SubResource("Resource_tqdhy"), ExtResource("15_bwfut"), ExtResource("16_6t04x"), ExtResource("17_s1vpn"), ExtResource("18_7vq1d"), ExtResource("19_qwy08"), ExtResource("20_04sbt"), ExtResource("21_keigo")])
+_worldSize = 2000.0
 _timeSteps = 1.0
-_maxSteps = 500
+_maxSteps = 1000
 _saveLastFrame = false
 _lateSave = true
 _drawLive = true
@@ -184,11 +184,11 @@ _relativeRandomBrushOffset = 0.0
 _sineFrequency = 1.0
 _useSpeed = true
 _dynamicMax = true
-_targetHeightOfBackgroundTexture = 4096
+_targetHeightOfBackgroundTexture = 8192
 _ratio = Vector2i(16, 16)
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
 _spawnTemplate = SubResource("Resource_176xe")
-_gateSize = 0.002
+_gateSize = 0.01
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
 _nbMinLoops = 1
