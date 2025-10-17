@@ -1,6 +1,8 @@
 # Quantum-Particle-Art
 A project using particle simulations with asymetrical species interactions and quantum gates to create art pieces from their traces.
 With an overlay of grid based gates layout and genetic algorith to process mathematical operations from the gates layout, while still generating images with their traces.
+
+Pieces from portraits
 <img width="1638" height="2048" alt="_Field_final_3" src="https://github.com/user-attachments/assets/2e55efba-7acf-4469-8b97-b367fa36781a" />
 <img width="1638" height="2048" alt="_Random_2_0_4_final_1" src="https://github.com/user-attachments/assets/5c85150d-fcb9-46d1-b40c-9188e00684ee" />
 <img width="2324" height="2048" alt="_Random_2_0_4_final_0" src="https://github.com/user-attachments/assets/51a0c9ee-41b4-4f2d-bfd5-c3020c8df32c" />
@@ -10,3 +12,10 @@ With an overlay of grid based gates layout and genetic algorith to process mathe
 <img width="3072" height="2048" alt="Random_2_4_0_final_0" src="https://github.com/user-attachments/assets/0a0ba206-42b2-4290-9025-b6bfac2c4b3a" />
 <img width="2324" height="2048" alt="Random_2_0_0_final_3" src="https://github.com/user-attachments/assets/7226011d-6c58-45ae-9777-e2c4c2c2aa7d" />
 <img width="2398" height="2048" alt="Random_2_0_0_final_1" src="https://github.com/user-attachments/assets/e9ba7798-bf46-46f5-91a4-b8b36c753029" />
+
+Pieces from grids and genetics
+<img width="2048" height="2048" alt="Black2048_times_2_final_8" src="https://github.com/user-attachments/assets/45d08a7c-7341-4580-b231-a321de49f830" />
+<img width="2048" height="2048" alt="Black2048_omniBrush_70_1000Fit_10_25_final_0" src="https://github.com/user-attachments/assets/da97f255-7fcc-49e6-8290-aa21f02c98a3" />
+
+![Godot_v4 4 1-stable_mono_win64_ErTPwVWt2R](https://github.com/user-attachments/assets/36caec2f-f624-4fee-9f1b-6c1c9ca35741)
+![Godot_v4 4 1-stable_mono_win64_ey3BFqLXgg](https://github.com/user-attachments/assets/9b37be5b-760f-454a-832b-230e321776e2)
