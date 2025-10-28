@@ -64,7 +64,7 @@ public partial class PythonCaller : Node
     private Task _running2;
     private CancellationTokenSource _cancel = new();
 
-    public void CallPython()
+    public void CallPython(Action<string> onOutput = null)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -77,7 +77,7 @@ public partial class PythonCaller : Node
         if (_display)
             l.Add(("d", ""));
         _args = l.ToArray();
-        CallPython(null, true, null);
+        CallPython(onOutput, true, null);
     }
 
     public override void _Notification(int what)
@@ -112,7 +112,7 @@ public partial class PythonCaller : Node
         CallPython(Debug.Log);
     }
 
-    public void CallPython(Action<string> onOutput = null, bool isAssetRooted = true, Action onEnd = null)
+    public void CallPython(Action<string> onOutput, bool isAssetRooted, Action onEnd)
     {
         _args ??= [];
         //Stop();
@@ -141,10 +141,10 @@ public partial class PythonCaller : Node
             CreateNoWindow = !_showTerminal
         };
         _process = new Process() { StartInfo = startInfo };
-        _process.Start();
-        _process.PriorityClass = ProcessPriorityClass.High;
         _cancel = new CancellationTokenSource();
         Func<bool> endCondition = () => _process != null && _process.HasExited;
+        _process.Start();
+        _process.PriorityClass = ProcessPriorityClass.High;
         _running1 = ReadOutput(_process.StandardError, _cancel, endCondition,
             s => Debug.LogWarning("Fomr stderror: " + s), onEnd);
         _running2 = ReadOutput(_process.StandardOutput, _cancel, endCondition, onOutput, onEnd);
@@ -158,7 +158,7 @@ public partial class PythonCaller : Node
             char[] buffer = new char[_readBuffer];
             while (!(_cancel.IsCancellationRequested || (endCondition != null && endCondition.Invoke())))
             {
-                int val = await stream.ReadBlockAsync(buffer, 0, buffer.Length);
+                int val = await stream.ReadAsync(buffer, 0, buffer.Length);
                 //Debug.Log($"One {_readBuffer / 1024} KBytes Block read from reader");
                 if (val > 0)
                 {
