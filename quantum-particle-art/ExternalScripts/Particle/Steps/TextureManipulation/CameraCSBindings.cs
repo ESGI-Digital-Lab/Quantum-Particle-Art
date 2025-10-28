@@ -31,12 +31,21 @@ public partial class CameraCSBindings : Node
     }
 
     private const ushort port = 4242;
+    private const ushort ackPort = port+1;
     private string adress = "127.0.0.1";
 
     private byte[] _accumulator;
     private int _head;
     private bool _finished => _texture!= null && !_texture.IsEmpty();
 
+    public void Ack()
+    {
+        if(_finished || peer==null || !peer.IsBound())
+            return;
+        byte[] ack = [1];
+        peer.SetDestAddress(adress, ackPort);
+        peer.PutPacket(ack);
+    }
     public override void _Ready()
     {
         _display.SetVisible(peer!=null);
@@ -45,7 +54,7 @@ public partial class CameraCSBindings : Node
     {
         if (peer != null) //Safe in case we inited twice
             return;
-        _python.CallPython();
+        _python.CallPython(Debug.Log);
         peer = new();
         var peered = peer.Bind(port, adress);
         if(peered == Error.Unavailable)
@@ -108,6 +117,7 @@ public partial class CameraCSBindings : Node
                         else
                             _display.Texture = ImageTexture.CreateFromImage(_cache);
                         _display.SetVisible(true);
+                        Ack();
                         break;
                     }
                 }
