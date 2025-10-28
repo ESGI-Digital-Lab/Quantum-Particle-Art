@@ -30,10 +30,9 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	[ExportCategory("Genetic Algorithm")] [Export]
-	private bool _training = true;
+	
 
-	[ExportGroup("Training")] [ExportSubgroup("Genetic meta parameters")] [Export]
+	[ExportCategory("Genetic Algorithm")] [ExportGroup("Training")] [ExportSubgroup("Genetic meta parameters")] [Export]
 	private int _nbInstances = 50;
 
 	[Export] private GAParams _params;
@@ -42,8 +41,18 @@ public partial class GodotEntry : Node
 	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfigurationBase> _replays;
 
 	#endregion
+	private enum Mode
+	{
+		Training = 0,
+		Replay = 1,
+		Live = 2
+	}
 
-	[ExportCategory("Common parameters for all iterations")] [ExportGroup("World")] [Export]
+	[ExportCategory("Common parameters for all iterations")] 
+	[Export] private Mode _mode;
+	private bool _training => _mode == Mode.Training;
+
+	[ExportGroup("World")] [Export]
 	private float _worldSize = 600;
 
 	[Export] private float _timeSteps = 0.02f;
@@ -164,10 +173,19 @@ public partial class GodotEntry : Node
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		GlobalTick globalTick;
 		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out globalTick);
-		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper = _training
-			? new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps, prewarm,
-				_targetHeightOfBackgroundTexture)
-			: new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture);
+		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper =
+			_mode switch
+			{
+				Mode.Training => new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps,
+					psteps,
+					prewarm,
+					_targetHeightOfBackgroundTexture),
+				Mode.Replay =>
+					new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture),
+				Mode.Live => new MultipleImagesLooper(-1f, conditions, psteps, psteps, prewarm,
+					_targetHeightOfBackgroundTexture),
+				_ => throw new ArgumentOutOfRangeException()
+			};
 		BindLooper(viewerLooper, globalTick);
 		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
@@ -240,11 +258,11 @@ public partial class GodotEntry : Node
 		Time.time += (float)delta;
 		try
 		{
-			//Debug.Log("Starting updates");
+			Debug.Log("Starting updates");
 			_renderMono.Update().Wait();
 			_tasks = _monos.Select(m => Task.Run(async () => await m.Update())).ToArray();
 			Task.WaitAll(_tasks);
-			//Debug.Log("Finished updates");
+			Debug.Log("Finished updates");
 		}
 		catch (Exception e)
 		{
