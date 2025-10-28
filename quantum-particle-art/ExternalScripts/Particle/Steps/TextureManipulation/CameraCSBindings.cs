@@ -48,7 +48,10 @@ public partial class CameraCSBindings : Node
         _python.CallPython();
         peer = new();
         var peered = peer.Bind(port, adress);
-        if (peered != Error.Ok)
+        if(peered == Error.Unavailable)
+            Debug.LogError("CameraCSBindings: Failed to bind to port " + port + " on adress " + adress + " it's unavailable, it can happen if a previous run had issues and didn't terminate correctly ,try command \"netstat -ano | findstr 4242\" to find the PID that is already bound to this port (tou can then use \"tasklist /FI \"PID eq 1234\"\" to find more informations about the process), error: " +
+                           peered);
+        else if (peered != Error.Ok)
             Debug.LogError("CameraCSBindings: Failed to bind to port " + port + " on adress " + adress + ", error: " +
                            peered);
         else
@@ -65,12 +68,9 @@ public partial class CameraCSBindings : Node
     {
         if (_finished)
             return;
-        //var poll = _server.Poll();
-        //Debug.Log("CameraCSBindings: Polling server, result: " + poll);
-        //if (_server.IsConnectionAvailable()) {
         if (peer==null || !peer.IsBound())
         {
-            //Debug.LogError("Peer not bound");
+            Debug.LogError("Peer not bound");
         }
         else
         {
