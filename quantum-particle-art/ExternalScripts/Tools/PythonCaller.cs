@@ -10,6 +10,7 @@ using Godot;
 using NaughtyAttributes;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using Mathf = Godot.Mathf;
 
 public partial class PythonCaller : Node
 {
@@ -155,6 +156,7 @@ public partial class PythonCaller : Node
     {
         try
         {
+            _readBuffer = Mathf.Max(_readBuffer, 1);
             char[] buffer = new char[_readBuffer];
             while (!(_cancel.IsCancellationRequested || (endCondition != null && endCondition.Invoke())))
             {
