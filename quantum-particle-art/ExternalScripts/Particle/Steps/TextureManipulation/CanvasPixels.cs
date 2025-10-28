@@ -58,7 +58,7 @@ public class CanvasPixels : ATexProvider
     }
     
 
-    public override Task Create()
+    public override bool Create()
     {
         Assert.IsTrue(_size.X > 0 && _size.Y > 0, "Size must be positive");
         pixels = new byte[_size.X * _size.Y * 4];
@@ -75,7 +75,7 @@ public class CanvasPixels : ATexProvider
         }
 
         _texture = Image.CreateFromData(_size.X, _size.Y, false, Image.Format.Rgba8, pixels);
-        return Task.CompletedTask;
+        return true;
     }
 
     public override Image Texture

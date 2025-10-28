@@ -12,10 +12,13 @@ using System.Threading.Tasks;
 using KGySoft.CoreLibraries;
 using KGySoft.Drawing;
 using KGySoft.Drawing.Imaging;
+using UnityEngine;
 using UnityEngine.ExternalScripts.Particle.Simulation;
 using Bitmap = System.Drawing.Bitmap;
 using Color = Godot.Color;
+using Color32 = KGySoft.Drawing.Imaging.Color32;
 using Image = Godot.Image;
+using Mathf = Godot.Mathf;
 using Vector2 = UnityEngine.Vector2;
 
 public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
@@ -36,10 +39,14 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 
 
 	[SuppressMessage("Interoperability", "CA1416:Valider la compatibilité de la plateforme")]
-	public override async Task Create()
+	public override bool Create()
 	{
 		while (_image == null || _image.IsEmpty())
-			await Task.Delay(100);
+		{
+			Debug.Log("Waiting for image to be loaded...");
+			return false;
+		}
+		Debug.Log("Image loaded, preparing it...");
 		_image.Resize(_targetRes.X, _targetRes.Y, Image.Interpolation.Trilinear);
 		var format = Image.Format.Rgb8;
 		_image.Convert(format);
@@ -80,6 +87,7 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 		_colors = palette.ToArray();
 		_colorPickerImplementation = ColorPicker.FromScheme(ColorScheme);
 		_mapBack = palette.Select((v, i) => (v, i)).ToDictionary(x => x.v, x => x.i);
+		return true;
 	}
 
 	private Color[] ColorScheme => _colors.Select(c => new Color(c.R / 255f, c.G / 255f, c.B / 255f)).ToArray();
