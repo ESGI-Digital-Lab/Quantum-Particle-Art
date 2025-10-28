@@ -258,11 +258,11 @@ public partial class GodotEntry : Node
 		Time.time += (float)delta;
 		try
 		{
-			Debug.Log("Starting updates");
+			//Debug.Log("Starting updates");
 			_renderMono.Update().Wait();
 			_tasks = _monos.Select(m => Task.Run(async () => await m.Update())).ToArray();
 			Task.WaitAll(_tasks);
-			Debug.Log("Finished updates");
+			//Debug.Log("Finished updates");
 		}
 		catch (Exception e)
 		{

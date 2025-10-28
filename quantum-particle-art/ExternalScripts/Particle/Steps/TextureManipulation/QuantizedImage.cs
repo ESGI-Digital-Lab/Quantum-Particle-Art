@@ -43,10 +43,10 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 	{
 		while (_image == null || _image.IsEmpty())
 		{
-			Debug.Log("Waiting for image to be loaded...");
+			//Debug.Log("Waiting for image to be loaded...");
 			return false;
 		}
-		Debug.Log("Image loaded, preparing it...");
+		//Debug.Log("Image loaded, preparing it...");
 		_image.Resize(_targetRes.X, _targetRes.Y, Image.Interpolation.Trilinear);
 		var format = Image.Format.Rgb8;
 		_image.Convert(format);
