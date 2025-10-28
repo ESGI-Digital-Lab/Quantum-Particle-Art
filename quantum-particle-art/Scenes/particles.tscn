@@ -235,6 +235,7 @@ scale = Vector2(200, 200)
 [node name="PythonRoot" type="Node" parent="."]
 script = ExtResource("8_sph3f")
 _display = true
+_readBuffer = 1024
 _pythonInterpreter = ".venv\\Scripts\\python.exe"
 folder = "ExternalScripts\\trflorian\\godot-python-comm\\python"
 _filename = "camera_stream"
