@@ -19,7 +19,7 @@ public partial class PythonCaller : Node, IDisposable
     [Export]
     private int _fps = 30;
     [Export(PropertyHint.Link)] private Vector2I _resolution = new (1920, 1080);
-    public int totalSize => _resolution.X * _resolution.Y * 4 * 10 + 16;
+    public int totalSize => _resolution.X * _resolution.Y * 4 + 16;
     [Export] private bool _display = false;
     [ExportGroup("Caller params")]
     [Export, Range(1, 64 * 64 * 64)] private int _readBuffer;
