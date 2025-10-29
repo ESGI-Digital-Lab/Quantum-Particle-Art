@@ -20,16 +20,28 @@ size = (args.res[0], args.res[1])
 fps = args.fps
 chunks = 65000  # max UDP packet size is 65507 bytes
 try:
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    client_socket.bind((SERVER_IP,LISTEN_PORT))
-    client_socket.setblocking(False)
+    send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    buffer_size = size[0]*size[1]*4+16
+    send_socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF,buffer_size)
+    send_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,buffer_size)
+    
+    ack_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ack_socket.bind((SERVER_IP, LISTEN_PORT))
+    ack_socket.setblocking(False)
+    #empty the socket from any potential residual messages
+    try:
+        while True:
+            ack_socket.recv(4096)
+    except BlockingIOError:
+        pass
 except WindowsError as e:
     print("Couldn't emit throught socket, assuming another instance of this program is already communicating through it")
     exit(1)
 cap = cv2.VideoCapture(camera_id)
 first = True
-print("Pythong log",flush=True)
+print("Python log",flush=True)
+i=0
+encoded_image = None
 while True:
     
     ret, frame = cap.read()
@@ -67,31 +79,37 @@ while True:
     image = cv2.resize(image, (400, 300))
     send = first
     try:
-        listen = client_socket.recv(chunks)
-        #print("Received request from",listen is not None,flush=True)
+        #print("Checking for request...",flush=True)
+        listen = ack_socket.recv(1) 
+        print("Received request from",listen is not None, len(listen), listen[0],flush=True)
         #raise "Log"
         send = listen is not None
     except BlockingIOError:
         #print("Nthing on prt",flush=True)
         pass
-    if send:
-        #print("Sending, is First ?",first,flush=True)
-        first = False
+    #print("Sending, is First ?",first,flush=True)
+    if encoded_image is None:
         toSend = frame if sendOnlyFrame else image
         _, encoded_image = cv2.imencode(".jpg", toSend)
-        #encoded_image = toSend.tobytes()
         nb_chunks = len(encoded_image) // chunks
-        #print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks")
+        print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks", flush=True)
         octetsX = len(encoded_image).to_bytes(4, byteorder='big', signed=False)
-        server_socket.sendto(octetsX, (SERVER_IP, SERVER_PORT))
-        for i in range(nb_chunks+1):
-            ideb = i*chunks
-            iend = min((i+1)*chunks, len(encoded_image))
-            section = encoded_image[ideb:iend]
-            server_socket.sendto(section, (SERVER_IP, SERVER_PORT))
-            time.sleep(1/fps/nb_chunks)
-        #time.sleep(1/fps)
-            #print(sent := len(section) , "bytes sent", "from", ideb, "to", iend)
+        send_socket.sendto(octetsX, (SERVER_IP, SERVER_PORT))
+        i=0
+    if send:
+        first = False
+    #for i in range(nb_chunks+1):
+        ideb = i*chunks
+        iend = min((i+1)*chunks, len(encoded_image))
+        print("Sending chunnk", i, "from", ideb, "to", iend, flush=True)
+        section = encoded_image[ideb:iend]
+        send_socket.sendto(section, (SERVER_IP, SERVER_PORT))
+        time.sleep(1/fps/nb_chunks)
+        i+=1
+        if i > nb_chunks+1:
+            encoded_image = None
+    #time.sleep(1/fps)
+        #print(sent := len(section) , "bytes sent", "from", ideb, "to", iend)
     
     if display:
         cv2.imshow("Video feed", image)
