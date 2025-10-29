@@ -71,6 +71,7 @@ public partial class CameraCSBindings : Node
         _head = 0;
         _accumulator = null;
         _display.SetVisible(true);
+        Ack();
     }
 
     public override void _Process(double delta)
