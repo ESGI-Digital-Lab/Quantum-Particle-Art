@@ -19,10 +19,14 @@ camera_id = args.id
 size = (args.res[0], args.res[1])
 fps = args.fps
 chunks = 65000  # max UDP packet size is 65507 bytes
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client_socket.bind((SERVER_IP,LISTEN_PORT))
-client_socket.setblocking(False)
+try:
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket.bind((SERVER_IP,LISTEN_PORT))
+    client_socket.setblocking(False)
+except WindowsError as e:
+    print("Couldn't emit throught socket, assuming another instance of this program is already communicating through it")
+    exit(1)
 cap = cv2.VideoCapture(camera_id)
 first = True
 print("Pythong log",flush=True)
@@ -77,7 +81,7 @@ while True:
         _, encoded_image = cv2.imencode(".jpg", toSend)
         #encoded_image = toSend.tobytes()
         nb_chunks = len(encoded_image) // chunks
-        print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks")
+        #print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks")
         octetsX = len(encoded_image).to_bytes(4, byteorder='big', signed=False)
         server_socket.sendto(octetsX, (SERVER_IP, SERVER_PORT))
         for i in range(nb_chunks+1):
@@ -90,8 +94,8 @@ while True:
             #print(sent := len(section) , "bytes sent", "from", ideb, "to", iend)
     
     if display:
-        cv2.imshow("Image", image)
-        if cv2.getWindowProperty('Image', 0) < 0:
+        cv2.imshow("Video feed", image)
+        if cv2.getWindowProperty('Video feed', 0) < 0:
             break
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
