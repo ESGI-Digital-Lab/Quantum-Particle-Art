@@ -96,6 +96,17 @@ public partial class CameraCSBindings : Node
         });
     }
 
+    private bool _imageCompleted = false;
+    public override void _Process(double delta)
+    {
+        if (_imageCompleted)
+        {
+            _imageCompleted = false;
+            _display.Texture = ImageTexture.CreateFromImage(_cache);
+            _display.SetVisible(true);
+        }
+    }
+
     private void ManualUpdate()
     {
         if (_finished)
@@ -143,8 +154,14 @@ public partial class CameraCSBindings : Node
                         byte[] safe = new byte[_accumulator.Length];
                         System.Array.Copy(_accumulator, safe, _accumulator.Length);
                         _accumulator = null;
-                        View.CallDeferred(() => UpdateTexture(safe));
+                        var err = _cache.LoadJpgFromBuffer(safe);
+                        if (err != Error.Ok)
+                            GD.PrintErr("Failed to load image from buffer: " + err);
+                        else
+                            _imageCompleted = true;
                         Ack();
+                        Debug.Log("Remaining packets in queue after full image received : " +
+                                  _peer.GetAvailablePacketCount());
                         break;
                     }
                 }
@@ -153,21 +170,15 @@ public partial class CameraCSBindings : Node
 
         if (Input.IsKeyPressed(Key.Space))
         {
+            Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
             TryTakeInstant();
         }
         //}
     }
 
-    private void UpdateTexture(byte[] data)
+    private void UpdateTexture(Error err)
     {
-        var err = _cache.LoadJpgFromBuffer(data);
-        if (err != Error.Ok)
-            GD.PrintErr("Failed to load image from buffer: " + err);
-        else
-        {
-            _display.Texture = ImageTexture.CreateFromImage(_cache);
-            _display.SetVisible(true);
-        }
+        
     }
 
     public override void _Notification(int what)
