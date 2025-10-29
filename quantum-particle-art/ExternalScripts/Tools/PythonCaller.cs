@@ -12,7 +12,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Mathf = Godot.Mathf;
 
-public partial class PythonCaller : Node
+public partial class PythonCaller : Node, IDisposable
 {
     [ExportGroup("Python params")] 
     [Export] private int _cameraID = 0;
@@ -64,7 +64,10 @@ public partial class PythonCaller : Node
     private Task _running1;
     private Task _running2;
     private CancellationTokenSource _cancel = new();
-
+    ~PythonCaller()
+    {
+        Kill();
+    }
     public void CallPython(Action<string> onOutput = null)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -80,7 +83,6 @@ public partial class PythonCaller : Node
         _args = l.ToArray();
         CallPython(onOutput, true, null);
     }
-
     public override void _Notification(int what)
     {
         if (what == NotificationWMCloseRequest)
@@ -147,7 +149,7 @@ public partial class PythonCaller : Node
         _process.Start();
         _process.PriorityClass = ProcessPriorityClass.High;
         _running1 = ReadOutput(_process.StandardError, _cancel, endCondition,
-            s => Debug.LogWarning("Fomr stderror: " + s), onEnd);
+            s => Debug.LogWarning("From stderror: " + s), onEnd);
         _running2 = ReadOutput(_process.StandardOutput, _cancel, endCondition, onOutput, onEnd);
     }
 
