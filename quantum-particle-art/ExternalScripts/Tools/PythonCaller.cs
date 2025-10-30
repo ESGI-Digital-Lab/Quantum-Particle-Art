@@ -14,15 +14,19 @@ using Mathf = Godot.Mathf;
 
 public partial class PythonCaller : Node, IDisposable
 {
-    [ExportGroup("Python params")] 
-    [Export] private int _cameraID = 0;
-    [Export]
-    private int _fps = 30;
-    [Export(PropertyHint.Link)] private Vector2I _resolution = new (1920, 1080);
-    public int totalSize => _resolution.X * _resolution.Y * 4 + 16;
+    [ExportGroup("Python params")] [Export]
+    private int _cameraID = 0;
+
+    [Export] private int _fps = 30;
+
+    [Export] private int _chunksPerFrame = 15;
+    [Export(PropertyHint.Link)] private Vector2I _resolution = new(1920, 1080);
+    public int totalSize => _resolution.X * _resolution.Y * 4 * 2 + 16;
     [Export] private bool _display = false;
-    [ExportGroup("Caller params")]
-    [Export, Range(1, 64 * 64 * 64)] private int _readBuffer;
+
+    [ExportGroup("Caller params")] [Export, Range(1, 64 * 64 * 64)]
+    private int _readBuffer;
+
     [Export] private bool _killOnExit = true;
     [Export] private bool _showTerminal = false;
 
@@ -65,10 +69,12 @@ public partial class PythonCaller : Node, IDisposable
     private Task _running1;
     private Task _running2;
     private CancellationTokenSource _cancel = new();
+
     ~PythonCaller()
     {
         Kill();
     }
+
     public void CallPython(Action<string> onOutput = null)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -77,13 +83,15 @@ public partial class PythonCaller : Node, IDisposable
         Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
         var l = new List<Argument>();
         l.Add(("f", _fps.ToString()));
-        l.Add(("r", _resolution.X.ToString() +" "+ _resolution.Y.ToString()));
+        l.Add(("r", _resolution.X.ToString() + " " + _resolution.Y.ToString()));
         l.Add(("i", _cameraID.ToString()));
+        l.Add(("c", _chunksPerFrame.ToString()));
         if (_display)
             l.Add(("d", ""));
         _args = l.ToArray();
         CallPython(onOutput, true, null);
     }
+
     public override void _Notification(int what)
     {
         if (what == NotificationWMCloseRequest)
