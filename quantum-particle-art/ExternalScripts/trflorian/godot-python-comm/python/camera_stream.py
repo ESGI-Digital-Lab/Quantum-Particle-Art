@@ -25,6 +25,8 @@ fps = args.fps
 #1 byte of the chunk reserved for the chunk index
 reserved_bytes_per_chunk = 1
 chunk_size = args.chunk_size
+usefulSize =  chunk_size - reserved_bytes_per_chunk
+
 # max UDP packet size is 65507 bytes
 if chunk_size > 65507:
     print("Warning: chunk size too big for UDP, won't be running, setting to max 65507 bytes")
@@ -52,6 +54,7 @@ first = True
 print("Python log",flush=True)
 i=0
 encoded_image = None
+toSend = None
 while True:
     
     ret, frame = cap.read()
@@ -83,7 +86,7 @@ while True:
         )
 
     row1 = cv2.hconcat([frame, gray])
-    row2 = cv2.hconcat([blur, canny])
+    row2 = cv2.hconcat([toSend if toSend is not None else blur, canny])
     image = cv2.vconcat([row1, row2])
 
     image = cv2.resize(image, (400, 300))
@@ -101,28 +104,29 @@ while True:
     if encoded_image is None:
         toSend = frame if sendOnlyFrame else image
         _, encoded_image = cv2.imencode(".jpg", toSend)
-        nb_total_chunks = len(encoded_image) // (chunk_size - reserved_bytes_per_chunk)
+        nb_total_chunks = (len(encoded_image) + (usefulSize - 1)) // (usefulSize)       
         #print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks", flush=True)
         #We'll be sending for each chunk, it's chunk index so we have 1 more byte per chunk on top of all the pixels data
-        octetsX = (reserved_bytes_per_chunk * nb_total_chunks + len(encoded_image)).to_bytes(4, byteorder='big', signed=False)
+        octetsX = (len(encoded_image)).to_bytes(4, byteorder='big', signed=False)
         send_socket.sendto(octetsX, (SERVER_IP, SERVER_PORT))
-        time.sleep(1 / fps / nb_total_chunks)#Delay to ensure the bytes info are reiceved first
+        time.sleep(1 / 1000)#Delay to ensure the bytes info are reiceved first
         i=0
     if send:
         first = False
         for _ in range(consecutive_chunks):
-            ideb = i*chunk_size
-            iend = min((i+1)*chunk_size-reserved_bytes_per_chunk, len(encoded_image))
+            ideb = i*usefulSize
+            iend = min((i+1)*usefulSize, len(encoded_image))
             #print("Sending chunnk", i, "from", ideb, "to", iend, flush=True)
             section = encoded_image[ideb:iend]
             #Section index at the beggining of the section so we can rebuild correctly the image even if the order of chunks is messed up
             section = np.concatenate(([np.uint8(i)],section))
-            if(len(section) == ):
+            if len(section) != chunk_size and iend != len(encoded_image):
+                print("Last chunk size isn't correct", len(section), flush=True, file=sys.stderr)
                 break
             send_socket.sendto(section, (SERVER_IP, SERVER_PORT))
             i+=1
-            time.sleep(1 / fps / nb_total_chunks)#guarantees order if we delay beetwen any chunks
-            if i > nb_total_chunks+1:
+            time.sleep(1 / 1000)#guarantees order if we delay beetwen any chunks
+            if i >= nb_total_chunks:
                 encoded_image = None
                 break
         #print(sent := len(section) , "bytes sent", "from", ideb, "to", iend)

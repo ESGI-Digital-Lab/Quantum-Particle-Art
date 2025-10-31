@@ -150,7 +150,7 @@ public partial class CameraCSBindings : Node
                     }
 
                     var chunkId = data[i++];
-                    _head = chunkId * _python.ChunkSize;
+                    _head = chunkId * (_python.ChunkSize-1);
                     for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
                     {
                         _accumulator[_head] = data[i];
@@ -161,7 +161,6 @@ public partial class CameraCSBindings : Node
                               "for packet size ; " + data.Length + " and remaining :" +
                               (_accumulator.Length - _head));
                     _nbChunks++;
-                    Ack();
                     if (_head >= _accumulator.Length)
                     {
                         if (_cache.IsEmpty())
@@ -170,16 +169,25 @@ public partial class CameraCSBindings : Node
                         byte[] safe = new byte[_accumulator.Length];
                         System.Array.Copy(_accumulator, safe, _accumulator.Length);
                         _accumulator = null;
-                        var err = _cache.LoadJpgFromBuffer(safe);
-                        if (err != Error.Ok)
-                            GD.PrintErr("Failed to load image from buffer: " + err);
-                        else
-                            _imageCompleted = true;
-                        Ack();
+                        Debug.Log("Accumulated full image of size :" + safe.Length + " after " + _nbChunks +
+                                  " chunks, trying to interpret as jpg");
+                        try
+                        {
+                            var err = _cache.LoadJpgFromBuffer(safe);
+                            if (err != Error.Ok)
+                                GD.PrintErr("Failed to load image from buffer: " + err);
+                            else
+                                _imageCompleted = true;
+                        }
+                        catch (System.Exception e)
+                        {
+                            GD.PrintErr("Failed to load image from buffer: ");
+                        }
                         Debug.Log("Remaining packets in queue after full image received : " +
                                   _peer.GetAvailablePacketCount());
                         break;
                     }
+                    Ack();
                 }
             }
         }
