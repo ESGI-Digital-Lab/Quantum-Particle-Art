@@ -130,7 +130,7 @@ while True:
                 break
             send_socket.sendto(section, (SERVER_IP, SERVER_PORT))
             i+=1
-            time.sleep(1 / 1000)#guarantees order if we delay beetwen any chunks
+            time.sleep(1 / fps / nb_total_chunks)#guarantees order if we delay beetwen any chunks
             if i >= nb_total_chunks:
                 encoded_image = None
                 break
