@@ -40,6 +40,8 @@ public partial class CameraCSBindings : Node
     private int _head;
     private int _nbChunks;
     private bool _finished => _texture != null && !_texture.IsEmpty();
+    public Image Texture => _texture;
+
 
     public void Ack()
     {
@@ -113,6 +115,12 @@ public partial class CameraCSBindings : Node
             _display.Texture = ImageTexture.CreateFromImage(_cache);
             _display.SetVisible(true);
         }
+
+        if (Input.IsKeyPressed(Key.Space))
+        {
+            Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
+            TryTakeInstant();
+        }
     }
 
     private void ManualUpdate()
@@ -181,20 +189,15 @@ public partial class CameraCSBindings : Node
                         {
                             GD.PrintErr("Failed to load image from buffer: ");
                         }
+
                         //Debug.Log("Remaining packets in queue after full image received : " + _peer.GetAvailablePacketCount());
                         break;
                     }
+
                     Ack();
                 }
             }
         }
-
-        if (Input.IsKeyPressed(Key.Space))
-        {
-            Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
-            TryTakeInstant();
-        }
-        //}
     }
 
     private void UpdateTexture(Error err)
@@ -216,7 +219,4 @@ public partial class CameraCSBindings : Node
 
         base._Notification(what);
     }
-
-
-    public Image Texture => _texture;
 }
