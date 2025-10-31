@@ -10,17 +10,26 @@ using Godot;
 using NaughtyAttributes;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using Mathf = Godot.Mathf;
 
-public partial class PythonCaller : Node
+public partial class PythonCaller : Node, IDisposable
 {
-    [ExportGroup("Python params")] 
-    [Export] private int _cameraID = 0;
-    [Export]
-    private int _fps = 30;
-    [Export(PropertyHint.Link)] private Vector2I _resolution = new (1920, 1080);
+    [ExportGroup("Python params")] [Export]
+    private int _cameraID = 0;
+
+    [Export] private int _fps = 30;
+
+    [Export] private int _chunksPerFrame = 15;
+    [Export] private int _chunkSize = 65000;
+    [Export] private int _reservedBytes = 1;
+    [Export(PropertyHint.Link)] private Vector2I _resolution = new(1920, 1080);
+    public int totalSize => _resolution.X * _resolution.Y * 4 * 2 + 16;
     [Export] private bool _display = false;
-    [ExportGroup("Caller params")]
-    [Export, Range(1, 64 * 64 * 64)] private int _readBuffer;
+    [Export] private bool _requireAck = false;
+
+    [ExportGroup("Caller params")] [Export, Range(1, 64 * 64 * 64)]
+    private int _readBuffer;
+
     [Export] private bool _killOnExit = true;
     [Export] private bool _showTerminal = false;
 
@@ -35,6 +44,8 @@ public partial class PythonCaller : Node
     [Export] protected string _filename = "LeniaND";
     protected Argument[] _args;
     public bool Responding => _process != null && !_process.HasExited;
+
+    public int UsefulSize => _chunkSize-_reservedBytes;
 
     [Serializable]
     public struct Argument
@@ -64,7 +75,12 @@ public partial class PythonCaller : Node
     private Task _running2;
     private CancellationTokenSource _cancel = new();
 
-    public void CallPython()
+    ~PythonCaller()
+    {
+        Kill();
+    }
+
+    public void CallPython(Action<string> onOutput = null)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -72,12 +88,17 @@ public partial class PythonCaller : Node
         Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
         var l = new List<Argument>();
         l.Add(("f", _fps.ToString()));
-        l.Add(("r", _resolution.X.ToString() +" "+ _resolution.Y.ToString()));
+        l.Add(("r", _resolution.X.ToString() + " " + _resolution.Y.ToString()));
         l.Add(("i", _cameraID.ToString()));
+        l.Add(("c", _chunksPerFrame.ToString()));
+        l.Add(("s", _chunkSize.ToString()));
+        l.Add(("b", _reservedBytes.ToString()));
         if (_display)
             l.Add(("d", ""));
+        if (_requireAck)
+            l.Add(("a", ""));
         _args = l.ToArray();
-        CallPython(null, true, null);
+        CallPython(onOutput, true, null);
     }
 
     public override void _Notification(int what)
@@ -112,7 +133,7 @@ public partial class PythonCaller : Node
         CallPython(Debug.Log);
     }
 
-    public void CallPython(Action<string> onOutput = null, bool isAssetRooted = true, Action onEnd = null)
+    public void CallPython(Action<string> onOutput, bool isAssetRooted, Action onEnd)
     {
         _args ??= [];
         //Stop();
@@ -141,12 +162,12 @@ public partial class PythonCaller : Node
             CreateNoWindow = !_showTerminal
         };
         _process = new Process() { StartInfo = startInfo };
-        _process.Start();
-        _process.PriorityClass = ProcessPriorityClass.High;
         _cancel = new CancellationTokenSource();
         Func<bool> endCondition = () => _process != null && _process.HasExited;
+        _process.Start();
+        _process.PriorityClass = ProcessPriorityClass.High;
         _running1 = ReadOutput(_process.StandardError, _cancel, endCondition,
-            s => Debug.LogWarning("Fomr stderror: " + s), onEnd);
+            s => Debug.LogWarning("From stderror: " + s), onEnd);
         _running2 = ReadOutput(_process.StandardOutput, _cancel, endCondition, onOutput, onEnd);
     }
 
@@ -155,10 +176,11 @@ public partial class PythonCaller : Node
     {
         try
         {
+            _readBuffer = Mathf.Max(_readBuffer, 1);
             char[] buffer = new char[_readBuffer];
             while (!(_cancel.IsCancellationRequested || (endCondition != null && endCondition.Invoke())))
             {
-                int val = await stream.ReadBlockAsync(buffer, 0, buffer.Length);
+                int val = await stream.ReadAsync(buffer, 0, buffer.Length);
                 //Debug.Log($"One {_readBuffer / 1024} KBytes Block read from reader");
                 if (val > 0)
                 {

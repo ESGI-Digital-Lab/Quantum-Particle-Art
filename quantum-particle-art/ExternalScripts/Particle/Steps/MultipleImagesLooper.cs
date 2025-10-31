@@ -39,7 +39,8 @@ namespace DefaultNamespace.Particle.Steps
         protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
         {
             init.Init = _textures[loop];
-            await init.Init.Texture.Create();
+            if (!init.Init.Texture.Create())
+                return false;
             init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
                 Image.Interpolation.Trilinear);
             _initChange?.Invoke(init.Init);
