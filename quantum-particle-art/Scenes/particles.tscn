@@ -234,6 +234,8 @@ scale = Vector2(200, 200)
 
 [node name="PythonRoot" type="Node" parent="."]
 script = ExtResource("8_sph3f")
+_fps = 60
+_chunksPerFrame = 25
 _resolution = Vector2i(3840, 2160)
 _display = true
 _readBuffer = 1024
