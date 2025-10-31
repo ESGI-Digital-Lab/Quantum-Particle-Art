@@ -96,7 +96,7 @@ while True:
     try:
         #print("Checking for request...",flush=True)
         listen = ack_socket.recv(1) 
-        print("Received request from",listen is not None, len(listen), listen[0],flush=True)
+        #print("Received request from",listen is not None, len(listen), listen[0],flush=True)
         #raise "Log"
         send = listen is not None
     except BlockingIOError:

@@ -45,7 +45,7 @@ public partial class CameraCSBindings : Node
     {
         if (_finished || _peer == null || !_peer.IsBound())
             return;
-        Debug.Log("CameraCSBindings: Acknowledging packet reception");
+        //Debug.Log("CameraCSBindings: Acknowledging packet reception");
         byte[] ack = [1];
         _peer.SetDestAddress(adress, ackPort);
         _peer.PutPacket(ack);
@@ -127,7 +127,7 @@ public partial class CameraCSBindings : Node
         {
             while (_peer.GetAvailablePacketCount() > 0)
             {
-                Debug.Log("Nb packets in queue : " + _peer.GetAvailablePacketCount());
+                //Debug.Log("Nb packets in queue : " + _peer.GetAvailablePacketCount());
                 //peer.Bind(port, adress);
                 var data = _peer.GetPacket();
                 if (data != null && data.Length > 0)
@@ -140,8 +140,7 @@ public partial class CameraCSBindings : Node
                         _accumulator = new byte[length];
                         _head = 0;
                         _nbChunks = 0;
-                        Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length +
-                                  "inside of a packet of size " + data.Length);
+                        //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length + "inside of a packet of size " + data.Length);
                         if (i == data.Length)
                         {
                             Ack();
@@ -156,10 +155,10 @@ public partial class CameraCSBindings : Node
                         _accumulator[_head] = data[i];
                     }
 
-                    Debug.Log("After packet processed, chunk :" + chunkId + "out of " + _nbChunks + "head at :" +
-                              _head +
-                              "for packet size ; " + data.Length + " and remaining :" +
-                              (_accumulator.Length - _head));
+                    //Debug.Log("After packet processed, chunk :" + chunkId + "out of " + _nbChunks + "head at :" +
+                    //          _head +
+                    //          "for packet size ; " + data.Length + " and remaining :" +
+                    //          (_accumulator.Length - _head));
                     _nbChunks++;
                     if (_head >= _accumulator.Length)
                     {
@@ -169,8 +168,7 @@ public partial class CameraCSBindings : Node
                         byte[] safe = new byte[_accumulator.Length];
                         System.Array.Copy(_accumulator, safe, _accumulator.Length);
                         _accumulator = null;
-                        Debug.Log("Accumulated full image of size :" + safe.Length + " after " + _nbChunks +
-                                  " chunks, trying to interpret as jpg");
+                        //Debug.Log("Accumulated full image of size :" + safe.Length + " after " + _nbChunks + " chunks, trying to interpret as jpg");
                         try
                         {
                             var err = _cache.LoadJpgFromBuffer(safe);
@@ -183,8 +181,7 @@ public partial class CameraCSBindings : Node
                         {
                             GD.PrintErr("Failed to load image from buffer: ");
                         }
-                        Debug.Log("Remaining packets in queue after full image received : " +
-                                  _peer.GetAvailablePacketCount());
+                        //Debug.Log("Remaining packets in queue after full image received : " + _peer.GetAvailablePacketCount());
                         break;
                     }
                     Ack();
