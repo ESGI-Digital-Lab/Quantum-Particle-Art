@@ -25,6 +25,7 @@ public partial class PythonCaller : Node, IDisposable
     [Export(PropertyHint.Link)] private Vector2I _resolution = new(1920, 1080);
     public int totalSize => _resolution.X * _resolution.Y * 4 * 2 + 16;
     [Export] private bool _display = false;
+    [Export] private bool _requireAck = false;
 
     [ExportGroup("Caller params")] [Export, Range(1, 64 * 64 * 64)]
     private int _readBuffer;
@@ -94,6 +95,8 @@ public partial class PythonCaller : Node, IDisposable
         l.Add(("b", _reservedBytes.ToString()));
         if (_display)
             l.Add(("d", ""));
+        if (_requireAck)
+            l.Add(("a", ""));
         _args = l.ToArray();
         CallPython(onOutput, true, null);
     }
