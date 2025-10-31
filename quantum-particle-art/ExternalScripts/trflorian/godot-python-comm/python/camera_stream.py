@@ -3,6 +3,7 @@ import cv2
 import sys
 import time
 import argparse
+import numpy as np
 from constants import *
 
 parser = argparse.ArgumentParser(description="Camera stream UDP sender")
@@ -11,6 +12,7 @@ parser.add_argument("-f","--fps", type=int, default=15, help="Frames per second 
 parser.add_argument("-i","--id", type=int, default=0, help="Camera ID, 0 for default camera first hardware camera of the computer")
 parser.add_argument("-r","--res", type=int, nargs = 2, help="Camera resized and output resolution width height, independent from the camera resolution itself", default=[1920,1080])
 parser.add_argument("-c","--chunks", type=int, default=4, help="Numbers of chunks sent one after another before waiting for next frame")
+parser.add_argument("-s","--chunk_size", type=int, default=65000, help="Numbers of chunks sent one after another before waiting for next frame")
 args = parser.parse_args()
 
 text = False
@@ -20,7 +22,13 @@ consecutive_chunks = args.chunks
 camera_id = args.id
 size = (args.res[0], args.res[1])
 fps = args.fps
-chunks = 65000  # max UDP packet size is 65507 bytes
+#1 byte of the chunk reserved for the chunk index
+reserved_bytes_per_chunk = 1
+chunk_size = args.chunk_size
+# max UDP packet size is 65507 bytes
+if chunk_size > 65507:
+    print("Warning: chunk size too big for UDP, won't be running, setting to max 65507 bytes")
+    exit(1)
 try:
     send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     buffer_size = size[0]*size[1]*4+16
@@ -83,7 +91,7 @@ while True:
     try:
         #print("Checking for request...",flush=True)
         listen = ack_socket.recv(1) 
-        #print("Received request from",listen is not None, len(listen), listen[0],flush=True)
+        print("Received request from",listen is not None, len(listen), listen[0],flush=True)
         #raise "Log"
         send = listen is not None
     except BlockingIOError:
@@ -93,19 +101,24 @@ while True:
     if encoded_image is None:
         toSend = frame if sendOnlyFrame else image
         _, encoded_image = cv2.imencode(".jpg", toSend)
-        nb_total_chunks = len(encoded_image) // chunks
+        nb_total_chunks = len(encoded_image) // (chunk_size - reserved_bytes_per_chunk)
         #print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks", flush=True)
-        octetsX = len(encoded_image).to_bytes(4, byteorder='big', signed=False)
+        #We'll be sending for each chunk, it's chunk index so we have 1 more byte per chunk on top of all the pixels data
+        octetsX = (reserved_bytes_per_chunk * nb_total_chunks + len(encoded_image)).to_bytes(4, byteorder='big', signed=False)
         send_socket.sendto(octetsX, (SERVER_IP, SERVER_PORT))
         time.sleep(1 / fps / nb_total_chunks)#Delay to ensure the bytes info are reiceved first
-    i=0
+        i=0
     if send:
         first = False
         for _ in range(consecutive_chunks):
-            ideb = i*chunks
-            iend = min((i+1)*chunks, len(encoded_image))
+            ideb = i*chunk_size
+            iend = min((i+1)*chunk_size-reserved_bytes_per_chunk, len(encoded_image))
             #print("Sending chunnk", i, "from", ideb, "to", iend, flush=True)
             section = encoded_image[ideb:iend]
+            #Section index at the beggining of the section so we can rebuild correctly the image even if the order of chunks is messed up
+            section = np.concatenate(([np.uint8(i)],section))
+            if(len(section) == ):
+                break
             send_socket.sendto(section, (SERVER_IP, SERVER_PORT))
             i+=1
             time.sleep(1 / fps / nb_total_chunks)#guarantees order if we delay beetwen any chunks

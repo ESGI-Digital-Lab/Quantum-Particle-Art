@@ -86,17 +86,25 @@ public partial class CameraCSBindings : Node
             _ = _peer.GetPacket();
         _python.CallPython(Debug.Log);
         Ack();
-        Task.Run(async () =>
+        try
         {
-            while (true)
+            Task.Run(async () =>
             {
-                ManualUpdate();
-                await Task.Delay(1);
-            }
-        });
+                while (true)
+                {
+                    ManualUpdate();
+                    await Task.Delay(1);
+                }
+            });
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("CameraCSBindings: Exception during manual update task " + e);
+        }
     }
 
     private bool _imageCompleted = false;
+
     public override void _Process(double delta)
     {
         if (_imageCompleted)
@@ -131,17 +139,25 @@ public partial class CameraCSBindings : Node
                         //i=4
                         _accumulator = new byte[length];
                         _head = 0;
-                        _nbChunks = -1;
+                        _nbChunks = 0;
                         Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length +
                                   "inside of a packet of size " + data.Length);
+                        if (i == data.Length)
+                        {
+                            Ack();
+                            continue; //No more data in this packet
+                        }
                     }
 
+                    var chunkId = data[i++];
+                    _head = chunkId * _python.ChunkSize;
                     for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
                     {
                         _accumulator[_head] = data[i];
                     }
 
-                    Debug.Log("After packet processed, chunk :" + _nbChunks + "head at :" + _head +
+                    Debug.Log("After packet processed, chunk :" + chunkId + "out of " + _nbChunks + "head at :" +
+                              _head +
                               "for packet size ; " + data.Length + " and remaining :" +
                               (_accumulator.Length - _head));
                     _nbChunks++;
@@ -178,7 +194,6 @@ public partial class CameraCSBindings : Node
 
     private void UpdateTexture(Error err)
     {
-        
     }
 
     public override void _Notification(int what)

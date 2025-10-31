@@ -20,6 +20,7 @@ public partial class PythonCaller : Node, IDisposable
     [Export] private int _fps = 30;
 
     [Export] private int _chunksPerFrame = 15;
+    [Export] private int _chunkSize = 65000;
     [Export(PropertyHint.Link)] private Vector2I _resolution = new(1920, 1080);
     public int totalSize => _resolution.X * _resolution.Y * 4 * 2 + 16;
     [Export] private bool _display = false;
@@ -41,6 +42,8 @@ public partial class PythonCaller : Node, IDisposable
     [Export] protected string _filename = "LeniaND";
     protected Argument[] _args;
     public bool Responding => _process != null && !_process.HasExited;
+
+    public int ChunkSize => _chunkSize;
 
     [Serializable]
     public struct Argument
@@ -86,6 +89,7 @@ public partial class PythonCaller : Node, IDisposable
         l.Add(("r", _resolution.X.ToString() + " " + _resolution.Y.ToString()));
         l.Add(("i", _cameraID.ToString()));
         l.Add(("c", _chunksPerFrame.ToString()));
+        l.Add(("s", _chunkSize.ToString()));
         if (_display)
             l.Add(("d", ""));
         _args = l.ToArray();
