@@ -12,7 +12,9 @@ parser.add_argument("-f","--fps", type=int, default=15, help="Frames per second 
 parser.add_argument("-i","--id", type=int, default=0, help="Camera ID, 0 for default camera first hardware camera of the computer")
 parser.add_argument("-r","--res", type=int, nargs = 2, help="Camera resized and output resolution width height, independent from the camera resolution itself", default=[1920,1080])
 parser.add_argument("-c","--chunks", type=int, default=4, help="Numbers of chunks sent one after another before waiting for next frame")
-parser.add_argument("-s","--chunk_size", type=int, default=65000, help="Numbers of chunks sent one after another before waiting for next frame")
+parser.add_argument("-b","--reserved_bytes", type=int, default=1, help="Numbers of bytes in each chunk reserved for metadata")
+parser.add_argument("-s","--chunk_size", type=int, default=65000, help="Max real size of each UDP chunk including reserved bytes")
+
 args = parser.parse_args()
 
 text = False
@@ -23,7 +25,7 @@ camera_id = args.id
 size = (args.res[0], args.res[1])
 fps = args.fps
 #1 byte of the chunk reserved for the chunk index
-reserved_bytes_per_chunk = 1
+reserved_bytes_per_chunk = args.reserved_bytes
 chunk_size = args.chunk_size
 usefulSize =  chunk_size - reserved_bytes_per_chunk
 
@@ -119,7 +121,10 @@ while True:
             #print("Sending chunnk", i, "from", ideb, "to", iend, flush=True)
             section = encoded_image[ideb:iend]
             #Section index at the beggining of the section so we can rebuild correctly the image even if the order of chunks is messed up
-            section = np.concatenate(([np.uint8(i)],section))
+            reserved = [0]*reserved_bytes_per_chunk
+            reserved[0] = np.uint8(i)
+            #Add other metadata in reserved bytes if needed and if number of reserved bytes are enough
+            section = np.concatenate((reserved,section))
             if len(section) != chunk_size and iend != len(encoded_image):
                 print("Last chunk size isn't correct", len(section), flush=True, file=sys.stderr)
                 break

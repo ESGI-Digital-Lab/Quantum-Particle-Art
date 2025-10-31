@@ -21,6 +21,7 @@ public partial class PythonCaller : Node, IDisposable
 
     [Export] private int _chunksPerFrame = 15;
     [Export] private int _chunkSize = 65000;
+    [Export] private int _reservedBytes = 1;
     [Export(PropertyHint.Link)] private Vector2I _resolution = new(1920, 1080);
     public int totalSize => _resolution.X * _resolution.Y * 4 * 2 + 16;
     [Export] private bool _display = false;
@@ -43,7 +44,7 @@ public partial class PythonCaller : Node, IDisposable
     protected Argument[] _args;
     public bool Responding => _process != null && !_process.HasExited;
 
-    public int ChunkSize => _chunkSize;
+    public int UsefulSize => _chunkSize-_reservedBytes;
 
     [Serializable]
     public struct Argument
@@ -90,6 +91,7 @@ public partial class PythonCaller : Node, IDisposable
         l.Add(("i", _cameraID.ToString()));
         l.Add(("c", _chunksPerFrame.ToString()));
         l.Add(("s", _chunkSize.ToString()));
+        l.Add(("b", _reservedBytes.ToString()));
         if (_display)
             l.Add(("d", ""));
         _args = l.ToArray();

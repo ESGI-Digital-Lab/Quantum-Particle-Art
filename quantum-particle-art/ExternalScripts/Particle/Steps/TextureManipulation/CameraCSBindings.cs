@@ -150,7 +150,7 @@ public partial class CameraCSBindings : Node
                     }
 
                     var chunkId = data[i++];
-                    _head = chunkId * (_python.ChunkSize-1);
+                    _head = chunkId * _python.UsefulSize;
                     for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
                     {
                         _accumulator[_head] = data[i];
