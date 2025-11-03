@@ -106,21 +106,4 @@ public class WriteToTex : ParticleStep
         View.CallDeferred(RefreshTex);
         return Task.CompletedTask;
     }
-
-
-    protected void GetFrame(ParticleWorld entry, in float[] buffer)
-    {
-        //pixels = _toSave.GetPixels();
-        //for (int i = 0; i < pixels.Length; i++)
-        //{
-        //    var bufferIndex = i * _nbColorChannels;
-        //    buffer[bufferIndex] = pixels[i].r;
-        //    if (_nbColorChannels > 1)
-        //        buffer[bufferIndex + 1] = pixels[i].g;
-        //    if (_nbColorChannels > 2)
-        //        buffer[bufferIndex + 2] = pixels[i].b;
-        //    if (_nbColorChannels > 3)
-        //        buffer[bufferIndex + 3] = pixels[i].a;
-        //}
-    }
 }
