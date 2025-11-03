@@ -29,6 +29,7 @@ public partial class CameraCSBindings : Node
         _texture.CopyFrom(_cache);
         _display.SetVisible(false);
         _python.Kill();
+        Debug.Log("CameraCSBindings: finished taking instant, flushed _cache into _texture");
         return true;
     }
 
