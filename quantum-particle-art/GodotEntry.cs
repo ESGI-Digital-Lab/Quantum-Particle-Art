@@ -30,8 +30,6 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	
-
 	[ExportCategory("Genetic Algorithm")] [ExportGroup("Training")] [ExportSubgroup("Genetic meta parameters")] [Export]
 	private int _nbInstances = 50;
 
@@ -41,6 +39,7 @@ public partial class GodotEntry : Node
 	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfigurationBase> _replays;
 
 	#endregion
+
 	private enum Mode
 	{
 		Training = 0,
@@ -48,12 +47,12 @@ public partial class GodotEntry : Node
 		Live = 2
 	}
 
-	[ExportCategory("Common parameters for all iterations")] 
-	[Export] private Mode _mode;
+	[ExportCategory("Common parameters for all iterations")] [Export]
+	private Mode _mode;
+
 	private bool _training => _mode == Mode.Training;
 
-	[ExportGroup("World")] [Export]
-	private float _worldSize = 600;
+	[ExportGroup("World")] [Export] private float _worldSize = 600;
 
 	[Export] private float _timeSteps = 0.02f;
 	[Export] private int _maxSteps = 2000;
@@ -61,6 +60,7 @@ public partial class GodotEntry : Node
 
 	[Export] private bool _lateSave;
 	[Export] private bool _drawLive = false;
+	[Export] private bool _drawLate = false;
 	[Export] private Godot.Collections.Array<float> _saveThreholds;
 
 	[ExportSubgroup("Stroke settings")] [Export]
@@ -212,17 +212,20 @@ public partial class GodotEntry : Node
 			{
 				if (t.firstReach)
 				{
-					if (_lateSave)
+					if (_lateSave && _drawLate && lateSave != null)
+					{
 						lateSave.RequestSave("Fit-", (t.value * 100).ToString("F0"));
-					var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
-					saved.SetName(lateSave.FullName);
-					ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
+						var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
+						saved.SetName(lateSave.FullName);
+						ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
+					}
 				}
 			};
 		}
 		else
 		{
-			lateSave.SaveAll = _lateSave;
+			if (lateSave != null)
+				lateSave.SaveAll = _lateSave;
 		}
 
 		RunInitMethods();
@@ -308,13 +311,16 @@ public partial class GodotEntry : Node
 				psteps.Add(_write);
 			}
 
-			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
-
-			IWidther widther = new ToggleLiner(_dynamicMax);
-			var lateWrite = new LateWriteToTex(_saveLastFrame || true
-				? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
-				: null, detailledBrush, widther, _curveRes);
-			psteps.Add(lateWrite);
+			if (_drawLate)
+			{
+				var detailledBrush =
+					new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
+				IWidther widther = new ToggleLiner(_dynamicMax);
+				var lateWrite = new LateWriteToTex(_saveLastFrame || true
+					? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
+					: null, detailledBrush, widther, _curveRes);
+				psteps.Add(lateWrite);
+			}
 		}
 	}
 
