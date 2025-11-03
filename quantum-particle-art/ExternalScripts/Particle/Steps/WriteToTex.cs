@@ -32,6 +32,7 @@ public class WriteToTex : ParticleStep
         _viewSize = viewSize;
         _lineCollection = lineCollection;
         _brush = brush;
+        Hide();
     }
 
     private Sprite2D _renderer;
@@ -52,7 +53,14 @@ public class WriteToTex : ParticleStep
         _drawing.SetImage(_drawingImage);
         _renderer.Texture = _toSave;
     }
-
+    public void Hide()
+    {
+        View.CallDeferred(()=>
+        {
+            _renderer.Visible = false;
+        });
+    }
+    
     public override async Task Init(WorldInitializer init)
     {
         await base.Init(init);
@@ -75,6 +83,7 @@ public class WriteToTex : ParticleStep
         {
             _renderer.Scale = new Vector2(stretch, stretch);
             RefreshTex();
+            _renderer.Visible = true;
         });
         //Debug.Log($"WriteToTex initialized on {_toSave.GetWidth()}x{_toSave.GetHeight()} texture with stroke size {_lineRadius}");
     }
@@ -82,6 +91,7 @@ public class WriteToTex : ParticleStep
     public override void Release()
     {
         base.Release();
+        Hide();
         if (_saver != null)
             _saver.SaveTexToDisk();
     }
