@@ -17,7 +17,7 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
     protected TInit _info;
     protected TStep[] _steps;
 
-    [Header("Log")] [SerializeField] protected readonly bool _logInit = false;
+    [Header("Log")] [SerializeField] protected readonly bool _logInit = true;
 
 
     [SerializeField, Range(-1, 10f)] private float _initDelay;
