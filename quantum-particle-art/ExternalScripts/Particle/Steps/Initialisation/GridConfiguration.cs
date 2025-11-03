@@ -53,7 +53,7 @@ public abstract partial class GridConfiguration : ASpawnConfiguration
         return new(1, 0f);
     }
 
-    public void Reset()
+    public override void Reset()
     {
         _grid = GenerateGates();
     }

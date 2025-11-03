@@ -13,6 +13,7 @@ public abstract partial class ASpawnConfiguration : Resource
 
 
 	public abstract IEnumerable<UnityEngine.Vector2> Particles(System.Random random);
+	public virtual void Reset(){}
 
 	public virtual int GetSpecy(Vector2 pos, ISpecyPicker backup)
 	{

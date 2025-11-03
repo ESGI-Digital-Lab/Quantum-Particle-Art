@@ -17,7 +17,7 @@ public class GeneticLooper : PipelineLooper<WorldInitializer, ParticleWorld, Par
     private IStep<ParticleWorld>[] _steps;
     private IInit<ParticleWorld>[] _prewarm;
     private int _texHeight;
-    private EncodedConfiguration _spawn => _init.Spawn;
+    private EncodedConfiguration _spawn => _init.EncodedSpawn;
     private bool _busy = false;
     private int? _result = null;
 

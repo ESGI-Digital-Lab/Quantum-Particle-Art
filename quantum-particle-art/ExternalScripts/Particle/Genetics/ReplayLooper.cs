@@ -16,7 +16,7 @@ public class ReplayLooper : PipelineLooper<WorldInitializer, ParticleWorld, Part
     private IStep<ParticleWorld>[] _steps;
     private IInit<ParticleWorld>[] _prewarm;
     private int _texHeight;
-    private EncodedConfiguration _spawn => _init.Spawn;
+    private EncodedConfiguration _spawn => _init.EncodedSpawn;
 
     private ChromosomeConfigurationBase[] _chromosomes;
     private InitConditions[] _conditions;
