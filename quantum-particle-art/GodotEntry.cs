@@ -103,7 +103,7 @@ public partial class GodotEntry : Node
 	#region Particles&Gates
 
 	[ExportGroup("Particles")] [ExportSubgroup("Spawn area")] [Export]
-	EncodedConfiguration _spawnTemplate;
+	ASpawnConfiguration _spawnTemplate;
 	//private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
 
 	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
