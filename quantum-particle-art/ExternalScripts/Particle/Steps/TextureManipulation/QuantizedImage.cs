@@ -67,8 +67,6 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 				row.SetColor32(x, new Color32(original[i], original[i + 1], original[i + 2]));
 			}
 		} while (row.MoveNextRow());
-
-		//TODO iterate through initial image to fill in the map
 		map.Quantize(OptimizedPaletteQuantizer.Octree(_paletteSize));
 
 		row = map.FirstRow;
@@ -94,10 +92,8 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 						colorIndex++;
 					}
 				}
-				else
-					break;
 			}
-		} while (row.MoveNextRow() && _mapBack.Count < _paletteSize);
+		} while (row.MoveNextRow());
 
 		_image = Image.CreateFromData(_image.GetWidth(), _image.GetHeight(), false, format, original);
 		_colorPickerImplementation = ColorPicker.FromScheme(ColorScheme);
@@ -118,7 +114,8 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 		var col32 = new Color32((byte)(color.R * 255), (byte)(color.G * 255), (byte)(color.B * 255));
 		if (_mapBack.TryGetValue(col32, out var idx))
 			return idx;
-		throw new KeyNotFoundException("Speciied color in image not found in palette");
+		Debug.LogError($"Speciied color {col32} in image not found in palette {string.Join(',', _mapBack.Keys.Select(c=> c.ToString()))}");
+		return UnityEngine.Random.Range(0, _colors.Length);
 	}
 
 	public Color GetColor(Particle particle, int totalNbSpecies)
