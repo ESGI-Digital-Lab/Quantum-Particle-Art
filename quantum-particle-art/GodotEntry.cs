@@ -300,7 +300,7 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			var brushName = _brush.FileName(); //Last part without extension
-			var smallBrushSize = (int)(_maxStrokeSize / _liveBrushSizeDivider);
+			var smallBrushSize = Math.Max(1,(int)(_maxStrokeSize / _liveBrushSizeDivider));
 			if(smallBrushSize > 2)
 				Debug.LogWarning("Small brush size for live drawing is "+smallBrushSize+", if performance is low consider increasing the live brush size divider from "+_liveBrushSizeDivider+" to reach something closer to 1");
 			var smallBrush = new Brush(_brush.GetImage(), smallBrushSize, _relativeRandomBrushOffset, brushName);
