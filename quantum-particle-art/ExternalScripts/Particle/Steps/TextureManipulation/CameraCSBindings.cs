@@ -115,10 +115,10 @@ public partial class CameraCSBindings : Node
         {
             _imageCompleted = false;
             _display.Texture = ImageTexture.CreateFromImage(_cache);
+            _display.SetVisible(true);
             if(_texture.IsEmpty())//Is first image
                 if(_takeInstantOnFirstFrame)
                     TryTakeInstant();
-            _display.SetVisible(true);
         }
 
         if (Input.IsKeyPressed(Key.Space))
