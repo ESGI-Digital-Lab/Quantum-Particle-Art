@@ -124,6 +124,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
     public V GetStep<V>() where V : class, IStep<T>
     {
-        return GetSteps().First(s => s is V) as V;
+        var step = GetSteps().FirstOrDefault(s => s is V);
+        return step as V;
     }
 }
