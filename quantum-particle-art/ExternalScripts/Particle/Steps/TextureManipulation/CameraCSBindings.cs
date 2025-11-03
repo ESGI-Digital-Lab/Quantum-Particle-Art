@@ -111,13 +111,14 @@ public partial class CameraCSBindings : Node
 
     public override void _Process(double delta)
     {
+        if (_finished)
+            return;
         if (_imageCompleted)
         {
             _imageCompleted = false;
             _display.Texture = ImageTexture.CreateFromImage(_cache);
             _display.SetVisible(true);
-            if(_texture.IsEmpty())//Is first image
-                if(_takeInstantOnFirstFrame)
+            if(!_finished && _takeInstantOnFirstFrame)//Is first image
                     TryTakeInstant();
         }
 
