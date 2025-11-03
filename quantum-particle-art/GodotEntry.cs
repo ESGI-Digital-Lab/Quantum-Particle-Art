@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DefaultNamespace.Particle.Steps;
 using DefaultNamespace.Tools;
 using Godot;
+using KGySoft.CoreLibraries;
 using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Genetics;
 using UnityEngine.ExternalScripts.Particle.Simulation;
@@ -68,6 +69,7 @@ public partial class GodotEntry : Node
 
 	[Export(PropertyHint.Range, "0,1000,1")]
 	private int _maxStrokeSize = 10;
+
 	[Export(PropertyHint.Range, "0,1000,1")]
 	private float _liveBrushSizeDivider = 10;
 
@@ -157,7 +159,6 @@ public partial class GodotEntry : Node
 		View.DefaultTimerRoot = this;
 		InitConditions[] conditions = InitConditionsArray();
 		var uniqueCondition = conditions[0];
-		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
 		var spawnTemplate = _spawnTemplate;
@@ -300,9 +301,11 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			var brushName = _brush.FileName(); //Last part without extension
-			var smallBrushSize = Math.Max(1,(int)(_maxStrokeSize / _liveBrushSizeDivider));
-			if(smallBrushSize > 2)
-				Debug.LogWarning("Small brush size for live drawing is "+smallBrushSize+", if performance is low consider increasing the live brush size divider from "+_liveBrushSizeDivider+" to reach something closer to 1");
+			var smallBrushSize = Math.Max(1, (int)(_maxStrokeSize / _liveBrushSizeDivider));
+			if (smallBrushSize > 2)
+				Debug.LogWarning("Small brush size for live drawing is " + smallBrushSize +
+								 ", if performance is low consider increasing the live brush size divider from " +
+								 _liveBrushSizeDivider + " to reach something closer to 1");
 			var smallBrush = new Brush(_brush.GetImage(), smallBrushSize, _relativeRandomBrushOffset, brushName);
 			if (_drawLive)
 			{
@@ -330,6 +333,7 @@ public partial class GodotEntry : Node
 	{
 		tick.onAllDead += looper.ExternalStop;
 		looper.BaseInitializer = new WorldInitializer(_worldSize);
+		looper.OnInitChanged += i => OnInitChanged(i.Init);
 		looper.SetNode(this);
 	}
 

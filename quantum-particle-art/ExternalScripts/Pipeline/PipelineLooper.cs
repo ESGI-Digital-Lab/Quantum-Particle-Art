@@ -24,6 +24,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         get { return _baseInitializer; }
         set { _baseInitializer = value; }
     }
+    public event System.Action<TInit> OnInitChanged;
 
     protected bool _shouldRestart;
     protected bool _shouldStop;
@@ -83,6 +84,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
             bool intializedCorrectly = await UpdateInitializer(_baseInitializer, i);
             if (!intializedCorrectly)
                 return;
+            OnInitChanged?.Invoke(_baseInitializer);
             _shouldRestart = false;
             i++;
             Log("initialized " + i);
