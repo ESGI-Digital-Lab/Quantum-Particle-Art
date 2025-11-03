@@ -7,6 +7,7 @@ public partial class CameraCSBindings : Node
 {
     [Export] private PythonCaller _python;
     [Export] private TextureRect _display;
+    [Export] private bool _takeInstantOnFirstFrame = false;
     private PacketPeerUdp _peer;
     private Image _texture;
     private Image _cache;
@@ -16,7 +17,7 @@ public partial class CameraCSBindings : Node
         Debug.Log("CameraCSBindings: Trying to take instant");
         if (!_texture.IsEmpty())
         {
-            Debug.LogWarning("CameraCSBindings: Texture not empty, overwriting, unexpected behaviour");
+            Debug.LogWarning("CameraCSBindings: Texture not empty, returning");
             return false;
         }
 
@@ -114,6 +115,9 @@ public partial class CameraCSBindings : Node
         {
             _imageCompleted = false;
             _display.Texture = ImageTexture.CreateFromImage(_cache);
+            if(_texture.IsEmpty())//Is first image
+                if(_takeInstantOnFirstFrame)
+                    TryTakeInstant();
             _display.SetVisible(true);
         }
 
