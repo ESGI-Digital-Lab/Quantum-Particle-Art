@@ -68,6 +68,8 @@ public partial class GodotEntry : Node
 
 	[Export(PropertyHint.Range, "0,1000,1")]
 	private int _maxStrokeSize = 10;
+	[Export(PropertyHint.Range, "0,1000,1")]
+	private float _liveBrushSizeDivider = 10;
 
 	[Export] private float _relativeRandomBrushOffset = 0.1f;
 
@@ -158,16 +160,10 @@ public partial class GodotEntry : Node
 		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
-		var code = _spawnTemplate;
-		//_spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
-		if (code == null)
-		{
-			Debug.LogError("No encoding spawn found, looper won't work properly");
-		}
+		var spawnTemplate = _spawnTemplate;
 
-		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
-		var availableSize = new Vector2I(code.NbParticles - 1, code.NbParticles);
+		var availableSize = new Vector2I(spawnTemplate.NbParticles - 1, spawnTemplate.NbParticles);
 		List<ParticleStep> psteps;
 		List<IInit<ParticleWorld>> prewarm;
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
@@ -187,7 +183,6 @@ public partial class GodotEntry : Node
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		BindLooper(viewerLooper, globalTick);
-		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
 		Genetics globalGenetics = null;
 		GatesTypesToInt.OverrideReflection(new EmptyGate(), _gates);
@@ -205,27 +200,31 @@ public partial class GodotEntry : Node
 			}
 
 			//Starts GA asynchronously using the provided loopers to run and evaluate simulations
-			globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers,
+			globalGenetics = new Genetics(spawnTemplate.NbParticles, availableSize, _params, _loopers,
 				(GeneticLooper)viewerLooper,
 				_saveThreholds);
-			globalGenetics.OnThresholdReached += t =>
+			if (_lateSave)
 			{
-				if (t.firstReach)
+				var lateSave = viewerLooper.GetStep<LateWriteToTex>();
+				globalGenetics.OnThresholdReached += t =>
 				{
-					if (_lateSave && _drawLate && lateSave != null)
+					if (t.firstReach)
 					{
-						lateSave.RequestSave("Fit-", (t.value * 100).ToString("F0"));
-						var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
-						saved.SetName(lateSave.FullName);
-						ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
+						if (_drawLate)
+						{
+							lateSave.RequestSave("Fit-", (t.value * 100).ToString("F0"));
+							var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
+							saved.SetName(lateSave.FullName);
+							ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
+						}
 					}
-				}
-			};
+				};
+			}
 		}
 		else
 		{
-			if (lateSave != null)
-				lateSave.SaveAll = _lateSave;
+			if (_drawLate)
+				viewerLooper.GetStep<LateWriteToTex>().SaveAll = _lateSave;
 		}
 
 		RunInitMethods();
@@ -301,7 +300,10 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			var brushName = _brush.FileName(); //Last part without extension
-			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize / 10, _relativeRandomBrushOffset, brushName);
+			var smallBrushSize = (int)(_maxStrokeSize / _liveBrushSizeDivider);
+			if(smallBrushSize > 2)
+				Debug.LogWarning("Small brush size for live drawing is "+smallBrushSize+", if performance is low consider increasing the live brush size divider from "+_liveBrushSizeDivider+" to reach something closer to 1");
+			var smallBrush = new Brush(_brush.GetImage(), smallBrushSize, _relativeRandomBrushOffset, brushName);
 			if (_drawLive)
 			{
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
