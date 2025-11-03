@@ -79,6 +79,7 @@ public partial class CameraCSBindings : Node
 
     private void ReInit()
     {
+        _texture.CopyFrom(Image.CreateEmpty(0,0, false, Image.Format.Rgb8));
         _cache = new Image();
         _head = 0;
         _nbChunks = 0;
@@ -111,9 +112,11 @@ public partial class CameraCSBindings : Node
         {
             if (Input.IsKeyPressed(Key.Enter))
             {
-                _finished = false;
                 OnRestart?.Invoke();
+                ClearPackets();
                 ReInit();
+                //Cause of async, we need to reset finished at the end, after doing all the offline work
+                _finished = false;
             }
         }
     }
