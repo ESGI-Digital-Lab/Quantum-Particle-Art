@@ -24,10 +24,12 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         get { return _baseInitializer; }
         set { _baseInitializer = value; }
     }
+
     public event System.Action<TInit> OnInitChanged;
 
     protected bool _shouldRestart;
     protected bool _shouldStop;
+
     public void ExternalStop()
     {
         _shouldStop = true;
@@ -64,20 +66,21 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     public override async Task Update()
     {
         Stopwatch sw = Stopwatch.StartNew();
+
         void Log(string s)
         {
             //UnityEngine.Debug.Log(s + " xxx " + sw.Elapsed+" on "+Thread.CurrentThread.ManagedThreadId);
         }
+
         await base.Update();
         if (_shouldStop)
         {
             _ready = false;
-            _shouldStop = false;   
+            _shouldStop = false;
             OnFinished(pipeline);
             Log("Stopped");
-
         }
-        if (_shouldRestart)
+        else if (_shouldRestart) //At least one tick beetwen stop and restart
         {
             _ready = false;
             Log("restarting " + i);
@@ -100,7 +103,7 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
 
         if (_ready)
         {
-            Log("Ticking pipeline");   
+            Log("Ticking pipeline");
             pipeline.Tick();
         }
     }
