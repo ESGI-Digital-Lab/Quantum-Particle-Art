@@ -4,18 +4,9 @@ using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
 
-namespace DefaultNamespace.Particle.Steps
-{
     public class MultipleImagesLooper : PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation>
     {
         [SerializeField] private InitConditions[] _textures;
-        private event System.Action<InitConditions> _initChange;
-
-        public event System.Action<InitConditions> InitChange
-        {
-            add { _initChange += value; }
-            remove { _initChange -= value; }
-        }
 
         private IInit<WorldInitializer>[] _inits;
         private IStep<ParticleWorld>[] _steps;
@@ -33,9 +24,7 @@ namespace DefaultNamespace.Particle.Steps
             _prewarm = prewarm.ToArray();
             _texHeight = texHeight;
         }
-
-        public InitConditions[] Textures => _textures;
-
+        
         protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
         {
             init.Init = _textures[loop];
@@ -43,7 +32,6 @@ namespace DefaultNamespace.Particle.Steps
                 return false;
             init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
                 Image.Interpolation.Trilinear);
-            _initChange?.Invoke(init.Init);
             return true;
         }
 
@@ -64,4 +52,3 @@ namespace DefaultNamespace.Particle.Steps
             return new ParticleSimulation();
         }
     }
-}
