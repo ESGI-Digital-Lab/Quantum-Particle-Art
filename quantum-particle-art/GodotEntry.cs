@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using DefaultNamespace.Particle.Steps;
 using DefaultNamespace.Tools;
 using Godot;
 using KGySoft.CoreLibraries;
@@ -169,7 +168,7 @@ public partial class GodotEntry : Node
 		List<IInit<ParticleWorld>> prewarm;
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		GlobalTick globalTick;
-		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out globalTick);
+		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm,out var disposes, out globalTick);
 		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper =
 			_mode switch
 			{
@@ -179,8 +178,8 @@ public partial class GodotEntry : Node
 					_targetHeightOfBackgroundTexture),
 				Mode.Replay =>
 					new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture),
-				Mode.Live => new MultipleImagesLooper(-1f, conditions, psteps, psteps, prewarm,
-					_targetHeightOfBackgroundTexture),
+				Mode.Live => new MultipleImagesLooper(_duration, conditions, psteps, psteps, prewarm,
+					disposes,_targetHeightOfBackgroundTexture),
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		BindLooper(viewerLooper, globalTick);
@@ -192,7 +191,7 @@ public partial class GodotEntry : Node
 		{
 			for (int i = 0; i < _nbInstances; i++)
 			{
-				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out globalTick);
+				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out var _, out globalTick);
 				var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps,
 					prewarm, -1);
 				BindLooper(looper, globalTick);
@@ -226,6 +225,13 @@ public partial class GodotEntry : Node
 		{
 			if (_drawLate)
 				viewerLooper.GetStep<LateWriteToTex>().SaveAll = _lateSave;
+			if (_mode == Mode.Live)
+			{
+				_webcamFeed.OnRestart += () =>
+				{
+					viewerLooper.ExternalStop();
+				};
+			}
 		}
 
 		RunInitMethods();
@@ -275,10 +281,11 @@ public partial class GodotEntry : Node
 	}
 
 	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps,
-		out List<IInit<ParticleWorld>> prewarm, out GlobalTick tick)
+		out List<IInit<ParticleWorld>> prewarm, out List<IStep<ParticleWorld>> disposeAsap, out GlobalTick tick)
 	{
 		psteps = new();
 		prewarm = new();
+		disposeAsap = new();
 		LineCollection lineCollection = new();
 		tick = new GlobalTick(_timeSteps, _maxSteps);
 
@@ -294,6 +301,7 @@ public partial class GodotEntry : Node
 			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 			psteps.Add(view);
 			prewarm.Add(view);
+			disposeAsap.Add(view);
 			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new DeltaRotLiner();
 			tick.onMovement += data =>
 			{
@@ -314,6 +322,7 @@ public partial class GodotEntry : Node
 					lineCollection,
 					smallBrush);
 				psteps.Add(_write);
+				disposeAsap.Add(_write);
 			}
 
 			if (_drawLate)
@@ -325,6 +334,7 @@ public partial class GodotEntry : Node
 					? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
 					: null, detailledBrush, widther, _curveRes);
 				psteps.Add(lateWrite);
+				disposeAsap.Add(lateWrite);
 			}
 		}
 	}
