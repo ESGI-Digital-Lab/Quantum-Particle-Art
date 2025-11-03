@@ -33,9 +33,9 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         await Init(init);
         foreach (var step in _inits)
         {
-            if (_logInit)
-                Debug.LogWarning("Initing with global initializer " + step.GetType().Name);
             await step.Init(init);
+            if (_logInit)
+                Debug.LogWarning("Inited successfully with global initializer " + step.GetType().Name);
         }
 
         var _prewarms = prewarms.ToArray();
@@ -44,9 +44,9 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
             var firstInput = GetInput(_steps[0]);
             foreach (var step in _prewarms)
             {
-                if (_logInit)
-                    Debug.LogWarning("Prewarming only once, with first input " + step.GetType().Name);
                 await step.Init(firstInput);
+                if (_logInit)
+                    Debug.LogWarning("Prewarmed only once, with first input " + step.GetType().Name);
             }
         }
 
@@ -55,6 +55,8 @@ public abstract class APipeline<TInit, T, TStep> where TInit : class where TStep
         //    Debug.LogWarning("Init values : " +
         //                     init.GetType().Name + "and steps : " + string.Join("\n",
         //                         _steps.Select(st => st.GetType().Name + " on " + (st as Component).gameObject.name)));
+        if (_logInit)
+            Debug.LogWarning("Pipeline completely initialized and prewar:ed successfully with " + _steps.Length + " steps.");
         await Sync();
         //await StepEnumerator();
     }
