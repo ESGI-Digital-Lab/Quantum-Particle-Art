@@ -8,7 +8,6 @@ public class Saver
 	private string _name;
 	private Image _image;
 	private FileInfo _saved;
-	public FileInfo Saved => _saved;
 
 	public Saver(string path)
 	{
@@ -48,8 +47,11 @@ public class Saver
 	}
 
 
-	public void SaveTexToDisk(string addon = "")
+	public bool SaveImageIfNotExists(out FileInfo saved, string addon="")
 	{
+		saved = _saved;
+		if (_saved != null)
+			return false;//Should be reseted on init before resaving, returning already saved file
 		_name += addon;
 		var full = UniquePath(out int _, "final", "png");
 		using (FileStream fs = new FileStream(full, FileMode.Create))
@@ -57,7 +59,9 @@ public class Saver
 			fs.Write(_image.SavePngToBuffer());
 		}
 		_saved = new FileInfo(full);
+		saved = _saved;
 		Debug.Log("Saved png to \n" + full + "\n"
 				  + ProjectSettings.LocalizePath(full));
+		return true;
 	}
 }
