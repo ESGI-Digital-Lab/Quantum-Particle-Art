@@ -111,12 +111,12 @@ public struct InitConditions
 	{
 		
 	}
-	public InitConditions(float ratio, ATexProvider texture, RulesSaved rules, IColorPicker colors, float gateSize, ISpecyPicker specyPicker, EncodedConfiguration spawn)
+	public InitConditions(float ratio, ATexProvider texture, RulesSaved rules, IColorPicker colors, float gateSize, ISpecyPicker specyPicker, ASpawnConfiguration spawn)
 	{
 		_texture = texture;
 		_rules = rules;
 		_colors = colors;
-		_spawn = spawn.Duplicate(true) as EncodedConfiguration;
+		_spawn = spawn.Duplicate(true) as ASpawnConfiguration;
 		_spawn.Reset();
 		_gateSize = gateSize;
 		_specyPicker = specyPicker;
@@ -129,7 +129,7 @@ public struct InitConditions
 
 	[SerializeField] private RulesSaved _rules;
 	[SerializeField] private IColorPicker _colors;
-	[SerializeField] private EncodedConfiguration _spawn;
+	[SerializeField] private ASpawnConfiguration _spawn;
 	private float _gateSize;
 	[SerializeField] private ISpecyPicker _specyPicker;
 	private float _ratio;
@@ -138,7 +138,9 @@ public struct InitConditions
 	public ATexProvider Texture => _texture;
 	public Ruleset Rules => _rules.Rules;
 	public IGates IGates => _spawn.Gates;
-	public EncodedConfiguration Spawn => _spawn;
+	public ASpawnConfiguration Spawn => _spawn;
+	public EncodedConfiguration EncodedSpawn => Spawn as EncodedConfiguration;
+	
 	public float GateSize => _gateSize;
 
 	public IColorPicker Colors => _colors;

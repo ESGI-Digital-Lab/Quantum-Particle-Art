@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using DefaultNamespace.Particle.Steps;
 using DefaultNamespace.Tools;
 using Godot;
+using KGySoft.CoreLibraries;
 using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Genetics;
 using UnityEngine.ExternalScripts.Particle.Simulation;
@@ -30,8 +30,6 @@ public partial class GodotEntry : Node
 
 	#region Genetics
 
-	
-
 	[ExportCategory("Genetic Algorithm")] [ExportGroup("Training")] [ExportSubgroup("Genetic meta parameters")] [Export]
 	private int _nbInstances = 50;
 
@@ -41,6 +39,7 @@ public partial class GodotEntry : Node
 	[ExportGroup("Playback")] [Export] private Godot.Collections.Array<ChromosomeConfigurationBase> _replays;
 
 	#endregion
+
 	private enum Mode
 	{
 		Training = 0,
@@ -48,12 +47,12 @@ public partial class GodotEntry : Node
 		Live = 2
 	}
 
-	[ExportCategory("Common parameters for all iterations")] 
-	[Export] private Mode _mode;
+	[ExportCategory("Common parameters for all iterations")] [Export]
+	private Mode _mode;
+
 	private bool _training => _mode == Mode.Training;
 
-	[ExportGroup("World")] [Export]
-	private float _worldSize = 600;
+	[ExportGroup("World")] [Export] private float _worldSize = 600;
 
 	[Export] private float _timeSteps = 0.02f;
 	[Export] private int _maxSteps = 2000;
@@ -61,6 +60,7 @@ public partial class GodotEntry : Node
 
 	[Export] private bool _lateSave;
 	[Export] private bool _drawLive = false;
+	[Export] private bool _drawLate = false;
 	[Export] private Godot.Collections.Array<float> _saveThreholds;
 
 	[ExportSubgroup("Stroke settings")] [Export]
@@ -68,6 +68,9 @@ public partial class GodotEntry : Node
 
 	[Export(PropertyHint.Range, "0,1000,1")]
 	private int _maxStrokeSize = 10;
+
+	[Export(PropertyHint.Range, "0,1000,1")]
+	private float _liveBrushSizeDivider = 10;
 
 	[Export] private float _relativeRandomBrushOffset = 0.1f;
 
@@ -103,7 +106,7 @@ public partial class GodotEntry : Node
 	#region Particles&Gates
 
 	[ExportGroup("Particles")] [ExportSubgroup("Spawn area")] [Export]
-	EncodedConfiguration _spawnTemplate;
+	ASpawnConfiguration _spawnTemplate;
 	//private Godot.Collections.Array<ASpawnConfiguration> _spawns = new();
 
 	[ExportGroup("Gates")] [Export] private bool _allowSameSpeciesInteraction = false;
@@ -155,24 +158,17 @@ public partial class GodotEntry : Node
 		View.DefaultTimerRoot = this;
 		InitConditions[] conditions = InitConditionsArray();
 		var uniqueCondition = conditions[0];
-		float initialRatio = uniqueCondition.Ratio; //TODO generalize scaling for every step
 
 		_monos = new();
-		var code = _spawnTemplate;
-		//_spawns.Select(s => s.Skip ? null : s as EncodedConfiguration).FirstOrDefault(s => s != null);
-		if (code == null)
-		{
-			Debug.LogError("No encoding spawn found, looper won't work properly");
-		}
+		var spawnTemplate = _spawnTemplate;
 
-		var globalLock = new object();
 		List<GeneticLooper> _loopers = new();
-		var availableSize = new Vector2I(code.NbParticles - 1, code.NbParticles);
+		var availableSize = new Vector2I(spawnTemplate.NbParticles - 1, spawnTemplate.NbParticles);
 		List<ParticleStep> psteps;
 		List<IInit<ParticleWorld>> prewarm;
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		GlobalTick globalTick;
-		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out globalTick);
+		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm,out var disposes, out globalTick);
 		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper =
 			_mode switch
 			{
@@ -182,12 +178,11 @@ public partial class GodotEntry : Node
 					_targetHeightOfBackgroundTexture),
 				Mode.Replay =>
 					new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture),
-				Mode.Live => new MultipleImagesLooper(-1f, conditions, psteps, psteps, prewarm,
-					_targetHeightOfBackgroundTexture),
+				Mode.Live => new MultipleImagesLooper(_duration, conditions, psteps, psteps, prewarm,
+					disposes,_targetHeightOfBackgroundTexture),
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		BindLooper(viewerLooper, globalTick);
-		var lateSave = viewerLooper.GetStep<LateWriteToTex>();
 		_renderMono = viewerLooper;
 		Genetics globalGenetics = null;
 		GatesTypesToInt.OverrideReflection(new EmptyGate(), _gates);
@@ -196,7 +191,7 @@ public partial class GodotEntry : Node
 		{
 			for (int i = 0; i < _nbInstances; i++)
 			{
-				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out globalTick);
+				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out var _, out globalTick);
 				var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps,
 					prewarm, -1);
 				BindLooper(looper, globalTick);
@@ -205,24 +200,38 @@ public partial class GodotEntry : Node
 			}
 
 			//Starts GA asynchronously using the provided loopers to run and evaluate simulations
-			globalGenetics = new Genetics(code.NbParticles, availableSize, _params, _loopers,
+			globalGenetics = new Genetics(spawnTemplate.NbParticles, availableSize, _params, _loopers,
 				(GeneticLooper)viewerLooper,
 				_saveThreholds);
-			globalGenetics.OnThresholdReached += t =>
+			if (_lateSave)
 			{
-				if (t.firstReach)
+				var lateSave = viewerLooper.GetStep<LateWriteToTex>();
+				globalGenetics.OnThresholdReached += t =>
 				{
-					if (_lateSave)
-						lateSave.RequestSave("Fit-", (t.value * 100).ToString("F0"));
-					var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
-					saved.SetName(lateSave.FullName);
-					ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
-				}
-			};
+					if (t.firstReach)
+					{
+						if (_drawLate)
+						{
+							lateSave.RequestSave("Fit-", (t.value * 100).ToString("F0"));
+							var saved = new ChromosomeConfiguration(t.chromosome, availableSize);
+							saved.SetName(lateSave.FullName);
+							ResourceSaver.Save(saved, "res://Data//Saved//" + saved.GetName() + ".tres");
+						}
+					}
+				};
+			}
 		}
 		else
 		{
-			lateSave.SaveAll = _lateSave;
+			if (_drawLate)
+				viewerLooper.GetStep<LateWriteToTex>().SaveAll = _lateSave;
+			if (_mode == Mode.Live)
+			{
+				_webcamFeed.OnRestart += () =>
+				{
+					viewerLooper.ExternalStop();
+				};
+			}
 		}
 
 		RunInitMethods();
@@ -272,10 +281,11 @@ public partial class GodotEntry : Node
 	}
 
 	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps,
-		out List<IInit<ParticleWorld>> prewarm, out GlobalTick tick)
+		out List<IInit<ParticleWorld>> prewarm, out List<IStep<ParticleWorld>> disposeAsap, out GlobalTick tick)
 	{
 		psteps = new();
 		prewarm = new();
+		disposeAsap = new();
 		LineCollection lineCollection = new();
 		tick = new GlobalTick(_timeSteps, _maxSteps);
 
@@ -291,6 +301,7 @@ public partial class GodotEntry : Node
 			var view = new View(_space, "res://Scenes/Views/ParticleView.tscn", "res://Scenes/Views/GateView.tscn");
 			psteps.Add(view);
 			prewarm.Add(view);
+			disposeAsap.Add(view);
 			ILiner liner = _useSpeed ? new ToggleLiner(_dynamicMax) : new DeltaRotLiner();
 			tick.onMovement += data =>
 			{
@@ -298,7 +309,12 @@ public partial class GodotEntry : Node
 				//Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
 			};
 			var brushName = _brush.FileName(); //Last part without extension
-			var smallBrush = new Brush(_brush.GetImage(), _maxStrokeSize / 10, _relativeRandomBrushOffset, brushName);
+			var smallBrushSize = Math.Max(1, (int)(_maxStrokeSize / _liveBrushSizeDivider));
+			if (smallBrushSize > 2)
+				Debug.LogWarning("Small brush size for live drawing is " + smallBrushSize +
+								 ", if performance is low consider increasing the live brush size divider from " +
+								 _liveBrushSizeDivider + " to reach something closer to 1");
+			var smallBrush = new Brush(_brush.GetImage(), smallBrushSize, _relativeRandomBrushOffset, brushName);
 			if (_drawLive)
 			{
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
@@ -306,15 +322,20 @@ public partial class GodotEntry : Node
 					lineCollection,
 					smallBrush);
 				psteps.Add(_write);
+				disposeAsap.Add(_write);
 			}
 
-			var detailledBrush = new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
-
-			IWidther widther = new ToggleLiner(_dynamicMax);
-			var lateWrite = new LateWriteToTex(_saveLastFrame || true
-				? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
-				: null, detailledBrush, widther, _curveRes);
-			psteps.Add(lateWrite);
+			if (_drawLate)
+			{
+				var detailledBrush =
+					new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
+				IWidther widther = new ToggleLiner(_dynamicMax);
+				var lateWrite = new LateWriteToTex(_saveLastFrame || true
+					? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
+					: null, detailledBrush, widther, _curveRes);
+				psteps.Add(lateWrite);
+				disposeAsap.Add(lateWrite);
+			}
 		}
 	}
 
@@ -322,6 +343,7 @@ public partial class GodotEntry : Node
 	{
 		tick.onAllDead += looper.ExternalStop;
 		looper.BaseInitializer = new WorldInitializer(_worldSize);
+		looper.OnInitChanged += i => OnInitChanged(i.Init);
 		looper.SetNode(this);
 	}
 

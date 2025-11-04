@@ -24,6 +24,7 @@ using Vector2 = UnityEngine.Vector2;
 public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 {
 	private int _paletteSize;
+	private Godot.Image _sourceImage;
 	private Godot.Image _image;
 	private Color32[] _colors;
 	private Dictionary<Color32, int> _mapBack;
@@ -33,20 +34,23 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 	public QuantizedImage(Image image, int paletteSize, Vector2I targetRes)
 	{
 		this._paletteSize = paletteSize;
-		this._image = image;
+		this._sourceImage = image;
 		_targetRes = targetRes;
+		Debug.Log("QuantizedImage created. with image ref null ?" + (_sourceImage == null));
 	}
 
 
 	[SuppressMessage("Interoperability", "CA1416:Valider la compatibilité de la plateforme")]
 	public override bool Create()
 	{
-		while (_image == null || _image.IsEmpty())
+		if (_sourceImage.IsEmpty())
 		{
 			//Debug.Log("Waiting for image to be loaded...");
 			return false;
 		}
-		//Debug.Log("Image loaded, preparing it...");
+
+		Debug.Log("Image loaded, preparing it...");
+		_image = _sourceImage.Duplicate() as Image;
 		_image.Resize(_targetRes.X, _targetRes.Y, Image.Interpolation.Trilinear);
 		var format = Image.Format.Rgb8;
 		_image.Convert(format);
@@ -63,12 +67,12 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 				row.SetColor32(x, new Color32(original[i], original[i + 1], original[i + 2]));
 			}
 		} while (row.MoveNextRow());
-
-		//TODO iterate through initial image to fill in the map
 		map.Quantize(OptimizedPaletteQuantizer.Octree(_paletteSize));
 
 		row = map.FirstRow;
-		HashSet<Color32> palette = new(_paletteSize);
+		int colorIndex = 0;
+		_colors = new Color32[_paletteSize];
+		_mapBack = new Dictionary<Color32, int>(_paletteSize);
 		do
 		{
 			for (int x = 0; x < row.Width; x++)
@@ -78,15 +82,22 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 				original[idx] = c.R;
 				original[idx + 1] = c.G;
 				original[idx + 2] = c.B;
-				if (palette.Count < _paletteSize)
-					palette.Add(new Color32(c.R, c.G, c.B));
+				if (_mapBack.Count < _paletteSize)
+				{
+					var col = new Color32(c.R, c.G, c.B);
+					if (!_mapBack.ContainsKey(col))
+					{
+						_mapBack.Add(col, colorIndex);
+						_colors[colorIndex] = col;
+						colorIndex++;
+					}
+				}
 			}
 		} while (row.MoveNextRow());
 
 		_image = Image.CreateFromData(_image.GetWidth(), _image.GetHeight(), false, format, original);
-		_colors = palette.ToArray();
 		_colorPickerImplementation = ColorPicker.FromScheme(ColorScheme);
-		_mapBack = palette.Select((v, i) => (v, i)).ToDictionary(x => x.v, x => x.i);
+		Debug.Log("Quantized image prepared with " + _colors.Length + " colors.");
 		return true;
 	}
 
@@ -98,11 +109,13 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 
 	public int SpeciyIndex(Vector2 position)
 	{
-		var color = _image.GetPixel(Mathf.FloorToInt(position.x * _image.GetWidth()), Mathf.FloorToInt(position.y * _image.GetHeight()));
+		var color = _image.GetPixel(Mathf.FloorToInt(position.x * _image.GetWidth()),
+			Mathf.FloorToInt(position.y * _image.GetHeight()));
 		var col32 = new Color32((byte)(color.R * 255), (byte)(color.G * 255), (byte)(color.B * 255));
 		if (_mapBack.TryGetValue(col32, out var idx))
 			return idx;
-		throw new KeyNotFoundException("Speciied color in image not found in palette");
+		Debug.LogError($"Speciied color {col32} in image not found in palette {string.Join(',', _mapBack.Keys.Select(c=> c.ToString()))}");
+		return UnityEngine.Random.Range(0, _colors.Length);
 	}
 
 	public Color GetColor(Particle particle, int totalNbSpecies)

@@ -7,30 +7,12 @@ public partial class CameraCSBindings : Node
 {
     [Export] private PythonCaller _python;
     [Export] private TextureRect _display;
+    [Export] private bool _takeInstantOnFirstFrame = false;
     private PacketPeerUdp _peer;
     private Image _texture;
     private Image _cache;
+    public event System.Action OnRestart;
 
-    public bool TryTakeInstant()
-    {
-        Debug.Log("CameraCSBindings: Trying to take instant");
-        if (!_texture.IsEmpty())
-        {
-            Debug.LogWarning("CameraCSBindings: Texture not empty, overwriting, unexpected behaviour");
-            return false;
-        }
-
-        if (_cache.IsEmpty())
-        {
-            Debug.LogWarning("CameraCSBindings: No connection available (yet ?), cannot take instant");
-            return false;
-        }
-
-        _texture.CopyFrom(_cache);
-        _display.SetVisible(false);
-        _python.Kill();
-        return true;
-    }
 
     private const ushort port = 4242;
     private const ushort ackPort = port + 1;
@@ -39,21 +21,14 @@ public partial class CameraCSBindings : Node
     private byte[] _accumulator;
     private int _head;
     private int _nbChunks;
-    private bool _finished => _texture != null && !_texture.IsEmpty();
-
-    public void Ack()
-    {
-        if (_finished || _peer == null || !_peer.IsBound())
-            return;
-        //Debug.Log("CameraCSBindings: Acknowledging packet reception");
-        byte[] ack = [1];
-        _peer.SetDestAddress(adress, ackPort);
-        _peer.PutPacket(ack);
-    }
-
+    private bool _finished;
+    private bool _imageCompleted;
+    public Image Texture => _texture;
+    
     public override void _Ready()
     {
         _display.SetVisible(_peer != null);
+        _finished = false;
     }
 
     public void Start()
@@ -76,16 +51,9 @@ public partial class CameraCSBindings : Node
             Debug.Log("CameraCSBindings: Bound to port " + port + " on adress " + adress);
         //Assert.IsTrue(peer.IsBound() & peer.IsSocketConnected(), "CameraCSBindings: Failed to connect to socker on port " + port);
         _texture = new Image();
-        _cache = new Image();
-        _head = 0;
-        _nbChunks = 0;
-        _accumulator = null;
-        _display.SetVisible(true);
-        Debug.Log("CameraCSBindings: Emptying queue");
-        while (_peer.GetAvailablePacketCount() > 0)
-            _ = _peer.GetPacket();
+        ClearPackets();
         _python.CallPython(Debug.Log);
-        Ack();
+        ReInit();
         try
         {
             Task.Run(async () =>
@@ -103,16 +71,76 @@ public partial class CameraCSBindings : Node
         }
     }
 
-    private bool _imageCompleted = false;
+    private void ClearPackets()
+    {
+        while (_peer.GetAvailablePacketCount() > 0)
+            _ = _peer.GetPacket();
+    }
 
+    private void ReInit()
+    {
+        _texture.CopyFrom(Image.CreateEmpty(0,0, false, Image.Format.Rgb8));
+        _cache = new Image();
+        _head = 0;
+        _nbChunks = 0;
+        _accumulator = null;
+        _display.SetVisible(true);
+        Debug.Log("CameraCSBindings: Emptying queue");
+        Ack();
+    }
+    
     public override void _Process(double delta)
     {
-        if (_imageCompleted)
+        if (!_finished)
         {
-            _imageCompleted = false;
-            _display.Texture = ImageTexture.CreateFromImage(_cache);
-            _display.SetVisible(true);
+            if (_imageCompleted)
+            {
+                _imageCompleted = false;
+                _display.Texture = ImageTexture.CreateFromImage(_cache);
+                _display.SetVisible(true);
+                if (!_finished && _takeInstantOnFirstFrame) //Is first image
+                    TryTakeInstant();
+            }
+
+            if (Input.IsKeyPressed(Key.Space))
+            {
+                Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
+                TryTakeInstant();
+            }
         }
+        else
+        {
+            if (Input.IsKeyPressed(Key.Enter))
+            {
+                OnRestart?.Invoke();
+                ClearPackets();
+                ReInit();
+                //Cause of async, we need to reset finished at the end, after doing all the offline work
+                _finished = false;
+            }
+        }
+    }
+    public bool TryTakeInstant()
+    {
+        Debug.Log("CameraCSBindings: Trying to take instant");
+        //if (!_texture.IsEmpty())
+        //{
+        //    Debug.LogWarning("CameraCSBindings: Texture not empty, returning");
+        //    return false;
+        //}
+
+        if (_cache.IsEmpty())
+        {
+            Debug.LogWarning("CameraCSBindings: No connection available (yet ?), cannot take instant");
+            return false;
+        }
+
+        _texture.CopyFrom(_cache);
+        _finished = true;
+        _display.SetVisible(false);
+        //_python.Kill();//We keep it to we can reuse same python server for image processing even if we don't ack it 
+        Debug.Log("CameraCSBindings: finished taking instant, flushed _cache into _texture");
+        return true;
     }
 
     private void ManualUpdate()
@@ -164,7 +192,7 @@ public partial class CameraCSBindings : Node
                     {
                         if (_cache.IsEmpty())
                             Debug.Log(
-                                "CameraCSBindings: Connection available, showing as debug display, ready to take instant");
+                                "CameraCSBindings: Connection correct, showing live flux in temp display, ready to take instants to feed in the pipeline");
                         byte[] safe = new byte[_accumulator.Length];
                         System.Array.Copy(_accumulator, safe, _accumulator.Length);
                         _accumulator = null;
@@ -181,26 +209,25 @@ public partial class CameraCSBindings : Node
                         {
                             GD.PrintErr("Failed to load image from buffer: ");
                         }
+
                         //Debug.Log("Remaining packets in queue after full image received : " + _peer.GetAvailablePacketCount());
                         break;
                     }
+
                     Ack();
                 }
             }
         }
-
-        if (Input.IsKeyPressed(Key.Space))
-        {
-            Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
-            TryTakeInstant();
-        }
-        //}
     }
-
-    private void UpdateTexture(Error err)
+    public void Ack()
     {
+        if (_finished || _peer == null || !_peer.IsBound())
+            return;
+        //Debug.Log("CameraCSBindings: Acknowledging packet reception");
+        byte[] ack = [1];
+        _peer.SetDestAddress(adress, ackPort);
+        _peer.PutPacket(ack);
     }
-
     public override void _Notification(int what)
     {
         if (what == NotificationWMCloseRequest)
@@ -216,7 +243,4 @@ public partial class CameraCSBindings : Node
 
         base._Notification(what);
     }
-
-
-    public Image Texture => _texture;
 }

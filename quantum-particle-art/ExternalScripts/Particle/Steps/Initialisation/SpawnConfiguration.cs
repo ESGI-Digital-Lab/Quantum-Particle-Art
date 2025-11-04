@@ -1,21 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 [GlobalClass]
 public partial class SpawnConfiguration : ASpawnConfiguration
 {
-	[Export(PropertyHint.Link)] private Vector2 _baseVelocity;
 	[ExportGroup("Positions")] [Export] private Vector2 _center;
 	[Export(PropertyHint.Link)] private Vector2 _size;
 	[Export] private bool _linSpaceOverRandom = false;
 	[ExportGroup("Gates")]
-	[Export] private GridGates _gates;
-	public override GridGates Gates => _gates;
+	[Export] private int _nbGates = 100;
+	[Export] private Godot.Collections.Array<AGate> _availableGates;
+	private IGates _gates;
+	public override IGates Gates => _gates;
 
 	private Vector2 _posMin => _center - (_size / 2f);
 	private Vector2 _posMax => _center + (_size / 2f);
 	private Random _random;
+	public override void Reset()
+	{
+		base.Reset();
+		_gates = new RandomGates(_nbGates,
+			new DictionaryFromList<AGate, float>(_availableGates.Select((g => (g, 1f)))));
+	}
 
 	private float RandomRange(Vector2 range)
 	{
@@ -46,5 +54,5 @@ public partial class SpawnConfiguration : ASpawnConfiguration
 		}
 	}
 
-	protected override UnityEngine.Vector2 BaseVelocity() => _baseVelocity;
+	protected override UnityEngine.Vector2 BaseVelocity() => new UnityEngine.Vector2(UnityEngine.Random.Range(-1.0f, 1.0f), UnityEngine.Random.Range(-1.0f, 1.0f));
 }

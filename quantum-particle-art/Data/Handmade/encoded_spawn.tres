@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EncodedConfiguration" load_steps=6 format=3 uid="uid://bthjbyrsodosn"]
+
+[ext_resource type="Script" uid="uid://coqmrloclwhuy" path="res://ExternalScripts/Particle/Steps/Gates/Mathematic/Count.cs" id="1_4ddfb"]
+[ext_resource type="Script" uid="uid://lohey3ijudrc" path="res://ExternalScripts/Particle/Steps/Gates/Tool/Kill.cs" id="2_2jgr0"]
+[ext_resource type="Script" uid="uid://cn3bgbpha7dm3" path="res://ExternalScripts/Particle/Steps/Initialisation/EncodedConfiguration.cs" id="3_q1pop"]
+
+[sub_resource type="Resource" id="Resource_gvqa1"]
+script = ExtResource("1_4ddfb")
+_max = 1
+_count = 0
+_countAsName = true
+_nameAppendix = ""
+metadata/_custom_type_script = "uid://coqmrloclwhuy"
+
+[sub_resource type="Resource" id="Resource_yi0l3"]
+script = ExtResource("2_2jgr0")
+_safe = false
+metadata/_custom_type_script = "uid://lohey3ijudrc"
+
+[resource]
+script = ExtResource("3_q1pop")
+_encoded = 0
+_countTemplate = SubResource("Resource_gvqa1")
+_killTemplate = SubResource("Resource_yi0l3")
+_skip = false
+_nbParticles = 8
+_specyIndex = -1
+_velocityScale = 10.0
+metadata/_custom_type_script = "uid://cn3bgbpha7dm3"

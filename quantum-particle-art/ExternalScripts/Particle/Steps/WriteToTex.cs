@@ -32,6 +32,7 @@ public class WriteToTex : ParticleStep
         _viewSize = viewSize;
         _lineCollection = lineCollection;
         _brush = brush;
+        Hide();
     }
 
     private Sprite2D _renderer;
@@ -52,7 +53,14 @@ public class WriteToTex : ParticleStep
         _drawing.SetImage(_drawingImage);
         _renderer.Texture = _toSave;
     }
-
+    public void Hide()
+    {
+        View.CallDeferred(()=>
+        {
+            _renderer.Visible = false;
+        });
+    }
+    
     public override async Task Init(WorldInitializer init)
     {
         await base.Init(init);
@@ -75,6 +83,7 @@ public class WriteToTex : ParticleStep
         {
             _renderer.Scale = new Vector2(stretch, stretch);
             RefreshTex();
+            _renderer.Visible = true;
         });
         //Debug.Log($"WriteToTex initialized on {_toSave.GetWidth()}x{_toSave.GetHeight()} texture with stroke size {_lineRadius}");
     }
@@ -82,6 +91,7 @@ public class WriteToTex : ParticleStep
     public override void Release()
     {
         base.Release();
+        Hide();
         if (_saver != null)
             _saver.SaveTexToDisk();
     }
@@ -105,22 +115,5 @@ public class WriteToTex : ParticleStep
         _lineCollection.Clear();
         View.CallDeferred(RefreshTex);
         return Task.CompletedTask;
-    }
-
-
-    protected void GetFrame(ParticleWorld entry, in float[] buffer)
-    {
-        //pixels = _toSave.GetPixels();
-        //for (int i = 0; i < pixels.Length; i++)
-        //{
-        //    var bufferIndex = i * _nbColorChannels;
-        //    buffer[bufferIndex] = pixels[i].r;
-        //    if (_nbColorChannels > 1)
-        //        buffer[bufferIndex + 1] = pixels[i].g;
-        //    if (_nbColorChannels > 2)
-        //        buffer[bufferIndex + 2] = pixels[i].b;
-        //    if (_nbColorChannels > 3)
-        //        buffer[bufferIndex + 3] = pixels[i].a;
-        //}
     }
 }
