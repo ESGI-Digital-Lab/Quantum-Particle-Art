@@ -39,7 +39,6 @@ using UnityEngine;
 
         protected override void OnFinished(ParticleSimulation pipeline)
         {
-            _shouldRestart = true;
             foreach(var step in _disposeOnStop)
                 step.Release();
         }
