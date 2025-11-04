@@ -15,7 +15,7 @@ public class SendImage : ParticleStep
 {
     [Export] private Form _form;
     private Saver _saver;
-    private bool _sent = false;
+    private bool _canSend = false; //Is set to true on init, and consumed once on release until next init
 
     private Dictionary<string, string> secrets;
     string secretFileName = "secrets.json";
@@ -31,8 +31,15 @@ public class SendImage : ParticleStep
     string[] _keys = { "Host", "User", "Password", "DefaultTo" };
     private string Secret(Keys key) => secrets[_keys[(int)key]];
 
-    public SendImage(Saver saver)
+    public SendImage(Saver saver, Form form)
     {
+        _form = form;
+        _form.Visible = false;
+        _form.OnSubmit += s =>
+        {
+            _form.Visible = false;
+            Send(s);
+        };
         _saver = saver;
         string file;
         try
@@ -49,13 +56,14 @@ public class SendImage : ParticleStep
         secrets = JsonSerializer.Deserialize<Dictionary<string, string>>(file);
         Assert.IsTrue(_keys.All(k => secrets.ContainsKey(k) && !string.IsNullOrEmpty(secrets[k])),
             () => $"Make sure your {secretFileName} file contains all required keys: {string.Join(", ", _keys)}");
-        Send(Secret(Keys.DefaultTo), File.OpenRead(@"D:/Downloads/Black2048_times_2_final_8.png"), "Test mail with attachment");
+        //Send(Secret(Keys.DefaultTo), File.OpenRead(@"D:/Downloads/Black2048_times_2_final_8.png"),"Test mail with attachment");
     }
 
     public override async Task Init(WorldInitializer initializer)
     {
         await base.Init(initializer);
-        _sent = false;
+        _canSend = true;
+        _form.Visible = false;
     }
 
     public override Task HandleParticles(ParticleWorld entry, float delay)
@@ -66,16 +74,29 @@ public class SendImage : ParticleStep
     public override void Release()
     {
         base.Release();
-        if (!_sent)
+        _form.Visible = true;
+    }
+
+    public bool Send(string mail)
+    {
+        if (_canSend)
         {
             Assert.IsTrue(_saver.Saved != null && _saver.Saved.Exists, "_saver.Saved!=null && _saver.Saved.Exists");
             Debug.Log($"Sending image {_saver.Saved.Name} in {_saver.Saved.Directory}");
-            var mail = _form.Mail;
+            Debug.Log($"Sending image {_saver.Saved.Name} in {_saver.Saved.Directory}");
             if (string.IsNullOrEmpty(mail))
+            {
                 mail = Secret(Keys.DefaultTo);
+                Debug.Log($"Null or empty mail got from field, falling back to default mail {mail} specified in secrets");   
+            }
             if (Send(mail, File.OpenRead(_saver.Saved.FullName), _saver.Name))
-                _sent = true;
+            {
+                _canSend = false;
+                return true;
+            }
         }
+
+        return false;
     }
 
     public bool Send(string to, FileStream attachement, string name)
@@ -84,8 +105,9 @@ public class SendImage : ParticleStep
         var user = Secret(Keys.User);
         var password = Secret(Keys.Password);
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Florentin Eraud", user));
-        message.To.Add(new MailboxAddress("Florentin Eraud R", to));
+        message.From.Add(new MailboxAddress("ESGI at Rome", user));
+        var toName = string.Join(' ', to.Split('@')[0].Split('.'));
+        message.To.Add(new MailboxAddress(toName, to));
         message.Subject = "Test mail'?";
 
         var fullBody = new Multipart();
@@ -101,15 +123,24 @@ public class SendImage : ParticleStep
             FileName = name
         });
         message.Body = fullBody;
-        using (var client = new SmtpClient())
+        try
         {
-            client.CheckCertificateRevocation = false;
-            client.Connect(server, 465, true);
-            client.Authenticate(user, password);
-            client.Send(message);
-            client.Disconnect(true);
+            using (var client = new SmtpClient())
+            {
+                client.CheckCertificateRevocation = false;
+                client.Connect(server, 465, true);
+                client.Authenticate(user, password);
+                client.Send(message);
+                client.Disconnect(true);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Failed to send mail, with exception :", e);
+            return false;
         }
 
+        Debug.Log("Sent mail successfully to", to, toName);
         return true;
     }
 }
