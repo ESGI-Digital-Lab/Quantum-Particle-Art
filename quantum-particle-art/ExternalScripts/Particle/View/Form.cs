@@ -1,4 +1,5 @@
 ﻿using Godot;
+using KGySoft.CoreLibraries;
 
 
 public partial class Form : Control
@@ -6,19 +7,28 @@ public partial class Form : Control
     [Export] private Control _root;
     [Export] private Godot.LineEdit _inputField;
     [Export] private Button _submit;
+    [Export] private Button _close;
     public event System.Action<string> OnSubmit;
+    public event System.Action OnExit;
+
     public override void _Ready()
     {
-        _submit.Pressed += () =>
-        {
-            OnSubmit?.Invoke(Mail);
-        };
-        _inputField.TextSubmitted += (string text) =>
-        {
-            OnSubmit?.Invoke(Mail);
-        };
+        base._EnterTree();
+        _submit.Pressed += () => { OnSubmit?.Invoke(Mail); };
+        _inputField.TextSubmitted += (string text) => { OnSubmit?.Invoke(Mail); };
+        _close.Pressed += () => { OnExit?.Invoke(); };
+        OnExit += Exited;
+
     }
-    private string Mail   
+    
+
+    private void Exited()
+    {
+        _root.Visible = false;
+        _inputField.Clear();
+    }
+
+    private string Mail
     {
         get
         {
@@ -26,8 +36,18 @@ public partial class Form : Control
             return mail;
         }
     }
-    public bool Visible   
+
+    public new bool Visible
     {
-        set => _root.Visible = value;
+        set
+        {
+            if (value) Entered();
+            else Exited();
+        }
+    }
+
+    private bool Entered()
+    {
+        return _root.Visible = true;
     }
 }
