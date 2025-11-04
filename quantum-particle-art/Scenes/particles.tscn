@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=70 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -40,6 +40,8 @@
 [ext_resource type="Resource" uid="uid://g52gvvvfspew" path="res://Data/Saved/Black4K__80.tres" id="21_keigo"]
 [ext_resource type="Script" uid="uid://c7a0omk2q4qs0" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Speed.cs" id="23_dsv53"]
 [ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Steps/Initialisation/SpawnConfiguration.cs" id="23_tqdhy"]
+[ext_resource type="Script" uid="uid://clvsxbgo6g4ns" path="res://ExternalScripts/Particle/View/Form.cs" id="41_6t04x"]
+[ext_resource type="Theme" uid="uid://care7j8lpcqln" path="res://Data/theme.tres" id="41_bwfut"]
 
 [sub_resource type="Curve" id="Curve_2d2wn"]
 _data = [Vector2(0, 0), 0.0, 0.105882, 0, 1, Vector2(0.85, 0.09), 0.105882, 4.93398, 1, 1, Vector2(1, 0.830097), 4.93398, 0.0, 1, 0]
@@ -199,12 +201,13 @@ metadata/_custom_type_script = "uid://du5t3gslnr3np"
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
-[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_display", "_camera", "_space", "_webcamFeed")]
+[node name="Simulation" type="Node" parent="." node_paths=PackedStringArray("_display", "_camera", "_space", "_form", "_webcamFeed")]
 script = ExtResource("1_lrx72")
 _display = NodePath("Sprite2D")
 _camera = NodePath("../Camera2D")
 _space = NodePath("Space")
-_zoom = 2.0
+_form = NodePath("../UI/Panel")
+_viewportSizeInWindow = 800.0
 _nbInstances = 201
 _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn"), SubResource("Resource_ttgvu"), SubResource("Resource_1td8w"), SubResource("Resource_p38iw"), SubResource("Resource_mbg80"), SubResource("Resource_bmecf"), SubResource("Resource_lrcpn"), SubResource("Resource_r5g61")])
@@ -296,3 +299,85 @@ offset_right = 320.0
 offset_bottom = 180.0
 texture = ExtResource("11_8ns5o")
 expand_mode = 1
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -800.0
+offset_top = -450.0
+offset_right = -800.0
+offset_bottom = -450.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_submit")]
+layout_mode = 1
+anchor_left = 0.2
+anchor_top = 0.3
+anchor_right = 0.8
+anchor_bottom = 0.7
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("41_6t04x")
+_root = NodePath(".")
+_inputField = NodePath("MiddleCenter/LineEdit")
+_submit = NodePath("BottomCenter/Button")
+
+[node name="ColorRect" type="ColorRect" parent="UI/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.501961, 0.501961, 0.501961, 1)
+
+[node name="TopCenter" type="CenterContainer" parent="UI/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.3
+offset_top = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="UI/Panel/TopCenter"]
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+text = "Get your image !"
+
+[node name="MiddleCenter" type="CenterContainer" parent="UI/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.3
+anchor_right = 1.0
+anchor_bottom = 0.7
+offset_top = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="LineEdit" type="LineEdit" parent="UI/Panel/MiddleCenter"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+placeholder_text = "email@domain.com"
+expand_to_text_length = true
+
+[node name="BottomCenter" type="CenterContainer" parent="UI/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.8
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Button" type="Button" parent="UI/Panel/BottomCenter"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+text = "Submit"
