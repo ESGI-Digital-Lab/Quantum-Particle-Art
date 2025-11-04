@@ -117,11 +117,11 @@ public partial class CameraCSBindings : Node
     public bool TryTakeInstant()
     {
         Debug.Log("CameraCSBindings: Trying to take instant");
-        //if (!_texture.IsEmpty())
-        //{
-        //    Debug.LogWarning("CameraCSBindings: Texture not empty, returning");
-        //    return false;
-        //}
+        if (_finished || !_texture.IsEmpty())
+        {
+            Debug.LogWarning("CameraCSBindings: Texture not empty, feed wasn't rearmed to take another instant, returning");
+            return false;
+        }
 
         if (_cache.IsEmpty())
         {
