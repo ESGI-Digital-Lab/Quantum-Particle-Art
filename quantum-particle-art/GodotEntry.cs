@@ -9,6 +9,7 @@ using KGySoft.CoreLibraries;
 using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Genetics;
 using UnityEngine.ExternalScripts.Particle.Simulation;
+using UnityEngine.ExternalScripts.Particle.Steps;
 
 namespace UnityEngine;
 
@@ -168,7 +169,7 @@ public partial class GodotEntry : Node
 		List<IInit<ParticleWorld>> prewarm;
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		GlobalTick globalTick;
-		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm,out var disposes, out globalTick);
+		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out var disposes, out globalTick);
 		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper =
 			_mode switch
 			{
@@ -179,7 +180,7 @@ public partial class GodotEntry : Node
 				Mode.Replay =>
 					new ReplayLooper(conditions, psteps, psteps, prewarm, _replays, _targetHeightOfBackgroundTexture),
 				Mode.Live => new MultipleImagesLooper(_duration, conditions, psteps, psteps, prewarm,
-					disposes,_targetHeightOfBackgroundTexture),
+					disposes, _targetHeightOfBackgroundTexture),
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		BindLooper(viewerLooper, globalTick);
@@ -227,10 +228,7 @@ public partial class GodotEntry : Node
 				viewerLooper.GetStep<LateWriteToTex>().SaveAll = _lateSave;
 			if (_mode == Mode.Live)
 			{
-				_webcamFeed.OnRestart += () =>
-				{
-					viewerLooper.ExternalStop();
-				};
+				_webcamFeed.OnRestart += () => { viewerLooper.ExternalStop(); };
 			}
 		}
 
@@ -317,12 +315,19 @@ public partial class GodotEntry : Node
 			var smallBrush = new Brush(_brush.GetImage(), smallBrushSize, _relativeRandomBrushOffset, brushName);
 			if (_drawLive)
 			{
+				var saver = _saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null;
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
-					_saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null,
+					saver,
 					lineCollection,
 					smallBrush);
 				psteps.Add(_write);
 				disposeAsap.Add(_write);
+				if (_saveLastFrame)
+				{
+					var sender = new SendImage(saver);
+					psteps.Add(sender);
+					disposeAsap.Add(sender);
+				}
 			}
 
 			if (_drawLate)

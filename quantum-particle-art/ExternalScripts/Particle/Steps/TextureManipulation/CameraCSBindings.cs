@@ -79,7 +79,8 @@ public partial class CameraCSBindings : Node
 
     private void ReInit()
     {
-        _texture.CopyFrom(Image.CreateEmpty(0,0, false, Image.Format.Rgb8));
+        //Empty the texture without reassigning it, because the ref is used and checked elsewhere
+        _texture.CopyFrom(new Image());
         _cache = new Image();
         _head = 0;
         _nbChunks = 0;
