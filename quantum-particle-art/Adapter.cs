@@ -177,9 +177,13 @@ namespace UnityEngine
 		{
 			public static void IsTrue(bool condition, string message = null)
 			{
+				IsTrue(condition, () => message ?? "Condition is false.");
+			}
+			public static void IsTrue(bool condition, Func<string> message)
+			{
 #if DEBUG
 				if (!condition)
-					GD.PrintErr("Assertion failed: ", message ?? "Condition is false.");
+					GD.PrintErr("Assertion failed: ", message.Invoke());
 #endif
 			}
 
