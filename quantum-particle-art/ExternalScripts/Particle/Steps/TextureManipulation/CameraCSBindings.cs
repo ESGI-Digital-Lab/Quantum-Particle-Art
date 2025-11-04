@@ -11,7 +11,6 @@ public partial class CameraCSBindings : Node
     private PacketPeerUdp _peer;
     private Image _texture;
     private Image _cache;
-    public event System.Action OnRestart;
 
 
     private const ushort port = 4242;
@@ -77,6 +76,17 @@ public partial class CameraCSBindings : Node
             _ = _peer.GetPacket();
     }
 
+    public bool TryRestartFeedStreaming()
+    {
+        if (!_finished)
+            return false;
+        ClearPackets();
+        ReInit();
+        //Cause of async, we need to reset finished at the end, after doing all the offline work
+        _finished = false;
+        return true;
+    }
+
     private void ReInit()
     {
         //Empty the texture without reassigning it, because the ref is used and checked elsewhere
@@ -101,23 +111,6 @@ public partial class CameraCSBindings : Node
                 _display.SetVisible(true);
                 if (!_finished && _takeInstantOnFirstFrame) //Is first image
                     TryTakeInstant();
-            }
-
-            if (Input.IsKeyPressed(Key.Space))
-            {
-                Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
-                TryTakeInstant();
-            }
-        }
-        else
-        {
-            if (Input.IsKeyPressed(Key.Enter))
-            {
-                OnRestart?.Invoke();
-                ClearPackets();
-                ReInit();
-                //Cause of async, we need to reset finished at the end, after doing all the offline work
-                _finished = false;
             }
         }
     }
