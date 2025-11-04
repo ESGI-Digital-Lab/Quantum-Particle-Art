@@ -57,8 +57,8 @@ public partial class GodotEntry : Node
 	[ExportGroup("World")] [Export] private float _worldSize = 600;
 
 	[Export] private float _timeSteps = 0.02f;
-	[Export] private int _maxSteps = 2000;
 	[ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
+	[Export] private bool _sendSavedFrame = true;
 
 	[Export] private bool _lateSave;
 	[Export] private bool _drawLive = false;
@@ -127,6 +127,9 @@ public partial class GodotEntry : Node
 	[Export]
 	private float _duration;
 
+	[Export] private int _maxSteps = 2000;
+
+
 	[Export] private int _nbMinLoops = 10;
 
 	[ExportGroup(
@@ -170,7 +173,8 @@ public partial class GodotEntry : Node
 		List<IInit<ParticleWorld>> prewarm;
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		GlobalTick globalTick;
-		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out var disposes, out globalTick);
+		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out var disposes, out globalTick,
+			out SendImage sender);
 		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper =
 			_mode switch
 			{
@@ -193,7 +197,8 @@ public partial class GodotEntry : Node
 		{
 			for (int i = 0; i < _nbInstances; i++)
 			{
-				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out var _, out globalTick);
+				CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out var _, out globalTick,
+					out var _);
 				var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps,
 					prewarm, -1);
 				BindLooper(looper, globalTick);
@@ -229,7 +234,19 @@ public partial class GodotEntry : Node
 				viewerLooper.GetStep<LateWriteToTex>().SaveAll = _lateSave;
 			if (_mode == Mode.Live)
 			{
-				_webcamFeed.OnRestart += () => { viewerLooper.ExternalStop(); };
+				bool sending = _saveLastFrame && _sendSavedFrame;
+				OnSpace += () => _webcamFeed.TryTakeInstant();
+				OnEnter += () => viewerLooper.ExternalStop();
+				void RestartLoop()
+				{
+					_webcamFeed.TryRestartFeedStreaming();
+					viewerLooper.ExternalStart();
+				}
+				
+				if (sending)
+					sender.OnFinished += _ => RestartLoop();
+				else
+					OnEnter += RestartLoop;
 			}
 		}
 
@@ -261,9 +278,17 @@ public partial class GodotEntry : Node
 		}
 	}
 
+	private event Action OnSpace;
+	private event Action OnEnter;
+
 	public override void _Process(double delta)
 	{
 		Time.time += (float)delta;
+		if (Input.IsKeyPressed(Key.Space))
+			OnSpace?.Invoke();
+		if (Input.IsKeyPressed(Key.Enter))
+			OnEnter?.Invoke();
+
 		try
 		{
 			//Debug.Log("Starting updates");
@@ -280,12 +305,14 @@ public partial class GodotEntry : Node
 	}
 
 	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps,
-		out List<IInit<ParticleWorld>> prewarm, out List<IStep<ParticleWorld>> disposeAsap, out GlobalTick tick)
+		out List<IInit<ParticleWorld>> prewarm, out List<IStep<ParticleWorld>> disposeAsap, out GlobalTick tick,
+		out SendImage sender)
 	{
 		psteps = new();
 		prewarm = new();
 		disposeAsap = new();
 		LineCollection lineCollection = new();
+		sender = null;
 		tick = new GlobalTick(_timeSteps, _maxSteps);
 
 		psteps.Add(tick);
@@ -322,10 +349,9 @@ public partial class GodotEntry : Node
 					lineCollection,
 					smallBrush);
 				psteps.Add(_write);
-				disposeAsap.Add(_write);
-				if (_saveLastFrame)
+				if (_saveLastFrame && _sendSavedFrame)
 				{
-					var sender = new SendImage(saver, _form);
+					sender = new SendImage(saver, _form);
 					psteps.Add(sender);
 					disposeAsap.Add(sender);
 				}
