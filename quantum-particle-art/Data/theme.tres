@@ -1,0 +1,11 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://care7j8lpcqln"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j2r2t"]
+bg_color = Color(0.6, 0.6, 0.6, 0.501961)
+
+[resource]
+Button/font_sizes/font_size = 50
+HBoxContainer/constants/separation = 50
+Label/font_sizes/font_size = 50
+LineEdit/font_sizes/font_size = 50
+Panel/styles/panel = SubResource("StyleBoxFlat_j2r2t")

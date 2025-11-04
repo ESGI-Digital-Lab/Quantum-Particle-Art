@@ -121,7 +121,7 @@ public class LateWriteToTex : ParticleStep
         if (!_saveAll && !_saveRequested)
             return;
         //Parallel.ForEach(_history.Entries, kvp =>
-        foreach(var kvp in _history.Entries)
+        foreach (var kvp in _history.Entries)
         {
             List<System.Numerics.Vector2> pts = new();
             ParticleHistory.HistoryEntry startInfo = kvp.Value.First();
@@ -181,7 +181,7 @@ public class LateWriteToTex : ParticleStep
 
         _dynamic.SetImage(_base);
         if (_saver != null)
-            _saver.SaveTexToDisk(Addon);
+            _saver.SaveImageIfNotExists(out var _, Addon);
         _cumulatedInfos = "";
     }
 

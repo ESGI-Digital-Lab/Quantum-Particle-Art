@@ -11,7 +11,6 @@ public partial class CameraCSBindings : Node
     private PacketPeerUdp _peer;
     private Image _texture;
     private Image _cache;
-    public event System.Action OnRestart;
 
 
     private const ushort port = 4242;
@@ -77,9 +76,21 @@ public partial class CameraCSBindings : Node
             _ = _peer.GetPacket();
     }
 
+    public bool TryRestartFeedStreaming()
+    {
+        if (!_finished)
+            return false;
+        ClearPackets();
+        ReInit();
+        //Cause of async, we need to reset finished at the end, after doing all the offline work
+        _finished = false;
+        return true;
+    }
+
     private void ReInit()
     {
-        _texture.CopyFrom(Image.CreateEmpty(0,0, false, Image.Format.Rgb8));
+        //Empty the texture without reassigning it, because the ref is used and checked elsewhere
+        _texture.CopyFrom(new Image());
         _cache = new Image();
         _head = 0;
         _nbChunks = 0;
@@ -101,33 +112,16 @@ public partial class CameraCSBindings : Node
                 if (!_finished && _takeInstantOnFirstFrame) //Is first image
                     TryTakeInstant();
             }
-
-            if (Input.IsKeyPressed(Key.Space))
-            {
-                Debug.Log("CameraCSBindings: Space pressed, trying to take instant");
-                TryTakeInstant();
-            }
-        }
-        else
-        {
-            if (Input.IsKeyPressed(Key.Enter))
-            {
-                OnRestart?.Invoke();
-                ClearPackets();
-                ReInit();
-                //Cause of async, we need to reset finished at the end, after doing all the offline work
-                _finished = false;
-            }
         }
     }
     public bool TryTakeInstant()
     {
         Debug.Log("CameraCSBindings: Trying to take instant");
-        //if (!_texture.IsEmpty())
-        //{
-        //    Debug.LogWarning("CameraCSBindings: Texture not empty, returning");
-        //    return false;
-        //}
+        if (_finished || !_texture.IsEmpty())
+        {
+            Debug.LogWarning("CameraCSBindings: Texture not empty, feed wasn't rearmed to take another instant, returning");
+            return false;
+        }
 
         if (_cache.IsEmpty())
         {

@@ -93,7 +93,7 @@ public class WriteToTex : ParticleStep
         base.Release();
         Hide();
         if (_saver != null)
-            _saver.SaveTexToDisk();
+            _saver.SaveImageIfNotExists(out var _);
     }
 
     public override async Task HandleParticles(ParticleWorld entry, float delay)

@@ -35,6 +35,11 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
         _shouldStop = true;
     }
 
+    public void ExternalStart()
+    {
+        _shouldRestart = true;
+    }
+
     Func<Task> timer;
 
     public override Task Start()

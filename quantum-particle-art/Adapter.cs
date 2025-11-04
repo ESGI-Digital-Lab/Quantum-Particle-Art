@@ -44,14 +44,18 @@ namespace UnityEngine
 
 	public static class Debug
 	{
+		public static void Log(params object[] message)
+		{
+			GD.Print(string.Join(' ',message));
+		}
 		public static void Log(object message)
 		{
 			GD.Print(message);
 		}
 
-		public static void LogError(object message)
+		public static void LogError(params object[] message)
 		{
-			GD.PrintErr(message);
+			GD.PrintErr(string.Join(' ',message));
 		}
 
 		public static void LogWarning(object message)
@@ -177,9 +181,13 @@ namespace UnityEngine
 		{
 			public static void IsTrue(bool condition, string message = null)
 			{
+				IsTrue(condition, () => message ?? "Condition is false.");
+			}
+			public static void IsTrue(bool condition, Func<string> message)
+			{
 #if DEBUG
 				if (!condition)
-					GD.PrintErr("Assertion failed: ", message ?? "Condition is false.");
+					GD.PrintErr("Assertion failed: ", message.Invoke());
 #endif
 			}
 
