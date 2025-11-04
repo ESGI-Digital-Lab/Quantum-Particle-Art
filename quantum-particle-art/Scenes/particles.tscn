@@ -215,7 +215,6 @@ _replays = Array[Object]([SubResource("Resource_2bkyo"), SubResource("Resource_u
 _mode = 2
 _worldSize = 1000.0
 _timeSteps = 1.0
-_maxSteps = 1000
 _drawLive = true
 _saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 1.0])
 _brush = ExtResource("6_mum02")
@@ -231,7 +230,8 @@ _spawnTemplate = SubResource("Resource_dsv53")
 _gateSize = 0.01
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
-_nbMinLoops = 1
+_maxSteps = -1
+_nbMinLoops = 20
 _backgroundTypes = Array[int]([1])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1)
 _colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("2_0qkf8"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("4_sph3f"), ExtResource("2_0qkf8")])
@@ -312,7 +312,7 @@ offset_bottom = -450.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_submit")]
+[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_submit", "_close")]
 layout_mode = 1
 anchor_left = 0.2
 anchor_top = 0.3
@@ -323,16 +323,17 @@ grow_vertical = 0
 script = ExtResource("41_6t04x")
 _root = NodePath(".")
 _inputField = NodePath("MiddleCenter/LineEdit")
-_submit = NodePath("BottomCenter/Button")
+_submit = NodePath("2 Buttons/Submit")
+_close = NodePath("2 Buttons/Cancel")
 
-[node name="ColorRect" type="ColorRect" parent="UI/Panel"]
+[node name="BG" type="Panel" parent="UI/Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.501961, 0.501961, 0.501961, 1)
+theme = ExtResource("41_bwfut")
 
 [node name="TopCenter" type="CenterContainer" parent="UI/Panel"]
 layout_mode = 1
@@ -365,7 +366,8 @@ theme = ExtResource("41_bwfut")
 placeholder_text = "email@domain.com"
 expand_to_text_length = true
 
-[node name="BottomCenter" type="CenterContainer" parent="UI/Panel"]
+[node name="1 button" type="CenterContainer" parent="UI/Panel"]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.8
@@ -376,8 +378,33 @@ offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="Button" type="Button" parent="UI/Panel/BottomCenter"]
+[node name="Button" type="Button" parent="UI/Panel/1 button"]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 theme = ExtResource("41_bwfut")
 text = "Submit"
+
+[node name="2 Buttons" type="HBoxContainer" parent="UI/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.8
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("41_bwfut")
+alignment = 1
+
+[node name="Submit" type="Button" parent="UI/Panel/2 Buttons"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+text = "Submit"
+
+[node name="Cancel" type="Button" parent="UI/Panel/2 Buttons"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+text = "Leave"
