@@ -24,6 +24,7 @@ public partial class GodotEntry : Node
 
 	[Export] private Camera2D _camera;
 	[Export] private Node2D _space;
+	[Export] private Form _form;
 	[ExportGroup("View")] [Export] private float _viewportSizeInWindow = 400f;
 
 	[Export(PropertyHint.Range, "0,10,0.1")]
@@ -324,7 +325,7 @@ public partial class GodotEntry : Node
 				disposeAsap.Add(_write);
 				if (_saveLastFrame)
 				{
-					var sender = new SendImage(saver);
+					var sender = new SendImage(saver, _form);
 					psteps.Add(sender);
 					disposeAsap.Add(sender);
 				}
