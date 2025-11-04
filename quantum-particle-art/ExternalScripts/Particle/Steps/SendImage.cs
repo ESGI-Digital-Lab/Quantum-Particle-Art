@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Godot;
 using MailKit.Net.Smtp;
@@ -29,6 +30,9 @@ public class SendImage : ParticleStep
     }
 
     string[] _keys = { "Host", "User", "Password", "DefaultTo" };
+
+    public event Action<bool> OnFinished;
+
     private string Secret(Keys key) => secrets[_keys[(int)key]];
 
     public SendImage(Saver saver, Form form)
@@ -37,8 +41,15 @@ public class SendImage : ParticleStep
         _form.Visible = false;
         _form.OnSubmit += s =>
         {
-            _form.Visible = false;
-            Send(s);
+            if (Send(s))
+            {
+                _form.Visible = false;
+                OnFinished?.Invoke(true);
+            }
+        };
+        _form.OnExit += () =>
+        {
+            OnFinished?.Invoke(false);
         };
         _saver = saver;
         string file;
@@ -77,20 +88,21 @@ public class SendImage : ParticleStep
         _form.Visible = true;
     }
 
-    public bool Send(string mail)
+    private bool Send(string mail)
     {
         if (_canSend)
         {
-            Assert.IsTrue(_saver.Saved != null && _saver.Saved.Exists, "_saver.Saved!=null && _saver.Saved.Exists");
-            Debug.Log($"Sending image {_saver.Saved.Name} in {_saver.Saved.Directory}");
-            Debug.Log($"Sending image {_saver.Saved.Name} in {_saver.Saved.Directory}");
+            _saver.SaveImageIfNotExists(out var saved);
             if (string.IsNullOrEmpty(mail))
             {
                 mail = Secret(Keys.DefaultTo);
-                Debug.Log($"Null or empty mail got from field, falling back to default mail {mail} specified in secrets");   
+                Debug.Log(
+                    $"Null or empty mail got from field, falling back to default mail {mail} specified in secrets");
             }
-            if (Send(mail, File.OpenRead(_saver.Saved.FullName), _saver.Name))
+
+            if (Send(mail, File.OpenRead(saved.FullName), _saver.Name))
             {
+                Debug.Log($"Sent image {saved.Name} in {saved.Directory}");
                 _canSend = false;
                 return true;
             }
@@ -101,6 +113,11 @@ public class SendImage : ParticleStep
 
     public bool Send(string to, FileStream attachement, string name)
     {
+        if(!Regex.Match(to, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").Success)
+        {
+            Debug.LogError("Invalid email address pattern:", to);
+            return false;
+        }
         var server = Secret(Keys.Host);
         var user = Secret(Keys.User);
         var password = Secret(Keys.Password);
@@ -140,7 +157,7 @@ public class SendImage : ParticleStep
             return false;
         }
 
-        Debug.Log("Sent mail successfully to", to, toName);
+        Debug.Log("Sent mail successfully to", to, toName," will be received shortly if provided email exists.");
         return true;
     }
 }
