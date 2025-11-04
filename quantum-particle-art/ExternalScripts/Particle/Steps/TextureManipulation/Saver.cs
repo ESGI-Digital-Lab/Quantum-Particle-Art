@@ -7,6 +7,8 @@ public class Saver
 	private string _path;
 	private string _name;
 	private Image _image;
+	private FileInfo _saved;
+	public FileInfo Saved => _saved;
 
 	public Saver(string path)
 	{
@@ -14,11 +16,12 @@ public class Saver
 	}
 
 	public string Name => _name;
-
+	public Image Image => _image;
 	public void Init(Image image, string name)
 	{
 		this._image = image;
 		this._name = name;
+		_saved = null;
 	}
 
 	private string UniquePath(out int freeIndex, string addon = "", string ext = "mp4")
@@ -44,6 +47,7 @@ public class Saver
 		return root + '/' + _name + "_" + addon + "_" + forceIndex + "." + ext;
 	}
 
+
 	public void SaveTexToDisk(string addon = "")
 	{
 		_name += addon;
@@ -52,7 +56,7 @@ public class Saver
 		{
 			fs.Write(_image.SavePngToBuffer());
 		}
-
+		_saved = new FileInfo(full);
 		Debug.Log("Saved png to \n" + full + "\n"
 				  + ProjectSettings.LocalizePath(full));
 	}
