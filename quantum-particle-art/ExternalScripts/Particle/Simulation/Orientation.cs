@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 
 [Serializable]
@@ -81,6 +82,11 @@ public class Orientation
 
 	public virtual void Teleport(Orientation to)
 	{
+		Assert.IsTrue(this.Owner._totalSpecies==to.Owner._totalSpecies && this.Owner.Species < this.Owner._totalSpecies && to.Owner.Species < this.Owner._totalSpecies,
+			() =>
+			{
+				return "Teleportation can only occur between particles of the same ruleset and valid species.";
+			});
 		to._teleportedFrom = this;
 		to._isTeleportationWaiting = true;
 	}

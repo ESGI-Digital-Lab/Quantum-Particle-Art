@@ -55,11 +55,14 @@ public class ColorPicker : ScriptableObject, IColorPicker
 			else if (root.IsTeleported)
 				root = root.Teleportation;
 		}
-
+		var coloringSpecie = root.Owner.Species;
 		Assert.IsTrue(_scheme.Length >= totalNbSpecies,
 			"Current color scheme length does not match total number of species.");
-
-		return _scheme[ParticleView.MapBack(root).Species];
+		Assert.IsTrue(coloringSpecie < _scheme.Length,()=>
+		{
+			return "Particle species index is out of range of the current color scheme.";
+		});
+		return coloringSpecie < _scheme.Length ?  _scheme[coloringSpecie] : _scheme[particle.Species];
 	}
 
 	[Header("Generation helpers")] [SerializeField]

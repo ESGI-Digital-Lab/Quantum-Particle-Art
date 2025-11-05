@@ -9,10 +9,6 @@ public partial class Teleport : DualInputAGate<Teleport>
     }
 
     public override Teleport ID => this;
-    protected override DualInputAGate<Teleport> Copy(Teleport source)
-    {
-        return new Teleport();
-    }
 
     public override Color Color => ViewHelpers.TEL;
 

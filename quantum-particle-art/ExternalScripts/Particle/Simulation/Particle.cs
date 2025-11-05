@@ -8,7 +8,7 @@ using UnityEngine;
 public class Particle
 {
     [SerializeField] private int _species = -1;
-    private readonly int _totalSpecies = -1;
+    public readonly int _totalSpecies = -1;
     [SerializeField] private Orientation _orientation;
     private Tuple<Particle, Particle> _superposition = null;
     [SerializeField] private Vector2 _position;

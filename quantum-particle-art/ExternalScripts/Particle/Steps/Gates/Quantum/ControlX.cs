@@ -9,10 +9,6 @@ public partial class ControlX : DualInputAGate<ControlX>
     }
 
     public override ControlX ID => this;
-    protected override DualInputAGate<ControlX> Copy(ControlX source)
-    {
-        return new ControlX();
-    }
 
     public override Color Color => ViewHelpers.CTR;
 

@@ -184,4 +184,10 @@ public class ParticleWorld
         normalizedDirection = minDir / min;
         return min;
     }
+
+    public void Clear()
+    {
+        _particles = null;
+        _pointsOfInterest = null;
+    }
 }

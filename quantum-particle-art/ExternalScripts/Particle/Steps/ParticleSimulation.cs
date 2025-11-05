@@ -59,5 +59,7 @@ public class ParticleSimulation : APipeline<WorldInitializer, ParticleWorld>
 
     protected override void Disposed()
     {
+        _world?.Clear();
+        _world = null;
     }
 }
