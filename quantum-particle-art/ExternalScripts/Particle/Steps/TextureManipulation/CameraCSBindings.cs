@@ -72,6 +72,7 @@ public partial class CameraCSBindings : Node
 
     private void ClearPackets()
     {
+        Debug.Log("CameraCSBindings: Emptying queue");
         while (_peer.GetAvailablePacketCount() > 0)
             _ = _peer.GetPacket();
     }
@@ -81,8 +82,8 @@ public partial class CameraCSBindings : Node
         if (!_finished)
             return false;
         ClearPackets();
-        ReInit();
         //Cause of async, we need to reset finished at the end, after doing all the offline work
+        ReInit();
         _finished = false;
         return true;
     }
@@ -96,7 +97,6 @@ public partial class CameraCSBindings : Node
         _nbChunks = 0;
         _accumulator = null;
         _display.SetVisible(true);
-        Debug.Log("CameraCSBindings: Emptying queue");
         Ack();
     }
     
@@ -109,7 +109,7 @@ public partial class CameraCSBindings : Node
                 _imageCompleted = false;
                 _display.Texture = ImageTexture.CreateFromImage(_cache);
                 _display.SetVisible(true);
-                if (!_finished && _takeInstantOnFirstFrame) //Is first image
+                if (_takeInstantOnFirstFrame) //Is first image
                     TryTakeInstant();
             }
         }
@@ -215,7 +215,7 @@ public partial class CameraCSBindings : Node
     }
     public void Ack()
     {
-        if (_finished || _peer == null || !_peer.IsBound())
+        if (_peer == null || !_peer.IsBound())
             return;
         //Debug.Log("CameraCSBindings: Acknowledging packet reception");
         byte[] ack = [1];
