@@ -15,6 +15,7 @@ using Vector2 = UnityEngine.Vector2;
 public class WriteToTex : ParticleStep
 {
     private float _viewSize;
+    private bool _autoHideOnDisposee;
 
     public float ViewSize
     {
@@ -25,13 +26,15 @@ public class WriteToTex : ParticleStep
     private Saver _saver;
     private LineCollection _lineCollection;
 
-    public WriteToTex(Sprite2D renderer, float viewSize, Saver saver, LineCollection lineCollection, Brush brush)
+    public WriteToTex(Sprite2D renderer, float viewSize, Saver saver, LineCollection lineCollection, Brush brush,
+        bool autoHideOnDisposee)
     {
         _renderer = renderer;
         _saver = saver;
         _viewSize = viewSize;
         _lineCollection = lineCollection;
         _brush = brush;
+        _autoHideOnDisposee = autoHideOnDisposee;
         Hide();
     }
 
@@ -53,14 +56,12 @@ public class WriteToTex : ParticleStep
         _drawing.SetImage(_drawingImage);
         _renderer.Texture = _toSave;
     }
+
     public void Hide()
     {
-        View.CallDeferred(()=>
-        {
-            _renderer.Visible = false;
-        });
+        View.CallDeferred(() => { _renderer.Visible = false; });
     }
-    
+
     public override async Task Init(WorldInitializer init)
     {
         await base.Init(init);
@@ -91,7 +92,8 @@ public class WriteToTex : ParticleStep
     public override void Release()
     {
         base.Release();
-        Hide();
+        if (_autoHideOnDisposee)
+            Hide();
         if (_saver != null)
             _saver.SaveImageIfNotExists(out var _);
     }
@@ -107,7 +109,7 @@ public class WriteToTex : ParticleStep
         {
             var start = line.Start.ToPixelCoord(_drawing);
             var end = line.End.ToPixelCoord(_drawing);
-            var points = LineCollection.Line.GetPixels(start, end).ToArray();//One enumeration
+            var points = LineCollection.Line.GetPixels(start, end).ToArray(); //One enumeration
             _brush.DrawWithBrush(_drawingImage, points, line.Color, line.RelativeWidth);
             _brush.DrawWithBrush(_toSaveImage, points, line.Color, line.RelativeWidth);
         }
