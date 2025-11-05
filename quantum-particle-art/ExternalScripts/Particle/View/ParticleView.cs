@@ -24,7 +24,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	[Export] private bool _showOutline = false;
 	private Node2D _parent;
 	private Particle particle;
-	public static Particle MapBack(Orientation orientation) => orientation.Owner;
+	public static Particle Owner(Orientation orientation) => orientation.Owner;
 	private Tuple<ParticleView, ParticleView> _childs;
 
 	public void InitView(Particle info, ParticleWorld world, Color color)
@@ -155,7 +155,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	{
 		if (!_drawLines)
 			return;
-		var target = MapBack(to);
+		var target = Owner(to);
 		_line.Points =
 		[
 			this.ToLocal(ViewHelpers.Pos(from.NormalizedPosition, _parent)),

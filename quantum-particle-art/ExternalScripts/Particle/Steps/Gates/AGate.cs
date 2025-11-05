@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using UnityEngine.Assertions;
 
 [GlobalClass]
 public abstract partial class AGate : Godot.Resource
@@ -26,6 +27,17 @@ public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedT
 {
     [Export] private bool _forceDifferentSpecy = false;
     private (SharedTypeID a, Particle p) _lastInput = (null, null);
+    public override T DeepCopy<T>()
+    {
+        var cop = base.DeepCopy<T>();
+        var cast = cop as DualInputAGate<SharedTypeID>;
+        Assert.IsTrue(cast._lastInput==(null,null), () =>
+        {
+            return "Deep copy resulted in a non null last input this might cause really weird behaviors";
+        });
+        return cop;
+    }
+
 
     public override bool Resolve(Particle particle)
     {
@@ -35,7 +47,7 @@ public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedT
         else if (first != particle && SpecyCondition(first, particle))
         {
             Resolve(particle, first);
-            _lastInput = (default, null);
+            _lastInput = (null, null);
             return true;
         }
 
@@ -51,6 +63,5 @@ public abstract partial class DualInputAGate<SharedTypeID> : AGate where SharedT
     {
         return !_forceDifferentSpecy || initialControl.Species != particle.Species;
     }
-
-    protected abstract DualInputAGate<SharedTypeID> Copy(SharedTypeID source);
+    
 }

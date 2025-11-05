@@ -121,6 +121,7 @@ while True:
         # print("Sending image of size", len(encoded_image), "in", nb_chunks+1, "chunks", flush=True)
         # We'll be sending for each chunk, it's chunk index so we have 1 more byte per chunk on top of all the pixels data
         octetsX = (len(encoded_image)).to_bytes(4, byteorder='big', signed=False)
+        #We make sure to send this information first as a unique packet so the server can identify it throught it's size as the first one
         send_socket.sendto(octetsX, (SERVER_IP, SERVER_PORT))
         time.sleep(1 / 1000)  # Delay to ensure the bytes info are reiceved first
         i = 0

@@ -109,7 +109,7 @@ public partial class GridGates : Resource, IGates
         return tmp;
     }
 
-    public IEnumerable<(AGate type, UnityEngine.Vector2 pos)> Positions => _gatesList;
+    public IEnumerable<(AGate gateModel, UnityEngine.Vector2 pos)> Positions => _gatesList;
 
     public IEnumerable<T> Copies<T>(T original) where T : AGate
     {

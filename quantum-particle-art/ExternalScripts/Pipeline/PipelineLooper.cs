@@ -30,9 +30,15 @@ public abstract class PipelineLooper<TInit, T, TPipe> : MonoBehaviour
     protected bool _shouldRestart;
     protected bool _shouldStop;
 
-    public void ExternalStop()
+    public bool ExternalStop()
     {
-        _shouldStop = true;
+        if (_ready)
+        {
+            _shouldStop = true;
+            return true;
+        }
+
+        return false;
     }
 
     public void ExternalStart()

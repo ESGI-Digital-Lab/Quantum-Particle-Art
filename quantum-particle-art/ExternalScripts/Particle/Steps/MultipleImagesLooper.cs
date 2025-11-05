@@ -29,7 +29,8 @@ using UnityEngine;
         
         protected override async Task<bool> UpdateInitializer(WorldInitializer init, int loop)
         {
-            init.Init = _textures[loop];
+            //% to make run indefinitely, the _textures array just represents the different possible conditions
+            init.Init = _textures[loop%_textures.Length];
             if (!init.Init.Texture.Create())
                 return false;
             init.Init.Texture.Texture.Resize((int)(_texHeight * init.Init.Ratio), _texHeight,
