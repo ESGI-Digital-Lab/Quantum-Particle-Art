@@ -96,12 +96,11 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 		} while (row.MoveNextRow());
 
 		_image = Image.CreateFromData(_image.GetWidth(), _image.GetHeight(), false, format, original);
-		_colorPickerImplementation = ColorPicker.FromScheme(ColorScheme);
+		var color1f = _colors.Select(c => new Color(c.R / 255f, c.G / 255f, c.B / 255f)).ToArray();
+		_colorPickerImplementation = ColorPicker.FromScheme(color1f);
 		Debug.Log("Quantized image prepared with " + _colors.Length + " colors.");
 		return true;
 	}
-
-	private Color[] ColorScheme => _colors.Select(c => new Color(c.R / 255f, c.G / 255f, c.B / 255f)).ToArray();
 
 	public override Godot.Image Texture => _image;
 
