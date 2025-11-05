@@ -23,12 +23,13 @@ public partial class CameraCSBindings : Node
     private bool _finished;
     private bool _imageCompleted;
     public Image Texture => _texture;
-    
+
     public override void _Ready()
     {
         _display.SetVisible(_peer != null);
         _finished = false;
     }
+
     public void SetDisplaySize(Godot.Vector2 size)
     {
         _display.Size = size;
@@ -104,41 +105,51 @@ public partial class CameraCSBindings : Node
         _display.SetVisible(true);
         Ack();
     }
-    
+
     public override void _Process(double delta)
     {
         if (!_finished)
         {
             if (_imageCompleted)
             {
-                _imageCompleted = false;
-                _display.Texture = ImageTexture.CreateFromImage(_cache);
-                _display.SetVisible(true);
-                if (_takeInstantOnFirstFrame) //Is first image
-                    TryTakeInstant();
+                lock (_cache)
+                {
+                    _imageCompleted = false;
+                    _display.Texture = ImageTexture.CreateFromImage(_cache);
+                    _display.SetVisible(true);
+                    if (_takeInstantOnFirstFrame) //Is first image
+                        TryTakeInstant();
+                }
             }
         }
     }
+
     public bool TryTakeInstant()
     {
         Debug.Log("CameraCSBindings: Trying to take instant");
         if (_finished || !_texture.IsEmpty())
         {
-            Debug.LogWarning("CameraCSBindings: Texture not empty, feed wasn't rearmed to take another instant, returning");
+            Debug.LogWarning(
+                "CameraCSBindings: Texture not empty, feed wasn't rearmed to take another instant, returning");
             return false;
         }
 
-        if (_cache.IsEmpty())
+        lock (_cache)
         {
-            Debug.LogWarning("CameraCSBindings: No connection available (yet ?), cannot take instant");
-            return false;
+            if (_cache.IsEmpty())
+            {
+                Debug.LogWarning("CameraCSBindings: No connection available (yet ?), cannot take instant");
+                return false;
+            }
+
+            _texture.CopyFrom(_cache);
         }
 
-        _texture.CopyFrom(_cache);
         _finished = true;
         _display.SetVisible(false);
         //_python.Kill();//We keep it to we can reuse same python server for image processing even if we don't ack it 
         Debug.Log("CameraCSBindings: finished taking instant, flushed _cache into _texture");
+
         return true;
     }
 
@@ -198,11 +209,14 @@ public partial class CameraCSBindings : Node
                         //Debug.Log("Accumulated full image of size :" + safe.Length + " after " + _nbChunks + " chunks, trying to interpret as jpg");
                         try
                         {
-                            var err = _cache.LoadJpgFromBuffer(safe);
-                            if (err != Error.Ok)
-                                GD.PrintErr("Failed to load image from buffer: " + err);
-                            else
-                                _imageCompleted = true;
+                            lock (_cache)
+                            {
+                                var err = _cache.LoadJpgFromBuffer(safe);
+                                if (err != Error.Ok)
+                                    GD.PrintErr("Failed to load image from buffer: " + err);
+                                else
+                                    _imageCompleted = true;
+                            }
                         }
                         catch (System.Exception e)
                         {
@@ -218,6 +232,7 @@ public partial class CameraCSBindings : Node
             }
         }
     }
+
     public void Ack()
     {
         if (_peer == null || !_peer.IsBound())
@@ -227,6 +242,7 @@ public partial class CameraCSBindings : Node
         _peer.SetDestAddress(adress, ackPort);
         _peer.PutPacket(ack);
     }
+
     public override void _Notification(int what)
     {
         if (what == NotificationWMCloseRequest)
