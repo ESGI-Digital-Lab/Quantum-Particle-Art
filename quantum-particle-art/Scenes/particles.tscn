@@ -229,13 +229,12 @@ _gateSize = 0.01
 _backupGates = ExtResource("6_bv6uv")
 _duration = -1.0
 _maxSteps = -1
-_nbMinLoops = 20
-_backgroundTypes = Array[int]([1])
+_backgroundTypes = Array[int]([])
 _backgroundColorForCanva = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1)
 _colorSchemeForCanva = Array[ColorPalette]([ExtResource("4_xqktt"), ExtResource("2_0qkf8"), ExtResource("3_jp56q"), ExtResource("4_sph3f"), ExtResource("4_sph3f"), ExtResource("2_0qkf8")])
 _realImage = Array[Texture2D]([ExtResource("10_n2aaa"), ExtResource("7_xqktt"), ExtResource("9_hcmhk"), ExtResource("11_fcssu"), ExtResource("5_rvlvc"), ExtResource("10_8ns5o")])
-_nbSpecies = PackedInt32Array(12, 2, 8)
-_ruleType = Array[int]([1, 2, 5, 4, 7, 8])
+_nbSpecies = PackedInt32Array(12, 2)
+_ruleType = Array[int]([1, 2])
 
 [node name="Space" type="Node2D" parent="Simulation"]
 top_level = true

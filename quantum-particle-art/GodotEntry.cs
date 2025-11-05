@@ -129,9 +129,6 @@ public partial class GodotEntry : Node
 
     [Export] private int _maxSteps = 2000;
 
-
-    [Export] private int _nbMinLoops = 10;
-
     [ExportGroup(
         "Backgrounds, any time a canvas or image is used it will progress on it's relative list, webcam settings are constant any time it's used")]
     [Export]
@@ -236,8 +233,8 @@ public partial class GodotEntry : Node
             {
                 _webcamFeed.SetDisplaySize(WorldSize(_viewportSizeInWindow, uniqueCondition.Ratio));
                 bool sending = _saveLastFrame && _sendSavedFrame;
-                OnSpace += () => _webcamFeed.TryTakeInstant();
-                OnEnter += () => viewerLooper.ExternalStop();
+                OnInstant += () => _webcamFeed.TryTakeInstant();
+                OnEnd += () => viewerLooper.ExternalStop();
 
                 void RestartLoop()
                 {
@@ -254,7 +251,7 @@ public partial class GodotEntry : Node
                     };
                 }
                 else
-                    OnEnter += RestartLoop;
+                    OnEnd += RestartLoop;
             }
         }
 
@@ -286,16 +283,16 @@ public partial class GodotEntry : Node
         }
     }
 
-    private event Action OnSpace;
-    private event Action OnEnter;
+    private event Action OnInstant;
+    private event Action OnEnd;
 
     public override void _Process(double delta)
     {
         Time.time += (float)delta;
-        if (Input.IsKeyPressed(Key.Space))
-            OnSpace?.Invoke();
-        if (Input.IsKeyPressed(Key.Enter))
-            OnEnter?.Invoke();
+        if (Input.IsActionJustPressed("instant"))
+            OnInstant?.Invoke();
+        if (Input.IsActionJustPressed("end"))
+            OnEnd?.Invoke();
 
         try
         {
@@ -400,62 +397,66 @@ public partial class GodotEntry : Node
     private InitConditions[] InitConditionsArray()
     {
         Assert.IsTrue(_targetHeightOfBackgroundTexture > 0, "Target height of background texture must be >0");
-        var amt = Math.Max(Math.Max(_nbMinLoops, _nbSpecies.Length), Math.Max(_backgroundTypes.Count, _ruleType.Count));
-        InitConditions[] initConditionsArray = new InitConditions[amt];
+        List<InitConditions> initConditionsArray = new();
         var spawn = _spawnTemplate;
         //_spawns.FirstOrDefault(s => s != null && !s.Skip && s.Gates != null && s is EncodedConfiguration) asEncodedConfiguration;
         Assert.IsNotNull(spawn,
             "No valid EncodedConfiguration template spawn with gates found in the list of spawns, cannot proceed");
         int canvasCount = -1;
         int imageCount = -1;
-        for (int i = 0; i < amt; i++)
+        int i = 0;
+        foreach (var rule in _ruleType)
         {
-            var rule = _ruleType[i % _ruleType.Count];
-            Assert.IsTrue(rule != RulesSaved.Defaults.Default);
-            var rules = new RulesSaved(_nbSpecies[i % _nbSpecies.Length], rule);
-            int nbSpecy = rules.Rules.NbSpecies; //in case ruleset changed it
-            ATexProvider tex;
-            IColorPicker colors;
-            ISpecyPicker specyPicker;
-            float ratio = 1f;
-            var bgType = _backgroundTypes[i % _backgroundTypes.Count];
-
-            switch (bgType)
+            foreach (var nb in _nbSpecies)
             {
-                case BackgroundSource.Canvas:
-                    canvasCount++;
-                    var color = _backgroundColorForCanva[canvasCount % _backgroundColorForCanva.Length];
-                    ratio = _ratio.X / (1f * _ratio.Y);
-                    tex = new CanvasPixels(WorldSize(_targetHeightOfBackgroundTexture, ratio),
-                        color.A == 0f ? ColorPicker.Random() : color);
-                    var scheme = _colorSchemeForCanva[canvasCount % _colorSchemeForCanva.Length];
-                    Assert.IsTrue(scheme == null || (scheme.Colors != null && scheme.Colors.Length >= nbSpecy),
-                        "Color scheme has less colors than species, will fallback to a random scheme of the correct size.");
-                    colors = scheme?.Colors == null || scheme.Colors.Length < nbSpecy
-                        ? ColorPicker.Random(nbSpecy)
-                        : ColorPicker.FromScheme(scheme.Colors);
-                    specyPicker = new UniformSpecyPicker(nbSpecy);
-                    break;
-                case BackgroundSource.Webcam:
-                    ratio = _webcamRatio.X / (1f * _webcamRatio.Y);
-                    _webcamFeed.Start();
-                    FromImage(_webcamFeed.Texture, nbSpecy, ratio, out colors, out specyPicker, out tex);
-                    break;
-                case BackgroundSource.RealImage:
-                    imageCount++;
-                    var texture2 = _realImage[imageCount % _realImage.Count];
-                    ratio = texture2.GetWidth() / (1f * texture2.GetHeight());
-                    FromImage(texture2.GetImage(), nbSpecy, ratio, out colors, out specyPicker, out tex);
-                    break;
-                default: throw new ArgumentOutOfRangeException();
-            }
+                Assert.IsTrue(rule != RulesSaved.Defaults.Default);
+                var rules = new RulesSaved(nb, rule);
+                int nbSpecy = rules.Rules.NbSpecies; //in case ruleset changed it
+                ATexProvider tex;
+                IColorPicker colors;
+                ISpecyPicker specyPicker;
+                float ratio = 1f;
+                BackgroundSource bgType = _mode == Mode.Live
+                    ? BackgroundSource.Webcam
+                    : _backgroundTypes[i % _backgroundTypes.Count];
+                switch (bgType)
+                {
+                    case BackgroundSource.Canvas:
+                        canvasCount++;
+                        var color = _backgroundColorForCanva[canvasCount % _backgroundColorForCanva.Length];
+                        ratio = _ratio.X / (1f * _ratio.Y);
+                        tex = new CanvasPixels(WorldSize(_targetHeightOfBackgroundTexture, ratio),
+                            color.A == 0f ? ColorPicker.Random() : color);
+                        var scheme = _colorSchemeForCanva[canvasCount % _colorSchemeForCanva.Length];
+                        Assert.IsTrue(scheme == null || (scheme.Colors != null && scheme.Colors.Length >= nbSpecy),
+                            "Color scheme has less colors than species, will fallback to a random scheme of the correct size.");
+                        colors = scheme?.Colors == null || scheme.Colors.Length < nbSpecy
+                            ? ColorPicker.Random(nbSpecy)
+                            : ColorPicker.FromScheme(scheme.Colors);
+                        specyPicker = new UniformSpecyPicker(nbSpecy);
+                        break;
+                    case BackgroundSource.Webcam:
+                        ratio = _webcamRatio.X / (1f * _webcamRatio.Y);
+                        _webcamFeed.Start();
+                        FromImage(_webcamFeed.Texture, nbSpecy, ratio, out colors, out specyPicker, out tex);
+                        break;
+                    case BackgroundSource.RealImage:
+                        imageCount++;
+                        var texture2 = _realImage[imageCount % _realImage.Count];
+                        ratio = texture2.GetWidth() / (1f * texture2.GetHeight());
+                        FromImage(texture2.GetImage(), nbSpecy, ratio, out colors, out specyPicker, out tex);
+                        break;
+                    default: throw new ArgumentOutOfRangeException();
+                }
 
-            initConditionsArray[i] = new InitConditions(ratio, tex, rules, colors,
-                _gateSize, specyPicker, spawn);
+                initConditionsArray.Add(new InitConditions(ratio, tex, rules, colors,
+                    _gateSize, specyPicker, spawn));
+                i++;
+            }
         }
 
 
-        return initConditionsArray;
+        return initConditionsArray.ToArray();
     }
 
     private void FromImage(Image image, int nbSpecy, float ratio, out IColorPicker colors, out ISpecyPicker specyPicker,
