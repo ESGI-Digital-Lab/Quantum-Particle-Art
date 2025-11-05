@@ -174,7 +174,7 @@ public partial class GodotEntry : Node
 		AGate.ShowLabelDefault = _forceAllGatesLabel;
 		GlobalTick globalTick;
 		CreateSteps(uniqueCondition.Ratio, true, out psteps, out prewarm, out var disposes, out globalTick,
-			out SendImage sender);
+			out ImageSender sender);
 		PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> viewerLooper =
 			_mode switch
 			{
@@ -306,7 +306,7 @@ public partial class GodotEntry : Node
 
 	private void CreateSteps(float ratio, bool withView, out List<ParticleStep> psteps,
 		out List<IInit<ParticleWorld>> prewarm, out List<IStep<ParticleWorld>> disposeAsap, out GlobalTick tick,
-		out SendImage sender)
+		out ImageSender sender)
 	{
 		psteps = new();
 		prewarm = new();
@@ -351,7 +351,7 @@ public partial class GodotEntry : Node
 				psteps.Add(_write);
 				if (_saveLastFrame && _sendSavedFrame)
 				{
-					sender = new SendImage(saver, _form);
+					sender = new ImageSender(saver, _form);
 					psteps.Add(sender);
 					disposeAsap.Add(sender);
 				}
