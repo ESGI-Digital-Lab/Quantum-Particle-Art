@@ -242,9 +242,16 @@ public partial class GodotEntry : Node
 					_webcamFeed.TryRestartFeedStreaming();
 					viewerLooper.ExternalStart();
 				}
-				
+
 				if (sending)
-					sender.OnFinished += _ => RestartLoop();
+				{
+					sender.OnFinished += _ =>
+					{
+						_write.Hide();//Hide is called on disposed other way, which won't be called until an instant is taken, and we want to hide last frame after we sent it and show the live feed instead
+						RestartLoop();
+					};
+					
+				}
 				else
 					OnEnter += RestartLoop;
 			}
