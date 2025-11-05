@@ -12,7 +12,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.ExternalScripts.Particle.Steps;
 
-public class SendImage : ParticleStep
+public class ImageSender : ParticleStep
 {
     [Export] private Form _form;
     private Saver _saver;
@@ -35,22 +35,27 @@ public class SendImage : ParticleStep
 
     private string Secret(Keys key) => secrets[_keys[(int)key]];
 
-    public SendImage(Saver saver, Form form)
+    public ImageSender(Saver saver, Form form)
     {
         _form = form;
-        _form.Visible = false;
+        _form.SetInitState();
         _form.OnSubmit += s =>
         {
-            if (Send(s))
+            if (Regex.Match(s, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").Success)
             {
-                _form.Visible = false;
-                OnFinished?.Invoke(true);
+                if (Send(s))
+                {
+                    _form.Visible = false;
+                    OnFinished?.Invoke(true);
+                }
+            }
+            else
+            {
+                //Debug.LogError("Invalid email address pattern:", s);
+                _form.Recolor();
             }
         };
-        _form.OnExit += () =>
-        {
-            OnFinished?.Invoke(false);
-        };
+        _form.OnExit += () => { OnFinished?.Invoke(false); };
         _saver = saver;
         string file;
         try
@@ -113,11 +118,6 @@ public class SendImage : ParticleStep
 
     public bool Send(string to, FileStream attachement, string name)
     {
-        if(!Regex.Match(to, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").Success)
-        {
-            Debug.LogError("Invalid email address pattern:", to);
-            return false;
-        }
         var server = Secret(Keys.Host);
         var user = Secret(Keys.User);
         var password = Secret(Keys.Password);
@@ -157,7 +157,7 @@ public class SendImage : ParticleStep
             return false;
         }
 
-        Debug.Log("Sent mail successfully to", to, toName," will be received shortly if provided email exists.");
+        Debug.Log("Sent mail successfully to", to, toName, " will be received shortly if provided email exists.");
         return true;
     }
 }

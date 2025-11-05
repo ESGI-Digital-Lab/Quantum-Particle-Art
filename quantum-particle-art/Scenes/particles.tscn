@@ -312,7 +312,7 @@ offset_bottom = -450.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_submit", "_close")]
+[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_clear", "_submit", "_close")]
 layout_mode = 1
 anchor_left = 0.2
 anchor_top = 0.3
@@ -323,8 +323,11 @@ grow_vertical = 0
 script = ExtResource("41_6t04x")
 _root = NodePath(".")
 _inputField = NodePath("MiddleCenter/LineEdit")
+_clear = NodePath("2 Buttons/Clear")
 _submit = NodePath("2 Buttons/Submit")
 _close = NodePath("2 Buttons/Cancel")
+_visibleOnStart = true
+_error = Color(0.74902, 0, 0, 1)
 
 [node name="BG" type="Panel" parent="UI/Panel"]
 layout_mode = 1
@@ -396,6 +399,12 @@ grow_horizontal = 2
 grow_vertical = 0
 theme = ExtResource("41_bwfut")
 alignment = 1
+
+[node name="Clear" type="Button" parent="UI/Panel/2 Buttons"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+text = "Clear"
 
 [node name="Submit" type="Button" parent="UI/Panel/2 Buttons"]
 custom_minimum_size = Vector2(250, 0)
