@@ -1,12 +1,10 @@
-[gd_scene load_steps=70 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=68 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
-[ext_resource type="PackedScene" uid="uid://cffopff1qm7g0" path="res://Scenes/Views/ParticleView.tscn" id="2_fv5ml"]
 [ext_resource type="Script" uid="uid://cyv5hjss13b5g" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Rotate.cs" id="2_mum02"]
 [ext_resource type="Script" uid="uid://dn5rai3ioon7r" path="res://ExternalScripts/Particle/Genetics/GAParams.cs" id="2_w33ia"]
 [ext_resource type="ColorPalette" uid="uid://bc2d55n3ixc8f" path="res://Visuals/Colors/Completary12.tres" id="3_jp56q"]
-[ext_resource type="PackedScene" uid="uid://d2xqbc34aabbs" path="res://Scenes/Views/GateView.tscn" id="3_yixwl"]
 [ext_resource type="Script" uid="uid://dur585ckuh5yv" path="res://ExternalScripts/Particle/Steps/Gates/Quantum/PauliFlip.cs" id="4_mum02"]
 [ext_resource type="ColorPalette" uid="uid://du8jw80u148bb" path="res://Visuals/Colors/PinkGreen12.tres" id="4_sph3f"]
 [ext_resource type="ColorPalette" uid="uid://ceo7731s6p3y5" path="res://Visuals/Colors/primaries.tres" id="4_xqktt"]
@@ -258,15 +256,6 @@ position = Vector2(0.5, 0.5)
 [node name="Corner4" type="Node2D" parent="Simulation/Space/Editor"]
 position = Vector2(-0.5, -0.5)
 
-[node name="ParticleView" parent="Simulation/Space/Editor" instance=ExtResource("2_fv5ml")]
-visible = false
-_stretchDependingOnSpeed = true
-
-[node name="Gate" parent="Simulation/Space/Editor" node_paths=PackedStringArray("_sprites") instance=ExtResource("3_yixwl")]
-visible = false
-scale = Vector2(0.013, 0.013)
-_sprites = []
-
 [node name="Sprite2D" type="Sprite2D" parent="Simulation"]
 z_index = -4096
 scale = Vector2(0.3, 0.3)
@@ -289,14 +278,13 @@ _filename = "camera_stream"
 script = ExtResource("10_f56ef")
 _python = NodePath("..")
 _display = NodePath("../TextureRect")
-_takeInstantOnFirstFrame = true
 
 [node name="TextureRect" type="TextureRect" parent="PythonRoot"]
 z_index = -2
-offset_left = -320.0
-offset_top = -180.0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_left = -711.0
+offset_top = -400.0
+offset_right = 711.0
+offset_bottom = 400.0
 texture = ExtResource("11_8ns5o")
 expand_mode = 1
 
@@ -326,7 +314,6 @@ _inputField = NodePath("MiddleCenter/LineEdit")
 _clear = NodePath("2 Buttons/Clear")
 _submit = NodePath("2 Buttons/Submit")
 _close = NodePath("2 Buttons/Cancel")
-_visibleOnStart = true
 _error = Color(0.74902, 0, 0, 1)
 
 [node name="BG" type="Panel" parent="UI/Panel"]
