@@ -281,10 +281,10 @@ _display = NodePath("../TextureRect")
 
 [node name="TextureRect" type="TextureRect" parent="PythonRoot"]
 z_index = -2
-offset_left = -711.0
-offset_top = -400.0
-offset_right = 711.0
-offset_bottom = 400.0
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = 200.0
 texture = ExtResource("11_8ns5o")
 expand_mode = 1
 
