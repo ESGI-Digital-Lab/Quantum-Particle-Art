@@ -7,6 +7,7 @@ public partial class Form : Control
     [ExportGroup("References")]
     [Export] private Control _root;
     [Export] private Godot.LineEdit _inputField;
+    [Export] private Button _clear;
     [Export] private Button _submit;
     [Export] private Button _close;
     [ExportGroup("Settings")]
@@ -26,6 +27,7 @@ public partial class Form : Control
                 _inputField.RemoveThemeColorOverride(_textColorKey);
         };
         _close.Pressed += () => { OnExit?.Invoke(); };
+        _clear.Pressed += () => { _inputField.Clear(); };
         OnExit += Exited;
     }
     
