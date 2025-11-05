@@ -12,7 +12,7 @@ using Vector2 = UnityEngine.Vector2;
 public interface IGates
 {
 	public void Reset();
-	public IEnumerable<(AGate type, Vector2 pos)> Positions { get; }
+	public IEnumerable<(AGate gateModel, Vector2 pos)> Positions { get; }
 }
 
 public class RandomGates : IGates
@@ -31,7 +31,7 @@ public class RandomGates : IGates
 		
 	}
 
-	public IEnumerable<(AGate type, Vector2 pos)> Positions
+	public IEnumerable<(AGate gateModel, Vector2 pos)> Positions
 	{
 		get
 		{
@@ -76,12 +76,12 @@ public class FixedGates : IGates
 		
 	}
 
-	public IEnumerable<(AGate type, Vector2 pos)> Positions
+	public IEnumerable<(AGate gateModel, Vector2 pos)> Positions
 	{
 		get
 		{
 			return _gatesRelativePosition.Dictionary.SelectMany(kvp =>
-				kvp.Value.Select(v => (kvp.Key.DeepCopy(),new Vector2(v.X,v.Y)))
+				kvp.Value.Select(v => (kvp.Key,new Vector2(v.X,v.Y)))
 			);
 		}
 	}

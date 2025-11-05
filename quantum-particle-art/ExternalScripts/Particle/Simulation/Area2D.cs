@@ -29,7 +29,7 @@ public struct Area2D : IEquatable<Area2D>
     {
         this._position = position;
         this._radius = radius;
-        this._gate = gate;
+        this._gate = gate.DeepCopy();//So we have a unique instance
     }
 
     public AGate Gate => _gate;
