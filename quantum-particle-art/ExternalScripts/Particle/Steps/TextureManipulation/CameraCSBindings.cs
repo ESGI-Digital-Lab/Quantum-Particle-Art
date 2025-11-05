@@ -99,6 +99,7 @@ public partial class CameraCSBindings : Node
         //Empty the texture without reassigning it, because the ref is used and checked elsewhere
         _texture.CopyFrom(new Image());
         _cache = new Image();
+        _imageCompleted = false;
         _head = 0;
         _nbChunks = 0;
         _accumulator = null;
@@ -115,6 +116,11 @@ public partial class CameraCSBindings : Node
                 lock (_cache)
                 {
                     _imageCompleted = false;
+                    if (_cache.IsEmpty())
+                    {
+                        Debug.LogError("CameraCSBindings; Completed image is empty, something went wrong during reception");
+                        return;
+                    }
                     _display.Texture = ImageTexture.CreateFromImage(_cache);
                     _display.SetVisible(true);
                     if (_takeInstantOnFirstFrame) //Is first image
@@ -130,7 +136,7 @@ public partial class CameraCSBindings : Node
         if (_finished || !_texture.IsEmpty())
         {
             Debug.LogWarning(
-                "CameraCSBindings: Texture not empty, feed wasn't rearmed to take another instant, returning");
+                "Instant not taken, _texture wasn't empty => feed wasn't rearmed to take another instant");
             return false;
         }
 
