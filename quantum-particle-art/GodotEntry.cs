@@ -194,8 +194,8 @@ public partial class GodotEntry : Node
         {
             for (int i = 0; i < _nbInstances; i++)
             {
-                CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out var _, out globalTick,
-                    out var _);
+                CreateSteps(uniqueCondition.Ratio, false, out psteps, out prewarm, out _, out globalTick,
+                    out _);
                 var looper = new GeneticLooper(0, availableSize, new InitConditions(uniqueCondition), psteps, psteps,
                     prewarm, -1);
                 BindLooper(looper, globalTick);
@@ -234,7 +234,11 @@ public partial class GodotEntry : Node
                 _webcamFeed.SetDisplaySize(WorldSize(_viewportSizeInWindow, uniqueCondition.Ratio));
                 bool sending = _saveLastFrame && _sendSavedFrame;
                 OnInstant += () => _webcamFeed.TryTakeInstant();
-                OnEnd += () => viewerLooper.ExternalStop();
+                OnEnd += () =>
+                {
+                    if (viewerLooper.ExternalStop())
+                        Debug.Log("Stopping simulation");
+                };
 
                 void RestartLoop()
                 {
@@ -352,8 +356,9 @@ public partial class GodotEntry : Node
                 _write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
                     saver,
                     lineCollection,
-                    smallBrush);
+                    smallBrush, _mode != Mode.Live);
                 psteps.Add(_write);
+                disposeAsap.Add(_write);
                 if (_saveLastFrame && _sendSavedFrame)
                 {
                     sender = new ImageSender(saver, _form);
@@ -378,7 +383,7 @@ public partial class GodotEntry : Node
 
     private void BindLooper(PipelineLooper<WorldInitializer, ParticleWorld, ParticleSimulation> looper, GlobalTick tick)
     {
-        tick.onAllDead += looper.ExternalStop;
+        tick.onAllDead += () => { _ = looper.ExternalStop(); };
         looper.BaseInitializer = new WorldInitializer(_worldSize);
         looper.OnInitChanged += i => OnInitChanged(i.Init);
         looper.SetNode(this);
