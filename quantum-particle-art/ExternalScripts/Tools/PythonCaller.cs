@@ -47,6 +47,8 @@ public partial class PythonCaller : Node, IDisposable
 
     public int UsefulSize => _chunkSize-_reservedBytes;
 
+    public int ChunkSize => _chunkSize;
+
     [Serializable]
     public struct Argument
     {

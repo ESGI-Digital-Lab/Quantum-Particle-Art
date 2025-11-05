@@ -15,7 +15,9 @@ public partial class CameraCSBindings : Node
 
     private const ushort port = 4242;
     private const ushort ackPort = port + 1;
-    private string adress = "127.0.0.1";
+    private const string adress = "127.0.0.1";
+    private const int initialPacketSize = 4;
+
 
     private byte[] _accumulator;
     private int _head;
@@ -28,6 +30,7 @@ public partial class CameraCSBindings : Node
     {
         _display.SetVisible(_peer != null);
         _finished = false;
+        Assert.IsTrue(_python.ChunkSize!= initialPacketSize, "Chunk size cannot be equal to initial packet size, we rely on that to differentiate first packet from others, which is required to interpret correctly the data stream");
     }
 
     public void SetDisplaySize(Godot.Vector2 size)
@@ -87,8 +90,8 @@ public partial class CameraCSBindings : Node
     {
         if (!_finished)
             return false;
+        //Cause of async, we clear first before reiniting
         ClearPackets();
-        //Cause of async, we need to reset finished at the end, after doing all the offline work
         ReInit();
         _finished = false;
         return true;
@@ -118,9 +121,11 @@ public partial class CameraCSBindings : Node
                     _imageCompleted = false;
                     if (_cache.IsEmpty())
                     {
-                        Debug.LogError("CameraCSBindings; Completed image is empty, something went wrong during reception");
+                        Debug.LogError(
+                            "CameraCSBindings; Completed image is empty, something went wrong during reception");
                         return;
                     }
+
                     _display.Texture = ImageTexture.CreateFromImage(_cache);
                     _display.SetVisible(true);
                     if (_takeInstantOnFirstFrame) //Is first image
@@ -179,17 +184,22 @@ public partial class CameraCSBindings : Node
                     int i = 0;
                     if (_accumulator == null)
                     {
+                        if (data.Length != initialPacketSize)//First packet should be 4 bytes indicating length of image, we'll discard anything else until we have a valid one with size
+                        {
+                            //Debug.LogError("CameraCSBindings: First packet of a new image should be 4 bytes indicating length, got " + data.Length + " bytes instead, discarding packet, until we get a valid one that specifies length");
+                            Ack();
+                            continue;
+                        }
+
                         var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
                         //i=4
                         _accumulator = new byte[length];
                         _head = 0;
                         _nbChunks = 0;
                         //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length + "inside of a packet of size " + data.Length);
-                        if (i == data.Length)
-                        {
-                            Ack();
-                            continue; //No more data in this packet
-                        }
+
+                        Ack();
+                        continue; //No more data in this packet
                     }
 
                     var chunkId = data[i++];
