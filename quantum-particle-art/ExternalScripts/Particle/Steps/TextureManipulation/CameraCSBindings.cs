@@ -29,6 +29,11 @@ public partial class CameraCSBindings : Node
         _display.SetVisible(_peer != null);
         _finished = false;
     }
+    public void SetDisplaySize(Godot.Vector2 size)
+    {
+        _display.Size = size;
+        _display.Position = -size / 2f;
+    }
 
     public void Start()
     {
