@@ -325,6 +325,7 @@ _root = NodePath(".")
 _inputField = NodePath("MiddleCenter/LineEdit")
 _submit = NodePath("2 Buttons/Submit")
 _close = NodePath("2 Buttons/Cancel")
+_error = Color(0.74902, 0, 0, 1)
 
 [node name="BG" type="Panel" parent="UI/Panel"]
 layout_mode = 1
