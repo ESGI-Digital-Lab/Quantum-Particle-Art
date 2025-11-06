@@ -17,6 +17,7 @@ public class ImageSender : ParticleStep
     [Export] private Form _form;
     private Saver _saver;
     private bool _canSend = false; //Is set to true on init, and consumed once on release until next init
+    private MailSettings _settings;
 
     private Dictionary<string, string> secrets;
     string secretFileName = "secrets.json";
@@ -35,8 +36,9 @@ public class ImageSender : ParticleStep
 
     private string Secret(Keys key) => secrets[_keys[(int)key]];
 
-    public ImageSender(Saver saver, Form form)
+    public ImageSender(Saver saver, Form form, MailSettings settings)
     {
+        _settings = settings;
         _form = form;
         _form.SetInitState();
         _form.OnSubmit += s =>
@@ -122,15 +124,15 @@ public class ImageSender : ParticleStep
         var user = Secret(Keys.User);
         var password = Secret(Keys.Password);
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("ESGI at Rome", user));
+        message.From.Add(new MailboxAddress(_settings.senderName, user));
         var toName = string.Join(' ', to.Split('@')[0].Split('.'));
         message.To.Add(new MailboxAddress(toName, to));
-        message.Subject = "Test mail'?";
+        message.Subject = _settings.subject;
 
         var fullBody = new Multipart();
         fullBody.Add(new TextPart("plain")
         {
-            Text = "Here is the image you wanted."
+            Text = _settings.body
         });
         fullBody.Add(new MimePart("image", "png")
         {
