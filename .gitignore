@@ -20,3 +20,4 @@ mono_crash.*.json
 /quantum-particle-art/Visuals/Saved/Late/*
 !/quantum-particle-art/Visuals/Saved/Late/.gitkeep
 quantum-particle-art/secrets.json
+/Builds
