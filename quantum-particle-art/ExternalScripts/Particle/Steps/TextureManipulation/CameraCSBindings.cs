@@ -170,7 +170,8 @@ public partial class CameraCSBindings : Node
             return;
         if (_peer == null || !_peer.IsBound())
         {
-            Debug.LogError("Peer not bound");
+            Debug.LogError("Peer not bound, probably an already running process which occupied the port and we didn't manage to connect to it, you can kill all python process using powershell command : ");
+            Debug.LogError("Get-Process python | Stop-Process -force");
         }
         else
         {
