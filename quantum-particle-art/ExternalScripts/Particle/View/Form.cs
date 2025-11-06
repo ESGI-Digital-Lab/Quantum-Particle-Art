@@ -61,9 +61,10 @@ public partial class Form : Control
         _inputField.AddThemeColorOverride(_textColorKey, _error);
     }
 
-    private bool Entered()
+    private void Entered()
     {
-        return _root.Visible = true;
+        _root.Visible = true;
+        _inputField.GrabFocus();
     }
 
     public void SetInitState()
