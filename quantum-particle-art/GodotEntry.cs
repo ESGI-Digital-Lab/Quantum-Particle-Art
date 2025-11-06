@@ -243,6 +243,14 @@ public partial class GodotEntry : Node
 					if (viewerLooper.ExternalStop())
 						Debug.Log("Stopping simulation");
 				};
+				GetTree().AutoAcceptQuit = false;
+				OnEscape += () =>
+				{
+					if (!sender.OnEscapePressed())
+					{
+						GetTree().Root.PropagateNotification((int)NotificationWMCloseRequest);
+					}
+				}; 
 
 				void RestartLoop()
 				{
@@ -293,6 +301,7 @@ public partial class GodotEntry : Node
 
 	private event Action OnInstant;
 	private event Action OnEnd;
+	private event Action OnEscape;
 
 	public override void _Process(double delta)
 	{
@@ -301,7 +310,8 @@ public partial class GodotEntry : Node
 			OnInstant?.Invoke();
 		if (Input.IsActionJustPressed("end"))
 			OnEnd?.Invoke();
-
+		if (Input.IsActionJustPressed("escape"))
+			OnEscape?.Invoke();
 		try
 		{
 			//Debug.Log("Starting updates");
@@ -313,7 +323,7 @@ public partial class GodotEntry : Node
 		catch (Exception e)
 		{
 			GD.PrintErr("Exception during update: ", e, "trace : ", e.StackTrace);
-			throw e;
+			//throw e;
 		}
 	}
 

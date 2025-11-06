@@ -280,7 +280,6 @@ texture = ExtResource("10_8ns5o")
 script = ExtResource("8_sph3f")
 _fps = 60
 _chunksPerFrame = 25
-_display = true
 _requireAck = true
 _readBuffer = 1024
 _pythonInterpreter = ".venv\\Scripts\\python.exe"

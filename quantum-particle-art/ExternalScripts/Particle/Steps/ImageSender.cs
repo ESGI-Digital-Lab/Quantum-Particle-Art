@@ -22,6 +22,17 @@ public class ImageSender : ParticleStep
     private Dictionary<string, string> secrets;
     string secretFileName = "secrets.json";
 
+    public bool OnEscapePressed()
+    {
+        if (_form.Visible)
+        {
+            _form.Visible = false;
+            return true;
+        }
+
+        return false;
+    } 
+        
     enum Keys
     {
         Host = 0,
