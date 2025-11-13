@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=70 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -36,6 +36,7 @@
 [ext_resource type="Resource" uid="uid://cl8f27osuipqy" path="res://Data/Saved/Black4K__70.tres" id="19_qwy08"]
 [ext_resource type="Resource" uid="uid://bclscsaukg050" path="res://Data/Saved/Black4K__75.tres" id="20_04sbt"]
 [ext_resource type="Resource" uid="uid://g52gvvvfspew" path="res://Data/Saved/Black4K__80.tres" id="21_keigo"]
+[ext_resource type="Script" uid="uid://bjy7jjno82kkk" path="res://ExternalScripts/Particle/Steps/MailSettings.cs" id="22_bwfut"]
 [ext_resource type="Script" uid="uid://c7a0omk2q4qs0" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Speed.cs" id="23_dsv53"]
 [ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Steps/Initialisation/SpawnConfiguration.cs" id="23_tqdhy"]
 [ext_resource type="Script" uid="uid://clvsxbgo6g4ns" path="res://ExternalScripts/Particle/View/Form.cs" id="41_6t04x"]
@@ -131,6 +132,18 @@ _repeats = 10
 _nbParticlesRange = Vector2i(20, 40)
 metadata/_custom_type_script = "uid://cm5f43tlx3ymr"
 
+[sub_resource type="Resource" id="Resource_sjar8"]
+script = ExtResource("22_bwfut")
+senderName = "ESGI at Rome"
+subject = "Your generated image during XXVIII Generative Art Conference live sessions"
+body = "Hello,
+
+Here is the image you generated during the live sessions.
+
+Best regards,
+ESGI"
+metadata/_custom_type_script = "uid://bjy7jjno82kkk"
+
 [sub_resource type="Resource" id="Resource_bwfut"]
 script = ExtResource("6_utk7t")
 _forceDifferentSpecy = true
@@ -214,6 +227,7 @@ _mode = 2
 _worldSize = 1000.0
 _timeSteps = 1.0
 _drawLive = true
+_mail = SubResource("Resource_sjar8")
 _saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 1.0])
 _brush = ExtResource("6_mum02")
 _maxStrokeSize = 100
@@ -266,7 +280,6 @@ texture = ExtResource("10_8ns5o")
 script = ExtResource("8_sph3f")
 _fps = 60
 _chunksPerFrame = 25
-_display = true
 _requireAck = true
 _readBuffer = 1024
 _pythonInterpreter = ".venv\\Scripts\\python.exe"

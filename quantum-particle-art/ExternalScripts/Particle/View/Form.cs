@@ -4,18 +4,17 @@ using KGySoft.CoreLibraries;
 
 public partial class Form : Control
 {
-    [ExportGroup("References")]
-    [Export] private Control _root;
+    [ExportGroup("References")] [Export] private Control _root;
     [Export] private Godot.LineEdit _inputField;
     [Export] private Button _clear;
     [Export] private Button _submit;
     [Export] private Button _close;
-    [ExportGroup("Settings")]
-    [Export] private bool _visibleOnStart = false;
+    [ExportGroup("Settings")] [Export] private bool _visibleOnStart = false;
     [Export] private Color _error;
     [Export] private string _textColorKey = "font_color";
     public event System.Action<string> OnSubmit;
     public event System.Action OnExit;
+
     public override void _Ready()
     {
         base._EnterTree();
@@ -23,19 +22,22 @@ public partial class Form : Control
         _inputField.TextSubmitted += (string text) => { OnSubmit?.Invoke(Mail); };
         _inputField.EditingToggled += on =>
         {
-            if(on)
+            if (on)
                 _inputField.RemoveThemeColorOverride(_textColorKey);
         };
-        _close.Pressed += () => { OnExit?.Invoke(); };
+        _close.Pressed += () => { Exit(); };
         _clear.Pressed += () => { _inputField.Clear(); };
-        OnExit += Exited;
     }
-    
 
-    private void Exited()
+
+    private void Exit()
     {
-        _root.Visible = false;
-        _inputField.Clear();
+        if (_root.Visible)
+        {
+            _root.Visible = false;
+            _inputField.Clear();
+            OnExit?.Invoke();
+        }
     }
 
     private string Mail
@@ -49,10 +51,11 @@ public partial class Form : Control
 
     public new bool Visible
     {
+        get => _root.Visible;
         set
         {
             if (value) Entered();
-            else Exited();
+            else Exit();
         }
     }
 
@@ -61,9 +64,13 @@ public partial class Form : Control
         _inputField.AddThemeColorOverride(_textColorKey, _error);
     }
 
-    private bool Entered()
+    private void Entered()
     {
-        return _root.Visible = true;
+        if (!_root.Visible)
+        {
+            _root.Visible = true;
+            _inputField.GrabFocus();
+        }
     }
 
     public void SetInitState()

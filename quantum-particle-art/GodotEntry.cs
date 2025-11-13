@@ -57,12 +57,16 @@ public partial class GodotEntry : Node
     [ExportGroup("World")] [Export] private float _worldSize = 600;
 
     [Export] private float _timeSteps = 0.02f;
-    [ExportGroup("Drawing")] [Export] private bool _saveLastFrame = true;
-    [Export] private bool _sendSavedFrame = true;
 
-    [Export] private bool _lateSave;
+    [ExportGroup("Drawing")] [Export] private bool _lateSave;
     [Export] private bool _drawLive = false;
     [Export] private bool _drawLate = false;
+
+    [ExportGroup("Final exporting")] [Export]
+    private bool _saveLastFrame = true;
+
+    [Export] private bool _sendSavedFrame = true;
+    [Export] private MailSettings _mail;
     [Export] private Godot.Collections.Array<float> _saveThreholds;
 
     [ExportSubgroup("Stroke settings")] [Export]
@@ -239,6 +243,16 @@ public partial class GodotEntry : Node
                     if (viewerLooper.ExternalStop())
                         Debug.Log("Stopping simulation");
                 };
+                GetTree().AutoAcceptQuit = false;
+                OnEscape += () =>
+                {
+                    if (!sender.OnEscapePressed())
+                    {
+                        var t = GetTree();
+                        t.Root.PropagateNotification((int)NotificationWMCloseRequest);
+                        t.Quit();
+                    }
+                };
 
                 void RestartLoop()
                 {
@@ -289,6 +303,7 @@ public partial class GodotEntry : Node
 
     private event Action OnInstant;
     private event Action OnEnd;
+    private event Action OnEscape;
 
     public override void _Process(double delta)
     {
@@ -297,7 +312,8 @@ public partial class GodotEntry : Node
             OnInstant?.Invoke();
         if (Input.IsActionJustPressed("end"))
             OnEnd?.Invoke();
-
+        if (Input.IsActionJustPressed("escape"))
+            OnEscape?.Invoke();
         try
         {
             //Debug.Log("Starting updates");
@@ -309,7 +325,7 @@ public partial class GodotEntry : Node
         catch (Exception e)
         {
             GD.PrintErr("Exception during update: ", e, "trace : ", e.StackTrace);
-            throw e;
+            //throw e;
         }
     }
 
@@ -361,7 +377,7 @@ public partial class GodotEntry : Node
                 disposeAsap.Add(_write);
                 if (_saveLastFrame && _sendSavedFrame)
                 {
-                    sender = new ImageSender(saver, _form);
+                    sender = new ImageSender(saver, _form, _mail);
                     psteps.Add(sender);
                     disposeAsap.Add(sender);
                 }

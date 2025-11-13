@@ -45,7 +45,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 
 	public void UpdateView(Particle info)
 	{
-		if (this.particle.IsSuperposed)
+		if (info.IsSuperposed)
 		{
 			this.ToggleView(!_showOnlyChilds);
 			if (_childs == null)
@@ -70,8 +70,8 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 			else
 			{
 				this.UpdateView(info.Orientation);
-				_childs.Item1?.LineTo(info.Orientation, ViewHelpers.SUP);
-				_childs.Item2?.LineTo(info.Orientation, ViewHelpers.SUP);
+				_childs.Item1?.LineTo(info,info.Orientation, ViewHelpers.SUP);
+				_childs.Item2?.LineTo(info,info.Orientation, ViewHelpers.SUP);
 			}
 		}
 		else
@@ -109,7 +109,7 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	public void UpdateView(Orientation Orientation)
 	{
 		ToggleView(true);
-		this.GlobalPosition = ViewHelpers.Pos(particle.NormalizedPosition, _parent);
+		this.GlobalPosition = ViewHelpers.Pos(Orientation.Owner.NormalizedPosition, _parent);
 		//Debug.Log($"Pos for view from {particle.Position} {particle.NormalizedPosition} to {this.GlobalPosition} in local {this.Position}");
 		ApplyOrientation(Orientation);
 		//if (Orientation.NormalizedSpeed <= 0.0f)
@@ -131,9 +131,9 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 		}
 
 		if (Orientation.IsControlled)
-			LineTo(Orientation.Controller, ViewHelpers.CTR);
+			LineTo(Orientation.Owner,Orientation.Controller, ViewHelpers.CTR);
 		else if (Orientation.IsTeleported)
-			LineTo(Orientation.Teleportation, ViewHelpers.TEL);
+			LineTo(Orientation.Owner,Orientation.Teleportation, ViewHelpers.TEL);
 		else
 		{
 			ClearLine();
@@ -144,11 +144,6 @@ public partial class ParticleView : Node2D, IView<Particle, ParticleWorld>
 	{
 		_line.Points = [];
 		_line.DefaultColor = Color.clear;
-	}
-
-	private void LineTo(Orientation to, Color color)
-	{
-		LineTo(this.particle, to, color);
 	}
 
 	private void LineTo(Particle from, Orientation to, Color color)

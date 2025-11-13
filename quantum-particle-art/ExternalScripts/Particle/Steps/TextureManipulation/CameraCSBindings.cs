@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
@@ -24,13 +25,16 @@ public partial class CameraCSBindings : Node
     private int _nbChunks;
     private bool _finished;
     private bool _imageCompleted;
+
+    private CancellationTokenSource _cancel;
     public Image Texture => _texture;
 
     public override void _Ready()
     {
         _display.SetVisible(_peer != null);
         _finished = false;
-        Assert.IsTrue(_python.ChunkSize!= initialPacketSize, "Chunk size cannot be equal to initial packet size, we rely on that to differentiate first packet from others, which is required to interpret correctly the data stream");
+        Assert.IsTrue(_python.ChunkSize != initialPacketSize,
+            "Chunk size cannot be equal to initial packet size, we rely on that to differentiate first packet from others, which is required to interpret correctly the data stream");
     }
 
     public void SetDisplaySize(Godot.Vector2 size)
@@ -66,7 +70,7 @@ public partial class CameraCSBindings : Node
         {
             Task.Run(async () =>
             {
-                while (true)
+                while (!_cancel.IsCancellationRequested)
                 {
                     ManualUpdate();
                     await Task.Delay(1);
@@ -168,82 +172,88 @@ public partial class CameraCSBindings : Node
     {
         if (_finished)
             return;
-        if (_peer == null || !_peer.IsBound())
+        lock (_peer)
         {
-            Debug.LogError("Peer not bound");
-        }
-        else
-        {
-            while (_peer.GetAvailablePacketCount() > 0)
+            if (_peer == null || !_peer.IsBound())
             {
-                //Debug.Log("Nb packets in queue : " + _peer.GetAvailablePacketCount());
-                //peer.Bind(port, adress);
-                var data = _peer.GetPacket();
-                if (data != null && data.Length > 0)
+                Debug.LogError(
+                    "Peer not bound, probably an already running process which occupied the port and we didn't manage to connect to it, you can kill all python process using powershell command : ");
+                Debug.LogError("Get-Process python | Stop-Process -force");
+            }
+            else
+            {
+                while (_peer.GetAvailablePacketCount() > 0)
                 {
-                    int i = 0;
-                    if (_accumulator == null)
+                    //Debug.Log("Nb packets in queue : " + _peer.GetAvailablePacketCount());
+                    //peer.Bind(port, adress);
+                    var data = _peer.GetPacket();
+                    if (data != null && data.Length > 0)
                     {
-                        if (data.Length != initialPacketSize)//First packet should be 4 bytes indicating length of image, we'll discard anything else until we have a valid one with size
+                        int i = 0;
+                        if (_accumulator == null)
                         {
-                            //Debug.LogError("CameraCSBindings: First packet of a new image should be 4 bytes indicating length, got " + data.Length + " bytes instead, discarding packet, until we get a valid one that specifies length");
+                            if (data.Length !=
+                                initialPacketSize) //First packet should be 4 bytes indicating length of image, we'll discard anything else until we have a valid one with size
+                            {
+                                //Debug.LogError("CameraCSBindings: First packet of a new image should be 4 bytes indicating length, got " + data.Length + " bytes instead, discarding packet, until we get a valid one that specifies length");
+                                Ack();
+                                continue;
+                            }
+
+                            var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
+                            //i=4
+                            _accumulator = new byte[length];
+                            _head = 0;
+                            _nbChunks = 0;
+                            //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length + "inside of a packet of size " + data.Length);
+
                             Ack();
-                            continue;
+                            continue; //No more data in this packet
                         }
 
-                        var length = (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
-                        //i=4
-                        _accumulator = new byte[length];
-                        _head = 0;
-                        _nbChunks = 0;
-                        //Debug.Log("CameraCSBindings: Starting new image of compressed size :" + length + "inside of a packet of size " + data.Length);
+                        var chunkId = data[i++];
+                        _head = chunkId * _python.UsefulSize;
+                        for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
+                        {
+                            _accumulator[_head] = data[i];
+                        }
+
+                        //Debug.Log("After packet processed, chunk :" + chunkId + "out of " + _nbChunks + "head at :" +
+                        //          _head +
+                        //          "for packet size ; " + data.Length + " and remaining :" +
+                        //          (_accumulator.Length - _head));
+                        _nbChunks++;
+                        if (_head >= _accumulator.Length)
+                        {
+                            if (_cache.IsEmpty())
+                                Debug.Log(
+                                    "CameraCSBindings: Connection correct, showing live flux in temp display, ready to take instants to feed in the pipeline");
+                            byte[] safe = new byte[_accumulator.Length];
+                            System.Array.Copy(_accumulator, safe, _accumulator.Length);
+                            _accumulator = null;
+                            //Debug.Log("Accumulated full image of size :" + safe.Length + " after " + _nbChunks + " chunks, trying to interpret as jpg");
+                            try
+                            {
+                                lock (_cache)
+                                {
+                                    var err = _cache.LoadJpgFromBuffer(safe);
+                                    if (err != Error.Ok)
+                                        GD.PrintErr("Failed to load image from buffer: " + err);
+                                    else
+                                        _imageCompleted = true;
+                                }
+                            }
+                            catch (System.Exception e)
+                            {
+                                GD.PrintErr("Failed to load image from buffer: ");
+                            }
+
+                            //Debug.Log("Remaining packets in queue after full image received : " + _peer.GetAvailablePacketCount());
+                            break;
+                        }
 
                         Ack();
-                        continue; //No more data in this packet
                     }
-
-                    var chunkId = data[i++];
-                    _head = chunkId * _python.UsefulSize;
-                    for (; i < data.Length && _head < _accumulator.Length; i++, _head++)
-                    {
-                        _accumulator[_head] = data[i];
-                    }
-
-                    //Debug.Log("After packet processed, chunk :" + chunkId + "out of " + _nbChunks + "head at :" +
-                    //          _head +
-                    //          "for packet size ; " + data.Length + " and remaining :" +
-                    //          (_accumulator.Length - _head));
-                    _nbChunks++;
-                    if (_head >= _accumulator.Length)
-                    {
-                        if (_cache.IsEmpty())
-                            Debug.Log(
-                                "CameraCSBindings: Connection correct, showing live flux in temp display, ready to take instants to feed in the pipeline");
-                        byte[] safe = new byte[_accumulator.Length];
-                        System.Array.Copy(_accumulator, safe, _accumulator.Length);
-                        _accumulator = null;
-                        //Debug.Log("Accumulated full image of size :" + safe.Length + " after " + _nbChunks + " chunks, trying to interpret as jpg");
-                        try
-                        {
-                            lock (_cache)
-                            {
-                                var err = _cache.LoadJpgFromBuffer(safe);
-                                if (err != Error.Ok)
-                                    GD.PrintErr("Failed to load image from buffer: " + err);
-                                else
-                                    _imageCompleted = true;
-                            }
-                        }
-                        catch (System.Exception e)
-                        {
-                            GD.PrintErr("Failed to load image from buffer: ");
-                        }
-
-                        //Debug.Log("Remaining packets in queue after full image received : " + _peer.GetAvailablePacketCount());
-                        break;
-                    }
-
-                    Ack();
                 }
             }
         }
@@ -263,6 +273,7 @@ public partial class CameraCSBindings : Node
     {
         if (what == NotificationWMCloseRequest)
         {
+            _cancel.Cancel();
             _peer?.Close();
             _peer = null;
             _texture?.Dispose();
