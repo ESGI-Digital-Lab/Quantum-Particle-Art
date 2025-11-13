@@ -1,19 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Color = UnityEngine.Color;
-
-public interface IBrushPicker
-{
-    public record struct StrokePoint(Vector2Int coords, Color color, float relativeSize);
-
-    public Brush GetBrush(int specy);
-}
-
 
 public class Brush : IBrushPicker
 {
@@ -111,4 +102,5 @@ public class Brush : IBrushPicker
     }
 
     public Brush GetBrush(int specy) => this;
+    public void Init(int maxNbSpecies) { }
 }
