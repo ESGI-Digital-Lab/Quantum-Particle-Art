@@ -43,7 +43,7 @@ public class QuantizedImage : ATexProvider, ISpecyPicker, IColorPicker
 	[SuppressMessage("Interoperability", "CA1416:Valider la compatibilité de la plateforme")]
 	public override bool Create()
 	{
-		if (_sourceImage.IsEmpty())
+		if (_sourceImage==null || _sourceImage.IsEmpty())
 		{
 			//Debug.Log("Waiting for image to be loaded...");
 			return false;
