@@ -26,7 +26,7 @@ public class WriteToTex : ParticleStep
     private Saver _saver;
     private LineCollection _lineCollection;
 
-    public WriteToTex(Sprite2D renderer, float viewSize, Saver saver, LineCollection lineCollection, Brush brush,
+    public WriteToTex(Sprite2D renderer, float viewSize, Saver saver, LineCollection lineCollection, IBrushPicker brush,
         bool autoHideOnDisposee)
     {
         _renderer = renderer;
@@ -48,7 +48,7 @@ public class WriteToTex : ParticleStep
     private ImageTexture _toSave;
     private ImageTexture _drawing;
     private Color[] pixels;
-    private readonly Brush _brush;
+    private readonly IBrushPicker _brush;
 
     public void RefreshTex()
     {
@@ -110,8 +110,8 @@ public class WriteToTex : ParticleStep
             var start = line.Start.ToPixelCoord(_drawing);
             var end = line.End.ToPixelCoord(_drawing);
             var points = LineCollection.Line.GetPixels(start, end).ToArray(); //One enumeration
-            _brush.DrawWithBrush(_drawingImage, points, line.Color, line.RelativeWidth);
-            _brush.DrawWithBrush(_toSaveImage, points, line.Color, line.RelativeWidth);
+            _brush.GetBrush(line.Specy).DrawWithBrush(_drawingImage, points, line.Color, line.RelativeWidth);
+            _brush.GetBrush(line.Specy).DrawWithBrush(_toSaveImage, points, line.Color, line.RelativeWidth);
         }
 
         _lineCollection.Clear();

@@ -386,7 +386,7 @@ public partial class GodotEntry : Node
             if (_drawLate)
             {
                 var detailledBrush =
-                    new Brush(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
+                    new IBrushPicker(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
                 IWidther widther = new ToggleLiner(_dynamicMax);
                 var lateWrite = new LateWriteToTex(_saveLastFrame || true
                     ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
