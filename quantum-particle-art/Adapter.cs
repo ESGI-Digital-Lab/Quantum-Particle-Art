@@ -223,7 +223,15 @@ namespace UnityEngine
 	{
 		private Godot.Vector2I _vector;
 		public Vector2Int(int x, int y) => _vector = new(x, y);
+		public float Distance(Vector2Int other)
+		{
+			return _vector.DistanceTo(other._vector);
+		}
 
+		public float DistanceI(Vector2Int other)
+		{
+			return Math.Abs(this.x-other.x) + Math.Abs(this.y - other.y);
+		}
 		public int x
 		{
 			get => _vector.X;
