@@ -54,6 +54,7 @@ public partial class Form : Control
         get => _root.Visible;
         set
         {
+            if (value == Visible) return;
             if (value) Entered();
             else Exit();
         }

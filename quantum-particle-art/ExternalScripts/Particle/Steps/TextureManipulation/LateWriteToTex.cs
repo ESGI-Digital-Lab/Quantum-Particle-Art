@@ -14,7 +14,12 @@ public class LateWriteToTex : ParticleStep
 {
     private class ParticleHistory
     {
-        public record struct HistoryEntry(Vector2 position, Vector2 velocity, Godot.Color color, bool continuous);
+        public record struct HistoryEntry(
+            Vector2 position,
+            Vector2 velocity,
+            Godot.Color color,
+            int specy,
+            bool continuous);
 
         public int Count => _history.Count;
         private Dictionary<Particle, List<HistoryEntry>> _history = new();
@@ -31,7 +36,7 @@ public class LateWriteToTex : ParticleStep
         public void AddRecord(Particle p)
         {
             var entry = new HistoryEntry(p.NormalizedPosition, p.Orientation.Velocity,
-                _picker.GetColor(p, _nbSpecies), !p.WrappedLastTick);
+                _picker.GetColor(p, _nbSpecies), p.Species, !p.WrappedLastTick);
             if (!_history.ContainsKey(p))
                 _history[p] = [entry];
             else
@@ -43,7 +48,7 @@ public class LateWriteToTex : ParticleStep
     private ImageTexture _dynamic;
     private ParticleHistory _history;
     private readonly Saver _saver;
-    private readonly Brush _brush;
+    private readonly IBrushPicker _brush;
     private readonly IWidther _width;
     private readonly int _curveRes = 1000;
     private bool _saveRequested;
@@ -71,7 +76,7 @@ public class LateWriteToTex : ParticleStep
         _saveRequested = true;
     }
 
-    public LateWriteToTex(Saver saver, Brush brush, IWidther width, int curveRes, string name = "",
+    public LateWriteToTex(Saver saver, IBrushPicker brush, IWidther width, int curveRes, string name = "",
         bool saveAll = false)
     {
         _saver = saver;
@@ -166,9 +171,9 @@ public class LateWriteToTex : ParticleStep
                             var width =
                                 //curve.Tangent(t).Length();
                                 _width.DetermineWidth(point.velocity * t + vel * (1 - t));
-                            return new Brush.StrokePoint(coords, point.color * t + color * (1 - t), width);
+                            return new IBrushPicker.StrokePoint(coords, point.color * t + color * (1 - t), width);
                         });
-                        _brush.DrawWithBrush(_base, sampled);
+                        _brush.GetBrush(point.specy).DrawWithBrush(_base, sampled, point);
                     }
 
                     pts = [point.position.ToSystemV2()];

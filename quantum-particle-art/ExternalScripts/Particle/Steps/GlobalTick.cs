@@ -23,6 +23,7 @@ public class GlobalTick : ParticleStep
         Vector2 fromNormalized,
         Vector2 toNormalize,
         Color color,
+        int specy,
         Orientation orientation);
 
     public event System.Action<MovementData> onMovement;
@@ -49,7 +50,7 @@ public class GlobalTick : ParticleStep
             {
                 moved = true;
                 var data = new MovementData(info.fromNormalized, info.particle.NormalizedPosition,
-                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies) / (info.depth + 1),
+                    _colorPicker.GetColor(info.particle, entry.Ruleset.NbSpecies) / (info.depth + 1), info.particle.Species,
                     info.particle.Orientation);
                 onMovement?.Invoke(data);
             }

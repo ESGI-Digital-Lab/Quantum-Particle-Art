@@ -23,14 +23,18 @@ namespace DefaultNamespace.Tools
                 set => _relativeWidth = value;
             }
 
-            private Color _color;
+            public int Specy => _specy;
 
-            public Line(Vector2 start, Vector2 end, Color color, float relativeWidthRatioo)
+            private Color _color;
+            private int _specy;
+
+            public Line(Vector2 start, Vector2 end, Color color, float relativeWidthRatioo, int specy)
             {
                 _start = start;
                 _end = end;
                 _color = color;
                 _relativeWidth = relativeWidthRatioo;
+                _specy = specy;
                 Assert.IsTrue(_relativeWidth>=0, "Width ratio must be positive");
             }
 
@@ -91,10 +95,6 @@ namespace DefaultNamespace.Tools
             _lines = new List<Line>();
         }
 
-        public void AddLine(Vector2 start, Vector2 end, Color color, float relativeWidthRatio = 1f)
-        {
-            AddLine(new Line(start, end, color, relativeWidthRatio));
-        }
         public void AddLine(Line line)
         {
             _lines.Add(line);

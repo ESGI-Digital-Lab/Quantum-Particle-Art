@@ -1,4 +1,4 @@
-[gd_scene load_steps=70 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=78 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -39,6 +39,13 @@
 [ext_resource type="Script" uid="uid://bjy7jjno82kkk" path="res://ExternalScripts/Particle/Steps/MailSettings.cs" id="22_bwfut"]
 [ext_resource type="Script" uid="uid://c7a0omk2q4qs0" path="res://ExternalScripts/Particle/Steps/Gates/Geometric/Speed.cs" id="23_dsv53"]
 [ext_resource type="Script" uid="uid://du5t3gslnr3np" path="res://ExternalScripts/Particle/Steps/Initialisation/SpawnConfiguration.cs" id="23_tqdhy"]
+[ext_resource type="Texture2D" uid="uid://b5l23q4wu5cg4" path="res://Visuals/Generated_Brushes/splatAlt2Brush.png" id="24_fmuem"]
+[ext_resource type="Texture2D" uid="uid://chfhwvq73fic2" path="res://Visuals/Generated_Brushes/splatAltBrush.png" id="25_6gyo4"]
+[ext_resource type="Texture2D" uid="uid://cq57r4g17k81q" path="res://Visuals/Generated_Brushes/splatBrush.png" id="26_lsoek"]
+[ext_resource type="Texture2D" uid="uid://18k3506rigwg" path="res://Visuals/Generated_Brushes/stampBrush.png" id="27_sjar8"]
+[ext_resource type="Texture2D" uid="uid://duhtq8i7dfk6r" path="res://Visuals/Generated_Brushes/starBrush.png" id="28_5vm7b"]
+[ext_resource type="Texture2D" uid="uid://nfvk8ckmwh7k" path="res://Visuals/Generated_Brushes/textureBrush.png" id="29_wpqtu"]
+[ext_resource type="Script" uid="uid://dq5uj6ovo76su" path="res://ExternalScripts/Particle/Steps/TextureManipulation/Brushes/BrushList.cs" id="30_k84np"]
 [ext_resource type="Script" uid="uid://clvsxbgo6g4ns" path="res://ExternalScripts/Particle/View/Form.cs" id="41_6t04x"]
 [ext_resource type="Theme" uid="uid://care7j8lpcqln" path="res://Data/theme.tres" id="41_bwfut"]
 
@@ -144,6 +151,17 @@ Best regards,
 ESGI"
 metadata/_custom_type_script = "uid://bjy7jjno82kkk"
 
+[sub_resource type="Resource" id="Resource_g2wpt"]
+script = ExtResource("30_k84np")
+_shuffle = false
+_brushes = Array[CompressedTexture2D]([ExtResource("6_mum02"), ExtResource("24_fmuem"), ExtResource("25_6gyo4"), ExtResource("26_lsoek"), ExtResource("27_sjar8"), ExtResource("28_5vm7b"), ExtResource("29_wpqtu")])
+_minStrokeSize = 10
+_maxStrokeSize = 50
+_minSpaceBeetweenStrokes = 1.0
+_lateBrushSizeMultiplier = 10.0
+_relativeRandomBrushOffset = 0.25
+metadata/_custom_type_script = "uid://dq5uj6ovo76su"
+
 [sub_resource type="Resource" id="Resource_bwfut"]
 script = ExtResource("6_utk7t")
 _forceDifferentSpecy = true
@@ -224,19 +242,16 @@ _params = SubResource("Resource_fcssu")
 _gates = Array[Object]([SubResource("Resource_bv6uv"), SubResource("Resource_w33ia"), SubResource("Resource_1mke2"), SubResource("Resource_2d2wn"), SubResource("Resource_ttgvu"), SubResource("Resource_1td8w"), SubResource("Resource_p38iw"), SubResource("Resource_mbg80"), SubResource("Resource_bmecf"), SubResource("Resource_lrcpn"), SubResource("Resource_r5g61")])
 _replays = Array[Object]([SubResource("Resource_2bkyo"), SubResource("Resource_utk7t"), SubResource("Resource_tqdhy"), ExtResource("15_bwfut"), ExtResource("16_6t04x"), ExtResource("17_s1vpn"), ExtResource("18_7vq1d"), ExtResource("19_qwy08"), ExtResource("20_04sbt"), ExtResource("21_keigo")])
 _mode = 2
-_worldSize = 1000.0
+_worldSize = 250.0
 _timeSteps = 1.0
 _drawLive = true
 _mail = SubResource("Resource_sjar8")
 _saveThreholds = Array[float]([0.1, 0.25, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 1.0])
-_brush = ExtResource("6_mum02")
-_maxStrokeSize = 100
-_liveBrushSizeDivider = 100.0
-_relativeRandomBrushOffset = 0.0
+_brushList = SubResource("Resource_g2wpt")
 _sineFrequency = 1.0
 _useSpeed = true
 _dynamicMax = true
-_targetHeightOfBackgroundTexture = 500
+_targetHeightOfBackgroundTexture = 2160
 _webcamFeed = NodePath("../PythonRoot/WebcamUDP")
 _spawnTemplate = SubResource("Resource_dsv53")
 _gateSize = 0.01
