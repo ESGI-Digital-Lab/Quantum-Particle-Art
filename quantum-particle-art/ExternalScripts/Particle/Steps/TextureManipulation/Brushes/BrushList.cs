@@ -9,6 +9,8 @@ public partial class BrushList : Resource, IBrushPicker
 {
     [ExportCategory("Look")]
     [Export] private bool _shuffle;
+
+    [Export] private bool _brushOnlyAlpha;
     [Export] private Godot.Collections.Array<CompressedTexture2D> _brushes;
     [Export] private CompressedTexture2D _commonLayer;
     [ExportCategory("Measures")]
@@ -68,6 +70,6 @@ public partial class BrushList : Resource, IBrushPicker
         //    Debug.LogWarning("Small brush size for live drawing is " + smallBrushSize +
         //                     ", if performance is low consider increasing the live brush size divider from " +
         //                     _lateBrushSizeMultiplier + " to reach something closer to 1");
-        return new Brush(_minStrokeSize,smallBrushSize, _relativeRandomBrushOffset,_minSpaceBeetweenStrokes, brushName, null/*image.GetImage()*/,_commonLayer?.GetImage());
+        return new Brush(_minStrokeSize,smallBrushSize, _relativeRandomBrushOffset,_minSpaceBeetweenStrokes, _brushOnlyAlpha, brushName, image.GetImage()/*null*/,_commonLayer?.GetImage());
     }
 }

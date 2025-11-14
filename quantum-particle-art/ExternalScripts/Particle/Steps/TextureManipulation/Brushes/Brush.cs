@@ -13,6 +13,7 @@ public class Brush : IBrushPicker
     private int _minSize;
     private int _size;
     private float _randomOffset = 0.1f;
+    private bool _brushAlphaOnly = false;
     private string _name;
     private float _spaceProportion;
     public Brush GetBrush(int specy) => this;
@@ -22,14 +23,16 @@ public class Brush : IBrushPicker
         _lastPoints = new();
     }
 
-    public Brush(int minSize, int size, float randomOffset, float minSpace, string name, params Image[] brushes)
+    public Brush(int minSize, int size, float randomOffset, float minSpace, bool brushAlphaOnly, string name,
+        params Image[] brushes)
     {
         _minSize = minSize;
         _size = size;
-        _brushes = brushes.Where(b=>b != null).ToArray();
+        _brushes = brushes.Where(b => b != null).ToArray();
         _randomOffset = randomOffset;
         _name = name;
         _spaceProportion = minSpace;
+        _brushAlphaOnly = brushAlphaOnly;
     }
 
     public override string ToString()
@@ -122,7 +125,7 @@ public class Brush : IBrushPicker
         return lastPoint.coords.DistanceI(point.coords) > (dist * _spaceProportion);
     }
 
-    private Godot.Color ComputeColorFromBrush(int texX, int texY, Color lineColor,Image brush)
+    private Godot.Color ComputeColorFromBrush(int texX, int texY, Color lineColor, Image brush)
     {
         var rdSize = (int)(_size * _randomOffset);
         texX += UnityEngine.Random.Range(-rdSize, rdSize);
@@ -135,11 +138,15 @@ public class Brush : IBrushPicker
         var brushGS = (invertedBrush.R + invertedBrush.G + invertedBrush.B) / 3f;
         var gs = new Godot.Color(brushGS, brushGS, brushGS, invertedBrush.A * brushGS);
         var baseC = new Godot.Color(lineColor.r, lineColor.g, lineColor.b, lineColor.a);
-#if FALSE //With some black grain added no matter the original trait
-        baseC *= brushGS * invertedBrush.A;
-#else //The brush has almost no impact the stroke points are too close
-        baseC.A *= brushGS * invertedBrush.A;
-#endif
+        if (_brushAlphaOnly) //The brush has almost no impact the stroke points are too close
+        {
+            baseC.A *= brushGS * invertedBrush.A;
+        }
+        else //With some black grain added no matter the original trait
+        {
+            baseC *= brushGS * invertedBrush.A;
+        }
+
         //return new Godot.Color((1f - brushColor.R) * lineColor.r, (1f - brushColor.G) * lineColor.g,
         //    (1f - brushColor.B) * lineColor.b,
         //    brushColor.A * lineColor.a);
