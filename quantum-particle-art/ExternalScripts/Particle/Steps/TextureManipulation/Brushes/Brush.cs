@@ -9,7 +9,7 @@ using Color = UnityEngine.Color;
 
 public class Brush : IBrushPicker
 {
-    private Image _brush;
+    private Image[] _brushes;
     private int _minSize;
     private int _size;
     private float _randomOffset = 0.1f;
@@ -22,11 +22,11 @@ public class Brush : IBrushPicker
         _lastPoints = new();
     }
 
-    public Brush(Image brush, int minSize, int size, float randomOffset, float minSpace, string name)
+    public Brush(int minSize, int size, float randomOffset, float minSpace, string name, params Image[] brushes)
     {
         _minSize = minSize;
         _size = size;
-        _brush = brush;
+        _brushes = brushes.Where(b=>b != null).ToArray();
         _randomOffset = randomOffset;
         _name = name;
         _spaceProportion = minSpace;
@@ -84,16 +84,19 @@ public class Brush : IBrushPicker
                             //Manually converting UV to a raw uninterpolated pixel position
                             var u = (x + finalWidth) / (1f * totalSize);
                             var v = (y + finalWidth) / (1f * totalSize);
-                            var sampledX = (int)(u * _brush.GetWidth());
-                            var sampledY = (int)(v * _brush.GetHeight());
-                            var color = ComputeColorFromBrush(sampledX, sampledY, bColor);
-                            if (color.A > .1f)
+                            foreach (var brush in _brushes)
                             {
-                                if (threadSafe)
-                                    lock (locks[bigX][bigY])
+                                var sampledX = (int)(u * brush.GetWidth());
+                                var sampledY = (int)(v * brush.GetHeight());
+                                var color = ComputeColorFromBrush(sampledX, sampledY, bColor, brush);
+                                if (color.A > .1f)
+                                {
+                                    if (threadSafe)
+                                        lock (locks[bigX][bigY])
+                                            target.SetPixel(bigX, bigY, color);
+                                    else
                                         target.SetPixel(bigX, bigY, color);
-                                else
-                                    target.SetPixel(bigX, bigY, color);
+                                }
                             }
                         }
                     }
@@ -119,14 +122,14 @@ public class Brush : IBrushPicker
         return lastPoint.coords.DistanceI(point.coords) > (dist * _spaceProportion);
     }
 
-    private Godot.Color ComputeColorFromBrush(int texX, int texY, Color lineColor)
+    private Godot.Color ComputeColorFromBrush(int texX, int texY, Color lineColor,Image brush)
     {
         var rdSize = (int)(_size * _randomOffset);
         texX += UnityEngine.Random.Range(-rdSize, rdSize);
         texY += UnityEngine.Random.Range(-rdSize, rdSize);
-        texX = Godot.Mathf.Clamp(texX, 0, _brush.GetWidth() - 1);
-        texY = Godot.Mathf.Clamp(texY, 0, _brush.GetHeight() - 1);
-        var brushColor = _brush.GetPixel(texX, texY);
+        texX = Godot.Mathf.Clamp(texX, 0, brush.GetWidth() - 1);
+        texY = Godot.Mathf.Clamp(texY, 0, brush.GetHeight() - 1);
+        var brushColor = brush.GetPixel(texX, texY);
         //We asssume brush is black on transparent, we want the fully black part to display the base color untouched, the brighter part (up to transparent) to dim a bit the base color
         Godot.Color invertedBrush = new(1f - brushColor.R, 1f - brushColor.G, 1f - brushColor.B, brushColor.A);
         var brushGS = (invertedBrush.R + invertedBrush.G + invertedBrush.B) / 3f;
