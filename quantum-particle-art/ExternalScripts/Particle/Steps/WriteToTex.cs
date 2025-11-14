@@ -110,8 +110,8 @@ public class WriteToTex : ParticleStep
             var start = line.Start.ToPixelCoord(_drawing);
             var end = line.End.ToPixelCoord(_drawing);
             var points = LineCollection.Line.GetPixels(start, end).ToArray(); //One enumeration
-            _brush.GetBrush(line.Specy).DrawWithBrush(_drawingImage, points, line.Color, line.RelativeWidth);
-            _brush.GetBrush(line.Specy).DrawWithBrush(_toSaveImage, points, line.Color, line.RelativeWidth);
+            _brush.GetBrush(line.Specy).DrawWithBrush(_drawingImage, points, line.Color,line.Specy, line.RelativeWidth);
+            _brush.GetBrush(line.Specy).DrawWithBrush(_toSaveImage, points, line.Color, line.Specy,line.RelativeWidth);
         }
 
         _lineCollection.Clear();

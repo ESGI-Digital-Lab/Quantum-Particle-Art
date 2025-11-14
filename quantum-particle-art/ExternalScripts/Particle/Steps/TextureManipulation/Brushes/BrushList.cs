@@ -15,6 +15,8 @@ public partial class BrushList : Resource, IBrushPicker
     private int _minStrokeSize = 1;
     [Export(PropertyHint.Range, "1,1000,1")]
     private int _maxStrokeSize = 10;
+    [Export]
+    private float _minSpaceBeetweenStrokes = .25f;
 
     [Export(PropertyHint.Range, "0,1000,1")]
     private float _lateBrushSizeMultiplier = 10;
@@ -31,7 +33,12 @@ public partial class BrushList : Resource, IBrushPicker
         return _brushesCache[specy];
     }
 
-    public void Init(int maxNbSpecies) => _brushesCache = BuildCache(maxNbSpecies);
+    public void Init(int maxNbSpecies)
+    {
+        _brushesCache = BuildCache(maxNbSpecies);
+        foreach(var b in _brushesCache)
+            b.Init(maxNbSpecies);
+    }
 
     private Brush[] BuildCache(int size)
     {
@@ -60,6 +67,6 @@ public partial class BrushList : Resource, IBrushPicker
         //    Debug.LogWarning("Small brush size for live drawing is " + smallBrushSize +
         //                     ", if performance is low consider increasing the live brush size divider from " +
         //                     _lateBrushSizeMultiplier + " to reach something closer to 1");
-        return new Brush(image.GetImage(), _minStrokeSize,smallBrushSize, _relativeRandomBrushOffset, brushName);
+        return new Brush(image.GetImage(), _minStrokeSize,smallBrushSize, _relativeRandomBrushOffset,_minSpaceBeetweenStrokes, brushName);
     }
 }

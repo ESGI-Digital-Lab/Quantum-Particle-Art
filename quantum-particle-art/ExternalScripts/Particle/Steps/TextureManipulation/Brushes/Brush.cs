@@ -14,15 +14,22 @@ public class Brush : IBrushPicker
     private int _size;
     private float _randomOffset = 0.1f;
     private string _name;
+    private float _spaceProportion;
+    public Brush GetBrush(int specy) => this;
 
+    public void Init(int maxNbSpecies)
+    {
+        _lastPoints = new();
+    }
 
-    public Brush(Image brush, int minSize, int size, float randomOffset, string name)
+    public Brush(Image brush, int minSize, int size, float randomOffset, float minSpace, string name)
     {
         _minSize = minSize;
         _size = size;
         _brush = brush;
         _randomOffset = randomOffset;
         _name = name;
+        _spaceProportion = minSpace;
     }
 
     public override string ToString()
@@ -31,13 +38,17 @@ public class Brush : IBrushPicker
                (_randomOffset > 0 ? "_" + _randomOffset : "");
     }
 
-    public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor,
+    public void DrawWithBrush(Image target, IEnumerable<Vector2Int> points, Color baseColor, object key,
         float strokeRelativeSize = 1f)
     {
-        DrawWithBrush(target, points.Select(p => new IBrushPicker.StrokePoint(p, baseColor, strokeRelativeSize)), null);
+        DrawWithBrush(target, points.Select(p => new IBrushPicker.StrokePoint(p, baseColor, strokeRelativeSize)), key,
+            null);
     }
 
-    public void DrawWithBrush(Image target, IEnumerable<IBrushPicker.StrokePoint> points, object[][] locks = null)
+    Dictionary<object, IBrushPicker.StrokePoint> _lastPoints = new();
+
+    public void DrawWithBrush(Image target, IEnumerable<IBrushPicker.StrokePoint> points, object key,
+        object[][] locks = null)
     {
         int width = target.GetWidth();
         int height = target.GetHeight();
@@ -52,6 +63,13 @@ public class Brush : IBrushPicker
             var finalWidth = (int)Godot.Mathf.Lerp(_minSize, _size, relSize) / 2;
             var totalSize = finalWidth * 2 + 1;
             var bColor = point.color;
+            if (_lastPoints.TryGetValue(key, out var last) && !Distance(last, point, finalWidth))
+            {
+                return;
+            }
+
+            _lastPoints[key] = point;
+
             for (int x = -finalWidth; x <= finalWidth; x++)
             {
                 for (int y = -finalWidth; y <= finalWidth; y++)
@@ -96,6 +114,11 @@ public class Brush : IBrushPicker
         }
     }
 
+    private bool Distance(IBrushPicker.StrokePoint lastPoint, IBrushPicker.StrokePoint point, int dist)
+    {
+        return lastPoint.coords.DistanceI(point.coords) > (dist * _spaceProportion);
+    }
+
     private Godot.Color ComputeColorFromBrush(int texX, int texY, Color lineColor)
     {
         var rdSize = (int)(_size * _randomOffset);
@@ -107,23 +130,17 @@ public class Brush : IBrushPicker
         //We asssume brush is black on transparent, we want the fully black part to display the base color untouched, the brighter part (up to transparent) to dim a bit the base color
         Godot.Color invertedBrush = new(1f - brushColor.R, 1f - brushColor.G, 1f - brushColor.B, brushColor.A);
         var brushGS = (invertedBrush.R + invertedBrush.G + invertedBrush.B) / 3f;
-        var gs = new Godot.Color(brushGS,brushGS,brushGS, invertedBrush.A*brushGS);
+        var gs = new Godot.Color(brushGS, brushGS, brushGS, invertedBrush.A * brushGS);
         var baseC = new Godot.Color(lineColor.r, lineColor.g, lineColor.b, lineColor.a);
-        #if FALSE //With some black grain added no matter the original trait
+#if FALSE //With some black grain added no matter the original trait
         baseC *= brushGS * invertedBrush.A;
-        #else //The brush has almost no impact the stroke points are too close
+#else //The brush has almost no impact the stroke points are too close
         baseC.A *= brushGS * invertedBrush.A;
-        #endif
+#endif
         //return new Godot.Color((1f - brushColor.R) * lineColor.r, (1f - brushColor.G) * lineColor.g,
         //    (1f - brushColor.B) * lineColor.b,
         //    brushColor.A * lineColor.a);
         return baseC;
         return baseC * invertedBrush;
-    }
-
-    public Brush GetBrush(int specy) => this;
-
-    public void Init(int maxNbSpecies)
-    {
     }
 }

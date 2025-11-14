@@ -14,7 +14,12 @@ public class LateWriteToTex : ParticleStep
 {
     private class ParticleHistory
     {
-        public record struct HistoryEntry(Vector2 position, Vector2 velocity, Godot.Color color, int specy, bool continuous);
+        public record struct HistoryEntry(
+            Vector2 position,
+            Vector2 velocity,
+            Godot.Color color,
+            int specy,
+            bool continuous);
 
         public int Count => _history.Count;
         private Dictionary<Particle, List<HistoryEntry>> _history = new();
@@ -31,7 +36,7 @@ public class LateWriteToTex : ParticleStep
         public void AddRecord(Particle p)
         {
             var entry = new HistoryEntry(p.NormalizedPosition, p.Orientation.Velocity,
-                _picker.GetColor(p, _nbSpecies),p.Species, !p.WrappedLastTick);
+                _picker.GetColor(p, _nbSpecies), p.Species, !p.WrappedLastTick);
             if (!_history.ContainsKey(p))
                 _history[p] = [entry];
             else
@@ -168,7 +173,7 @@ public class LateWriteToTex : ParticleStep
                                 _width.DetermineWidth(point.velocity * t + vel * (1 - t));
                             return new IBrushPicker.StrokePoint(coords, point.color * t + color * (1 - t), width);
                         });
-                        _brush.GetBrush(point.specy).DrawWithBrush(_base, sampled);
+                        _brush.GetBrush(point.specy).DrawWithBrush(_base, sampled, point);
                     }
 
                     pts = [point.position.ToSystemV2()];
