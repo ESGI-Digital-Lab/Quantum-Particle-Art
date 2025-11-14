@@ -88,11 +88,13 @@ public class ImageSender : ParticleStep
         //Send(Secret(Keys.DefaultTo), File.OpenRead(@"D:/Downloads/Black2048_times_2_final_8.png"),"Test mail with attachment");
     }
 
+    private bool _rearmed;
     public override async Task Init(WorldInitializer initializer)
     {
         await base.Init(initializer);
         _canSend = true;
-        _form.Visible = false;
+        _rearmed = true;
+        //_form.Visible = false;
     }
 
     public override Task HandleParticles(ParticleWorld entry, float delay)
@@ -103,7 +105,11 @@ public class ImageSender : ParticleStep
     public override void Release()
     {
         base.Release();
-        _form.Visible = true;
+        if (_rearmed)
+        {
+            _form.Visible = true;
+            _rearmed = false;
+        }
     }
 
     private bool Send(string mail)
