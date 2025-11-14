@@ -82,11 +82,11 @@ public class Orientation
 
 	public virtual void Teleport(Orientation to)
 	{
-		Assert.IsTrue(this.Owner._totalSpecies==to.Owner._totalSpecies && this.Owner.Species < this.Owner._totalSpecies && to.Owner.Species < this.Owner._totalSpecies,
-			() =>
-			{
-				return "Teleportation can only occur between particles of the same ruleset and valid species.";
-			});
+		if(!(this.Owner._totalSpecies==to.Owner._totalSpecies && this.Owner.Species < this.Owner._totalSpecies && to.Owner.Species < this.Owner._totalSpecies))
+		{
+			Debug.LogError("Teleportation can only occur between particles of the same ruleset and valid species.");
+			return;
+		}
 		to._teleportedFrom = this;
 		to._isTeleportationWaiting = true;
 	}
