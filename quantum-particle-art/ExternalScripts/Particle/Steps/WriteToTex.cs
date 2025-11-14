@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DefaultNamespace.Tools;
 using Godot;
 using NaughtyAttributes;
+using UnityEngine;
 using UnityEngine.Assertions;
 using Color = UnityEngine.Color;
 using Mathf = UnityEngine.Mathf;
@@ -16,6 +18,8 @@ public class WriteToTex : ParticleStep
 {
     private float _viewSize;
     private bool _autoHideOnDisposee;
+    private bool _drawGatesAtEnd;
+    private float _gateHintSizeMult;
 
     public float ViewSize
     {
@@ -25,9 +29,10 @@ public class WriteToTex : ParticleStep
 
     private Saver _saver;
     private LineCollection _lineCollection;
+    private IBrushPicker.StrokePoint[] _gates;
 
     public WriteToTex(Sprite2D renderer, float viewSize, Saver saver, LineCollection lineCollection, IBrushPicker brush,
-        bool autoHideOnDisposee)
+        bool autoHideOnDisposee, bool drawGatesAtEnd, float gateHintSizeMult)
     {
         _renderer = renderer;
         _saver = saver;
@@ -35,6 +40,8 @@ public class WriteToTex : ParticleStep
         _lineCollection = lineCollection;
         _brush = brush;
         _autoHideOnDisposee = autoHideOnDisposee;
+        _drawGatesAtEnd = drawGatesAtEnd;
+        _gateHintSizeMult = gateHintSizeMult;
         Hide();
     }
 
@@ -49,18 +56,7 @@ public class WriteToTex : ParticleStep
     private ImageTexture _drawing;
     private Color[] pixels;
     private readonly IBrushPicker _brush;
-
-    public void RefreshTex()
-    {
-        _toSave.SetImage(_toSaveImage);
-        _drawing.SetImage(_drawingImage);
-        _renderer.Texture = _toSave;
-    }
-
-    public void Hide()
-    {
-        View.CallDeferred(() => { _renderer.Visible = false; });
-    }
+    
 
     public override async Task Init(WorldInitializer init)
     {
@@ -88,18 +84,18 @@ public class WriteToTex : ParticleStep
         });
         //Debug.Log($"WriteToTex initialized on {_toSave.GetWidth()}x{_toSave.GetHeight()} texture with stroke size {_lineRadius}");
     }
-
-    public override void Release()
-    {
-        base.Release();
-        if (_autoHideOnDisposee)
-            Hide();
-        if (_saver != null)
-            _saver.SaveImageIfNotExists(out var _);
-    }
-
+    
     public override async Task HandleParticles(ParticleWorld entry, float delay)
     {
+        if (_gates == null)
+        {
+            _gates = entry.PointsOfInterest.Select(gp =>
+            {
+                var color = gp.Gate.Color;
+                color.A = 1f;
+                return new IBrushPicker.StrokePoint((gp.Center/entry.Size).ToPixelCoord(_toSave), color, _gateHintSizeMult);
+            }).ToArray();
+        }
         await Draw(entry);
     }
 
@@ -110,12 +106,44 @@ public class WriteToTex : ParticleStep
             var start = line.Start.ToPixelCoord(_drawing);
             var end = line.End.ToPixelCoord(_drawing);
             var points = LineCollection.Line.GetPixels(start, end).ToArray(); //One enumeration
-            _brush.GetBrush(line.Specy).DrawWithBrush(_drawingImage, points, line.Color,line.Specy, line.RelativeWidth);
-            _brush.GetBrush(line.Specy).DrawWithBrush(_toSaveImage, points, line.Color, line.Specy,line.RelativeWidth);
+            _brush.GetBrush(line.Specy)
+                .DrawWithBrush(_drawingImage, points, line.Color, line.Specy, line.RelativeWidth);
+            _brush.GetBrush(line.Specy).DrawWithBrush(_toSaveImage, points, line.Color, line.Specy, line.RelativeWidth);
         }
 
         _lineCollection.Clear();
         View.CallDeferred(RefreshTex);
         return Task.CompletedTask;
+    }
+    
+    public void RefreshTex()
+    {
+        _toSave.SetImage(_toSaveImage);
+        _drawing.SetImage(_drawingImage);
+        _renderer.Texture = _toSave;
+        Debug.Log("Refreshed");
+    }
+
+    public void Hide()
+    {
+        View.CallDeferred(() => { _renderer.Visible = false; });
+    }
+    public override void Release()
+    {
+        base.Release();
+        if (_drawGatesAtEnd)
+            AddGates();
+        if (_autoHideOnDisposee)
+            Hide();
+        if (_saver != null)
+            _saver.SaveImageIfNotExists(out var _);
+        _gates = null;
+    }
+
+    private void AddGates()
+    {
+        _brush.GetBrush(0).DrawWithBrush(_toSaveImage, _gates, null, null);
+        View.CallDeferred(RefreshTex);
+        Debug.Log("Finished adding gates");
     }
 }
