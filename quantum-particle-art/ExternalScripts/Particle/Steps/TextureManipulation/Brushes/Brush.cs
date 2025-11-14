@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -9,17 +10,18 @@ using Color = UnityEngine.Color;
 public class Brush : IBrushPicker
 {
     private Image _brush;
+    private int _minSize;
     private int _size;
     private float _randomOffset = 0.1f;
     private string _name;
 
 
-    public Brush(Image brush, int size, float randomOffset, string name)
+    public Brush(Image brush, int minSize, int size, float randomOffset, string name)
     {
+        _minSize = minSize;
         _size = size;
         _brush = brush;
         _randomOffset = randomOffset;
-        _brush.Resize(size, size);
         _name = name;
     }
 
@@ -46,7 +48,9 @@ public class Brush : IBrushPicker
 
         void Body(IBrushPicker.StrokePoint point, bool threadSafe)
         {
-            var finalWidth = (int)(point.relativeSize * _brush.GetWidth() / 2);
+            var relSize = point.relativeSize;
+            var finalWidth = (int)Godot.Mathf.Lerp(_minSize, _size, relSize) / 2;
+            var totalSize = finalWidth * 2 + 1;
             var bColor = point.color;
             for (int x = -finalWidth; x <= finalWidth; x++)
             {
@@ -59,8 +63,13 @@ public class Brush : IBrushPicker
                         if (bigX >= 0 && bigX < width && bigY >= 0 &&
                             bigY < height)
                         {
-                            var color = ComputeColorFromBrush(x + finalWidth, y + finalWidth, bColor);
-                            if (color.A > .001f)
+                            //Manually converting UV to a raw uninterpolated pixel position
+                            var u = (x + finalWidth) / (1f * totalSize);
+                            var v = (y + finalWidth) / (1f * totalSize);
+                            var sampledX = (int)(u * _brush.GetWidth());
+                            var sampledY = (int)(v * _brush.GetHeight());
+                            var color = ComputeColorFromBrush(sampledX, sampledY, bColor);
+                            if (color.A > .1f)
                             {
                                 if (threadSafe)
                                     lock (locks[bigX][bigY])
@@ -96,11 +105,25 @@ public class Brush : IBrushPicker
         texY = Godot.Mathf.Clamp(texY, 0, _brush.GetHeight() - 1);
         var brushColor = _brush.GetPixel(texX, texY);
         //We asssume brush is black on transparent, we want the fully black part to display the base color untouched, the brighter part (up to transparent) to dim a bit the base color
-        return new Godot.Color((1f - brushColor.R) * lineColor.r, (1f - brushColor.G) * lineColor.g,
-            (1f - brushColor.B) * lineColor.b,
-            brushColor.A * lineColor.a);
+        Godot.Color invertedBrush = new(1f - brushColor.R, 1f - brushColor.G, 1f - brushColor.B, brushColor.A);
+        var brushGS = (invertedBrush.R + invertedBrush.G + invertedBrush.B) / 3f;
+        var gs = new Godot.Color(brushGS,brushGS,brushGS, invertedBrush.A*brushGS);
+        var baseC = new Godot.Color(lineColor.r, lineColor.g, lineColor.b, lineColor.a);
+        #if FALSE //With some black grain added no matter the original trait
+        baseC *= brushGS * invertedBrush.A;
+        #else //The brush has almost no impact the stroke points are too close
+        baseC.A *= brushGS * invertedBrush.A;
+        #endif
+        //return new Godot.Color((1f - brushColor.R) * lineColor.r, (1f - brushColor.G) * lineColor.g,
+        //    (1f - brushColor.B) * lineColor.b,
+        //    brushColor.A * lineColor.a);
+        return baseC;
+        return baseC * invertedBrush;
     }
 
     public Brush GetBrush(int specy) => this;
-    public void Init(int maxNbSpecies) { }
+
+    public void Init(int maxNbSpecies)
+    {
+    }
 }

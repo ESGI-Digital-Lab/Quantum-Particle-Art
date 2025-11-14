@@ -10,6 +10,7 @@ using UnityEngine.Assertions;
 using UnityEngine.ExternalScripts.Particle.Genetics;
 using UnityEngine.ExternalScripts.Particle.Simulation;
 using UnityEngine.ExternalScripts.Particle.Steps;
+using UnityEngine.ExternalScripts.Particle.Steps.TextureManipulation.Brushes;
 
 namespace UnityEngine;
 
@@ -70,15 +71,7 @@ public partial class GodotEntry : Node
     [Export] private Godot.Collections.Array<float> _saveThreholds;
 
     [ExportSubgroup("Stroke settings")] [Export]
-    private CompressedTexture2D _brush;
-
-    [Export(PropertyHint.Range, "0,1000,1")]
-    private int _maxStrokeSize = 10;
-
-    [Export(PropertyHint.Range, "0,1000,1")]
-    private float _liveBrushSizeDivider = 10;
-
-    [Export] private float _relativeRandomBrushOffset = 0.1f;
+    private BrushList _brushList;
 
     [Export] private int _curveRes = 1000;
 
@@ -359,20 +352,13 @@ public partial class GodotEntry : Node
                 lineCollection.AddLine(liner.CreateLine(data));
                 //Debug.Log("Speed : "+ info.particle.Orientation.NormalizedSpeed);
             };
-            var brushName = _brush.FileName(); //Last part without extension
-            var smallBrushSize = Math.Max(1, (int)(_maxStrokeSize / _liveBrushSizeDivider));
-            if (smallBrushSize > 2)
-                Debug.LogWarning("Small brush size for live drawing is " + smallBrushSize +
-                                 ", if performance is low consider increasing the live brush size divider from " +
-                                 _liveBrushSizeDivider + " to reach something closer to 1");
-            var smallBrush = new Brush(_brush.GetImage(), smallBrushSize, _relativeRandomBrushOffset, brushName);
             if (_drawLive)
             {
                 var saver = _saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null;
                 _write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
                     saver,
                     lineCollection,
-                    smallBrush, _mode != Mode.Live);
+                    _brushList, _mode != Mode.Live);
                 psteps.Add(_write);
                 disposeAsap.Add(_write);
                 if (_saveLastFrame && _sendSavedFrame)
@@ -385,8 +371,7 @@ public partial class GodotEntry : Node
 
             if (_drawLate)
             {
-                var detailledBrush =
-                    new IBrushPicker(_brush.GetImage(), _maxStrokeSize, _relativeRandomBrushOffset, brushName);
+                var detailledBrush = _brushList.CreateDetailled();
                 IWidther widther = new ToggleLiner(_dynamicMax);
                 var lateWrite = new LateWriteToTex(_saveLastFrame || true
                     ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved/Late"))
@@ -409,6 +394,7 @@ public partial class GodotEntry : Node
     {
         var ratio = init.Ratio;
         var viewScale = WorldSize(_viewportSizeInWindow, ratio);
+        _brushList.Init(init.Rules.NbSpecies);
         _space.Scale = viewScale;
         if (_write != null)
             _write.ViewSize = viewScale.y;
