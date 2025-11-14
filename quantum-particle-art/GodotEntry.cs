@@ -239,7 +239,8 @@ public partial class GodotEntry : Node
                 GetTree().AutoAcceptQuit = false;
                 OnEscape += () =>
                 {
-                    if (!sender.OnEscapePressed())
+                    var wasPanelOpened = sender.OnEscapePressed();
+                    if (!wasPanelOpened)
                     {
                         var t = GetTree();
                         t.Root.PropagateNotification((int)NotificationWMCloseRequest);
