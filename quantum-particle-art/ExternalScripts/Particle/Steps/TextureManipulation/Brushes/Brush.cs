@@ -66,12 +66,13 @@ public class Brush : IBrushPicker
             var finalWidth = (int)Godot.Mathf.Lerp(_minSize, _size, relSize) / 2;
             var totalSize = finalWidth * 2 + 1;
             var bColor = point.color;
-            if (_lastPoints.TryGetValue(key, out var last) && !Distance(last, point, finalWidth))
+            if (key != null && _lastPoints.TryGetValue(key, out var last) && !Distance(last, point, finalWidth))
             {
                 return;
             }
 
-            _lastPoints[key] = point;
+            if (key != null)
+                _lastPoints[key] = point;
 
             for (int x = -finalWidth; x <= finalWidth; x++)
             {
