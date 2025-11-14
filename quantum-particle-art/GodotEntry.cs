@@ -73,11 +73,16 @@ public partial class GodotEntry : Node
     [ExportSubgroup("Stroke settings")] [Export]
     private BrushList _brushList;
 
+    
+    [Export] private bool _drawGatesAtEnd = true;
+    [Export] private float _gateHintSizeMult = 1f;
     [Export] private int _curveRes = 1000;
 
     [Export] private float _sineFrequency;
 
-    [ExportSubgroup("Type of stroke")] [Export]
+    [ExportSubgroup("Type of stroke")] 
+    
+    [Export]
     private bool _squareStrokeOverCircle = false;
 
     [Export] private bool _useSpeed;
@@ -359,7 +364,7 @@ public partial class GodotEntry : Node
                 _write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
                     saver,
                     lineCollection,
-                    _brushList, _mode != Mode.Live);
+                    _brushList, _mode != Mode.Live, _drawGatesAtEnd, _gateHintSizeMult);
                 psteps.Add(_write);
                 disposeAsap.Add(_write);
                 if (_saveLastFrame && _sendSavedFrame)
