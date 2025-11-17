@@ -1,4 +1,4 @@
-[gd_scene load_steps=79 format=3 uid="uid://ctih7i2xfrdfg"]
+[gd_scene load_steps=80 format=3 uid="uid://ctih7i2xfrdfg"]
 
 [ext_resource type="Script" uid="uid://cn7s12tw5aco" path="res://GodotEntry.cs" id="1_lrx72"]
 [ext_resource type="ColorPalette" uid="uid://mu10xmv4m274" path="res://Visuals/Colors/Aurora8.tres" id="2_0qkf8"]
@@ -229,6 +229,8 @@ _specyIndex = -1
 _velocityScale = 10.0
 metadata/_custom_type_script = "uid://du5t3gslnr3np"
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6gyo4"]
+
 [node name="Particles" type="Node3D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -331,7 +333,7 @@ offset_bottom = -450.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_clear", "_submit", "_close")]
+[node name="Panel" type="Control" parent="UI" node_paths=PackedStringArray("_root", "_inputField", "_clear", "_submit", "_close", "_openGpdr", "_gpdr", "_closeGpdr")]
 layout_mode = 1
 anchor_left = 0.2
 anchor_top = 0.3
@@ -345,6 +347,9 @@ _inputField = NodePath("MiddleCenter/LineEdit")
 _clear = NodePath("2 Buttons/Clear")
 _submit = NodePath("2 Buttons/Submit")
 _close = NodePath("2 Buttons/Cancel")
+_openGpdr = NodePath("UnderText/RichTextLabel/GPDR")
+_gpdr = NodePath("Foreground")
+_closeGpdr = NodePath("Foreground/1 button/Button")
 _error = Color(0.74902, 0, 0, 1)
 
 [node name="BG" type="Panel" parent="UI/Panel"]
@@ -373,9 +378,9 @@ text = "Get your image !"
 [node name="MiddleCenter" type="CenterContainer" parent="UI/Panel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.3
+anchor_top = 0.4
 anchor_right = 1.0
-anchor_bottom = 0.7
+anchor_bottom = 0.6
 offset_top = -5.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -387,23 +392,34 @@ theme = ExtResource("41_bwfut")
 placeholder_text = "email@domain.com"
 expand_to_text_length = true
 
-[node name="1 button" type="CenterContainer" parent="UI/Panel"]
-visible = false
+[node name="UnderText" type="CenterContainer" parent="UI/Panel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.8
+anchor_top = 0.6
+anchor_right = 1.0
+anchor_bottom = 0.75
+offset_bottom = 3.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="UI/Panel/UnderText"]
+custom_minimum_size = Vector2(51, 30)
+layout_mode = 2
+bbcode_enabled = true
+text = "[u]GPDR[/u]"
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false
+
+[node name="GPDR" type="Button" parent="UI/Panel/UnderText/RichTextLabel"]
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 10.0
-offset_bottom = -10.0
 grow_horizontal = 2
-grow_vertical = 0
-
-[node name="Button" type="Button" parent="UI/Panel/1 button"]
-custom_minimum_size = Vector2(250, 0)
-layout_mode = 2
+grow_vertical = 2
 theme = ExtResource("41_bwfut")
-text = "Submit"
+theme_override_font_sizes/font_size = 15
 
 [node name="2 Buttons" type="HBoxContainer" parent="UI/Panel"]
 layout_mode = 1
@@ -411,7 +427,6 @@ anchors_preset = -1
 anchor_top = 0.8
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 10.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -435,3 +450,52 @@ custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 theme = ExtResource("41_bwfut")
 text = "Leave"
+
+[node name="Foreground" type="Panel" parent="UI/Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("41_bwfut")
+theme_override_styles/panel = SubResource("StyleBoxFlat_6gyo4")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/Panel/Foreground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="UI/Panel/Foreground/ScrollContainer"]
+custom_minimum_size = Vector2(960, 360)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+theme_override_font_sizes/font_size = 25
+text = "Privacy notice:
+We collect your email address solely to send you the image you generated.
+The address and image is processed under the legal basis of performing the service you requested and is deleted immediately after the email is sent.
+The email is sent via Gmail SMTP, which processes your email address and content strictly for delivering the message.
+Since we do not retain any personal data, there is no data available for later access or deletion requests."
+autowrap_mode = 2
+clip_text = true
+
+[node name="1 button" type="CenterContainer" parent="UI/Panel/Foreground"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.8
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -15.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Button" type="Button" parent="UI/Panel/Foreground/1 button"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme = ExtResource("41_bwfut")
+text = "Close"

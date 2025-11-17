@@ -9,11 +9,19 @@ public partial class Form : Control
     [Export] private Button _clear;
     [Export] private Button _submit;
     [Export] private Button _close;
+    [ExportGroup("GDPR")] [Export] private Button _openGpdr;
+    [Export] private Control _gpdr;
+    [Export] private Button _closeGpdr;
     [ExportGroup("Settings")] [Export] private bool _visibleOnStart = false;
     [Export] private Color _error;
     [Export] private string _textColorKey = "font_color";
     public event System.Action<string> OnSubmit;
     public event System.Action OnExit;
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+        CloseGPDR();
+    }
 
     public override void _Ready()
     {
@@ -27,6 +35,17 @@ public partial class Form : Control
         };
         _close.Pressed += () => { Exit(); };
         _clear.Pressed += () => { _inputField.Clear(); };
+        _openGpdr.Pressed += () =>
+        {
+            _gpdr.Visible = true;
+            _closeGpdr.GrabFocus();
+        };
+        _closeGpdr.Pressed += () => { CloseGPDR(); };
+    }
+
+    private void CloseGPDR()
+    {
+        _gpdr.Visible = false;
     }
 
 
@@ -34,9 +53,14 @@ public partial class Form : Control
     {
         if (_root.Visible)
         {
-            _root.Visible = false;
-            _inputField.Clear();
-            OnExit?.Invoke();
+            if (_gpdr.Visible)
+                CloseGPDR();
+            else
+            {
+                _root.Visible = false;
+                _inputField.Clear();
+                OnExit?.Invoke();
+            }
         }
     }
 
@@ -69,6 +93,7 @@ public partial class Form : Control
     {
         if (!_root.Visible)
         {
+            CloseGPDR();
             _root.Visible = true;
             _inputField.GrabFocus();
         }
