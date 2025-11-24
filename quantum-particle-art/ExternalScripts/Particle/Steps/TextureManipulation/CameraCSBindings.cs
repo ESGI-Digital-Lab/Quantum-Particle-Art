@@ -1,8 +1,9 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Godot;
-using UnityEngine;
 using UnityEngine.Assertions;
+using Debug = UnityEngine.Debug;
 
 public partial class CameraCSBindings : Node
 {
@@ -181,8 +182,21 @@ public partial class CameraCSBindings : Node
 			if (_peer == null || !_peer.IsBound())
 			{
 				Debug.LogError(
-					"Peer not bound, probably an already running process which occupied the port and we didn't manage to connect to it, you can kill all python process using powershell command : ");
-				Debug.LogError("Get-Process python | Stop-Process -force");
+					"Peer not bound, probably an already running process which occupied the port and we didn't manage to connect to it, force killing any process connected through udp to this port and restarting server");
+				var p = new Process()
+				{
+					StartInfo = new ProcessStartInfo
+					{
+						FileName = "powershell.exe",
+						Arguments =
+							$"Stop-Process -Id ((netstat -ano -p udp | findstr :{port}) -split '\\s+')[-1] -Force",
+						CreateNoWindow = true,
+						UseShellExecute = false
+					}
+				};
+				p.Exited += (s, a) => _python.CallPython(Debug.Log);
+				p.Start();
+				//Debug.LogError("Get-Process python | Stop-Process -force");
 			}
 			else
 			{
