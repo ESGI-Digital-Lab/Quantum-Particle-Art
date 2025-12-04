@@ -299,8 +299,10 @@ texture = ExtResource("10_8ns5o")
 
 [node name="PythonRoot" type="Node" parent="."]
 script = ExtResource("8_sph3f")
+_cameraID = 1
 _fps = 60
 _chunksPerFrame = 25
+_resolution = Vector2i(3840, 2160)
 _requireAck = true
 _readBuffer = 1024
 _pythonInterpreter = ".venv\\Scripts\\python.exe"
