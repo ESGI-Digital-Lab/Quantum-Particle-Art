@@ -31,8 +31,8 @@ public class ImageSender : ParticleStep
         }
 
         return false;
-    } 
-        
+    }
+
     enum Keys
     {
         Host = 0,
@@ -89,6 +89,7 @@ public class ImageSender : ParticleStep
     }
 
     private bool _rearmed;
+
     public override async Task Init(WorldInitializer initializer)
     {
         await base.Init(initializer);
@@ -151,12 +152,13 @@ public class ImageSender : ParticleStep
         {
             Text = _settings.body
         });
+        var time = DateTime.Now;
         fullBody.Add(new MimePart("image", "png")
         {
             Content = new MimeContent(attachement),
             ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
             ContentTransferEncoding = ContentEncoding.Base64,
-            FileName = name
+            FileName = $"portrait_{time.Hour}_{time.Minute}.png"
         });
         message.Body = fullBody;
         try
