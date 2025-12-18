@@ -361,15 +361,15 @@ public partial class GodotEntry : Node
 			if (_drawLive)
 			{
 				var saver = _saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null;
+				var saver2 = _saveLastFrame ? new Saver(ProjectSettings.GlobalizePath("res://Visuals/Saved")) : null;
 				_write = new WriteToTex(_display, WorldSize(_viewportSizeInWindow, ratio).y,
-					saver,
 					lineCollection,
-					_brushList, _mode != Mode.Live, _drawGatesAtEnd, _gateHintSizeMult);
+					_brushList, _mode != Mode.Live, _drawGatesAtEnd, _gateHintSizeMult, saver);
 				psteps.Add(_write);
 				disposeAsap.Add(_write);
 				if (_saveLastFrame && _sendSavedFrame)
 				{
-					sender = new ImageSender(saver, _form, _mail);
+					sender = new ImageSender(_form, _mail, saver,saver2);
 					psteps.Add(sender);
 					disposeAsap.Add(sender);
 				}

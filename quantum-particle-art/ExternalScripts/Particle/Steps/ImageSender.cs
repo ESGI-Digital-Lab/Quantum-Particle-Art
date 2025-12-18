@@ -15,7 +15,7 @@ namespace UnityEngine.ExternalScripts.Particle.Steps;
 public class ImageSender : ParticleStep
 {
     [Export] private Form _form;
-    private Saver _saver;
+    private Saver[] _saver;
     private bool _canSend = false; //Is set to true on init, and consumed once on release until next init
     private MailSettings _settings;
 
@@ -47,7 +47,7 @@ public class ImageSender : ParticleStep
 
     private string Secret(Keys key) => secrets[_keys[(int)key]];
 
-    public ImageSender(Saver saver, Form form, MailSettings settings)
+    public ImageSender(Form form, MailSettings settings, params Saver[] saver)
     {
         _settings = settings;
         _form = form;
@@ -117,26 +117,32 @@ public class ImageSender : ParticleStep
     {
         if (_canSend)
         {
-            _saver.SaveImageIfNotExists(out var saved);
+            List<FileInfo> files = new();
+            foreach (var sav in _saver)
+            {
+                sav.SaveImageIfNotExists(out var saved);
+                files.Add(saved);
+            }
+
             if (string.IsNullOrEmpty(mail))
             {
                 mail = Secret(Keys.DefaultTo);
                 Debug.Log(
                     $"Null or empty mail got from field, falling back to default mail {mail} specified in secrets");
-            }
 
-            if (Send(mail, File.OpenRead(saved.FullName), _saver.Name))
-            {
-                Debug.Log($"Sent image {saved.Name} in {saved.Directory}");
-                _canSend = false;
-                return true;
+                if (Send(mail, files.Select(f => File.OpenRead(f.FullName))))
+                {
+                    //Debug.Log($"Sent image {saved[0].Name} in {saved.Directory}");
+                    _canSend = false;
+                    return true;
+                }
             }
         }
 
         return false;
     }
 
-    public bool Send(string to, FileStream attachement, string name)
+    public bool Send(string to, IEnumerable<FileStream> attachements)
     {
         var server = Secret(Keys.Host);
         var user = Secret(Keys.User);
@@ -153,13 +159,19 @@ public class ImageSender : ParticleStep
             Text = _settings.body
         });
         var time = DateTime.Now;
-        fullBody.Add(new MimePart("image", "png")
+        int i = 1;
+        foreach (var attachement in attachements)
         {
-            Content = new MimeContent(attachement),
-            ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
-            ContentTransferEncoding = ContentEncoding.Base64,
-            FileName = $"portrait_{time.Hour}_{time.Minute}.png"
-        });
+            fullBody.Add(new MimePart("image", "png")
+            {
+                Content = new MimeContent(attachement),
+                ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                ContentTransferEncoding = ContentEncoding.Base64,
+                FileName = $"portrait_v{i}_{time.Hour}_{time.Minute}.png"
+            });
+            i++;
+        }
+
         message.Body = fullBody;
         try
         {
