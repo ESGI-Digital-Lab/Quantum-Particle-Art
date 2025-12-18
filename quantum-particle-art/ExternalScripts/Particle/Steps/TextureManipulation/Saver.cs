@@ -1,67 +1,71 @@
+using System.Collections.Generic;
 using System.IO;
 using Godot;
 using UnityEngine;
 
 public class Saver
 {
-	private string _path;
-	private string _name;
-	private Image _image;
-	private FileInfo _saved;
+    private string _path;
+    private string _name;
+    private Image _image;
+    private List<FileInfo> _saved;
 
-	public Saver(string path)
-	{
-		_path = path;
-	}
+    public Saver(string path)
+    {
+        _path = path;
+    }
 
-	public string Name => _name;
-	public Image Image => _image;
-	public void Init(Image image, string name)
-	{
-		this._image = image;
-		this._name = name;
-		_saved = null;
-	}
+    public string Name => _name;
+    public Image Image => _image;
 
-	private string UniquePath(out int freeIndex, string addon = "", string ext = "mp4")
-	{
-		string finalPath;
-		freeIndex = 0;
-		do
-		{
-			finalPath = IndexedPath(addon, freeIndex, ext);
-			freeIndex++;
-		} while (File.Exists(finalPath));
+    public void Init(Image image, string name)
+    {
+        this._image = image;
+        this._name = name;
+        _saved = new();
+    }
 
-		freeIndex--;
-		return finalPath;
-	}
+    private string UniquePath(out int freeIndex, string addon = "", string ext = "mp4")
+    {
+        string finalPath;
+        freeIndex = 0;
+        do
+        {
+            finalPath = IndexedPath(addon, freeIndex, ext);
+            freeIndex++;
+        } while (File.Exists(finalPath));
 
-	private string IndexedPath(string addon, int forceIndex, string ext)
-	{
-		string root = _path;
-		if (File.Exists(root))
-			throw new System.Exception("File " + root +
-									   " already exists! Delete or rename this file, it's base file doesn't exist anymore which means the naming is broken.");
-		return root + '/' + _name + "_" + addon + "_" + forceIndex + "." + ext;
-	}
+        freeIndex--;
+        return finalPath;
+    }
+
+    private string IndexedPath(string addon, int forceIndex, string ext)
+    {
+        string root = _path;
+        if (File.Exists(root))
+            throw new System.Exception("File " + root +
+                                       " already exists! Delete or rename this file, it's base file doesn't exist anymore which means the naming is broken.");
+        return root + '/' + _name + "_" + addon + "_" + forceIndex + "." + ext;
+    }
 
 
-	public bool SaveImageIfNotExists(out FileInfo saved, string addon="")
-	{
-		saved = _saved;
-		if (_saved != null)
-			return false;//Should be reseted on init before resaving, returning already saved file
-		_name += addon;
-		var full = UniquePath(out int _, "final", "png");
-		using (FileStream fs = new FileStream(full, FileMode.Create))
-		{
-			fs.Write(_image.SavePngToBuffer());
-		}
-		_saved = new FileInfo(full);
-		saved = _saved;
-		Debug.Log("Saved png to \n" + full + "\n"
-				  + ProjectSettings.LocalizePath(full));
-		return true;
-	}
+    public bool SaveImageIfNotExists(out List<FileInfo> saved, string addon = "", bool force = false)
+    {
+        saved = _saved;
+        if (!force && _saved.Count!=0)
+            return false; //Should be reseted on init before resaving, returning already saved file
+        _name += addon;
+        var full = UniquePath(out int _, "final", "png");
+        using (FileStream fs = new FileStream(full, FileMode.Create))
+        {
+            fs.Write(_image.SavePngToBuffer());
+        }
+
+        var newOne = new FileInfo(full);
+        _saved.Add(newOne);
+        saved = _saved;
+        Debug.Log("Saved png to \n" + full + "\n"
+                  + ProjectSettings.LocalizePath(full));
+        return true;
+    }
 }

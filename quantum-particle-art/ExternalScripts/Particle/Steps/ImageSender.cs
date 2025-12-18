@@ -15,7 +15,7 @@ namespace UnityEngine.ExternalScripts.Particle.Steps;
 public class ImageSender : ParticleStep
 {
     [Export] private Form _form;
-    private Saver[] _saver;
+    private Saver _saver;
     private bool _canSend = false; //Is set to true on init, and consumed once on release until next init
     private MailSettings _settings;
 
@@ -47,7 +47,7 @@ public class ImageSender : ParticleStep
 
     private string Secret(Keys key) => secrets[_keys[(int)key]];
 
-    public ImageSender(Form form, MailSettings settings, params Saver[] saver)
+    public ImageSender(Form form, MailSettings settings, Saver saver)
     {
         _settings = settings;
         _form = form;
@@ -117,25 +117,20 @@ public class ImageSender : ParticleStep
     {
         if (_canSend)
         {
-            List<FileInfo> files = new();
-            foreach (var sav in _saver)
-            {
-                sav.SaveImageIfNotExists(out var saved);
-                files.Add(saved);
-            }
+            _saver.SaveImageIfNotExists(out var saved);
 
             if (string.IsNullOrEmpty(mail))
             {
                 mail = Secret(Keys.DefaultTo);
                 Debug.Log(
                     $"Null or empty mail got from field, falling back to default mail {mail} specified in secrets");
+            }
 
-                if (Send(mail, files.Select(f => File.OpenRead(f.FullName))))
-                {
-                    //Debug.Log($"Sent image {saved[0].Name} in {saved.Directory}");
-                    _canSend = false;
-                    return true;
-                }
+            if (Send(mail, saved.Select(f => File.OpenRead(f.FullName))))
+            {
+                //Debug.Log($"Sent image {saved[0].Name} in {saved.Directory}");
+                _canSend = false;
+                return true;
             }
         }
 

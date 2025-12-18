@@ -131,12 +131,16 @@ public class WriteToTex : ParticleStep
     public override void Release()
     {
         base.Release();
-        if (_drawGatesAtEnd && _gates != null)
-            AddGates();
         if (_autoHideOnDisposee)
             Hide();
         if (_saver != null)
             _saver.SaveImageIfNotExists(out var _);
+        if (_drawGatesAtEnd && _gates != null)
+        {
+            AddGates();
+            if (_saver != null)
+                _saver.SaveImageIfNotExists(out _, "gates", true);
+        }
         _gates = null;
     }
 
